@@ -24,7 +24,7 @@ export default function InputField({
           style={{
             fontSize: '13px',
             fontWeight: '500',
-            color: '#374151',
+            color: 'var(--text-secondary)',
             letterSpacing: '0.01em',
           }}
         >
@@ -38,15 +38,15 @@ export default function InputField({
             ? '0 0 0 2px rgba(239,68,68,0.40)'
             : focused
             ? '0 0 0 3px rgba(124,58,237,0.18)'
-            : '0 0 0 1px #e4e7ec',
+            : '0 0 0 1px var(--border)',
         }}
         transition={{ duration: 0.15 }}
         style={{
           display: 'flex',
           alignItems: 'center',
           borderRadius: '10px',
-          background: focused ? '#ffffff' : '#f9fafb',
-          border: `1.5px solid ${error ? 'rgba(239,68,68,0.5)' : focused ? 'rgba(124,58,237,0.4)' : '#e4e7ec'}`,
+          background: focused ? 'var(--input-bg-focus)' : 'var(--input-bg)',
+          border: `1.5px solid ${error ? 'rgba(239,68,68,0.5)' : focused ? 'rgba(124,58,237,0.4)' : 'var(--input-border)'}`,
           transition: 'border-color 0.15s, background 0.15s',
           overflow: 'hidden',
         }}
@@ -66,7 +66,7 @@ export default function InputField({
             background: 'transparent',
             border: 'none',
             outline: 'none',
-            color: '#111827',
+            color: 'var(--text-primary)',
             fontSize: '15px',
             lineHeight: '1.4',
           }}
@@ -80,7 +80,7 @@ export default function InputField({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: '#9ca3af',
+              color: 'var(--text-muted)',
               display: 'flex',
               alignItems: 'center',
             }}

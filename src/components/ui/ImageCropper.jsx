@@ -51,7 +51,7 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
         onClick={(e) => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: '520px',
-          background: '#fff', borderRadius: '18px',
+          background: 'var(--card-bg)', borderRadius: '18px',
           boxShadow: '0 24px 80px rgba(0,0,0,0.3)',
           overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
@@ -61,13 +61,13 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '16px 20px',
-          borderBottom: '1px solid #f3f4f6',
+          borderBottom: '1px solid var(--divider)',
         }}>
           <div>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', margin: 0 }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
               Adjust {label}
             </h3>
-            <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0, marginTop: '2px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
               Drag to reposition · scroll or pinch to zoom
             </p>
           </div>
@@ -75,9 +75,9 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
             onClick={onCancel}
             style={{
               width: '30px', height: '30px', borderRadius: '50%',
-              border: 'none', background: '#f3f4f6',
+              border: 'none', background: 'var(--surface-2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#6b7280',
+              cursor: 'pointer', color: 'var(--text-secondary)',
             }}
           >
             <X size={15} />
@@ -117,33 +117,33 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {/* Zoom slider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <ZoomOut size={15} color="#9ca3af" />
+            <ZoomOut size={15} color="var(--text-muted)" />
             <input
               type="range"
               min={1} max={3} step={0.05}
               value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
               style={{
-                flex: 1, accentColor: '#7c3aed', height: '4px', cursor: 'pointer',
+                flex: 1, accentColor: 'var(--accent)', height: '4px', cursor: 'pointer',
               }}
             />
-            <ZoomIn size={15} color="#9ca3af" />
-            <span style={{ fontSize: '12px', color: '#9ca3af', minWidth: '36px', textAlign: 'right' }}>
+            <ZoomIn size={15} color="var(--text-muted)" />
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)', minWidth: '36px', textAlign: 'right' }}>
               {Math.round(zoom * 100)}%
             </span>
           </div>
 
           {/* Rotation slider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <RotateCcw size={14} color="#9ca3af" />
+            <RotateCcw size={14} color="var(--text-muted)" />
             <input
               type="range"
               min={-45} max={45} step={1}
               value={rotation}
               onChange={(e) => setRotation(Number(e.target.value))}
-              style={{ flex: 1, accentColor: '#7c3aed', height: '4px', cursor: 'pointer' }}
+              style={{ flex: 1, accentColor: 'var(--accent)', height: '4px', cursor: 'pointer' }}
             />
-            <span style={{ fontSize: '12px', color: '#9ca3af', minWidth: '36px', textAlign: 'right' }}>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)', minWidth: '36px', textAlign: 'right' }}>
               {rotation > 0 ? `+${rotation}` : rotation}°
             </span>
             <button
@@ -151,8 +151,8 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
               disabled={rotation === 0}
               style={{
                 fontSize: '11px', padding: '3px 8px', borderRadius: '5px',
-                border: '1px solid #e4e7ec', background: 'transparent',
-                color: '#9ca3af', cursor: rotation === 0 ? 'default' : 'pointer',
+                border: '1px solid var(--border)', background: 'transparent',
+                color: 'var(--text-muted)', cursor: rotation === 0 ? 'default' : 'pointer',
               }}
             >
               Reset
@@ -165,8 +165,8 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
               onClick={onCancel}
               style={{
                 padding: '9px 18px', borderRadius: '9px',
-                border: '1.5px solid #e4e7ec', background: 'transparent',
-                fontSize: '13px', fontWeight: '500', color: '#6b7280', cursor: 'pointer',
+                border: '1.5px solid var(--border)', background: 'transparent',
+                fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', cursor: 'pointer',
               }}
             >
               Cancel
@@ -178,7 +178,7 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '9px 22px', borderRadius: '9px', border: 'none',
-                background: '#7c3aed', color: '#fff',
+                background: 'var(--accent)', color: '#fff',
                 fontSize: '13px', fontWeight: '600',
                 cursor: applying ? 'not-allowed' : 'pointer',
                 opacity: applying ? 0.7 : 1,

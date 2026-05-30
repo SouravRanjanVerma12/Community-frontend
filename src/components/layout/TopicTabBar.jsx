@@ -36,15 +36,16 @@ export default function TopicTabBar({ activeDomain, onSelect, onHide }) {
       position: 'sticky',
       top: '60px',
       zIndex: 90,
-      background: '#ffffff',
-      borderBottom: '1px solid #e4e7ec',
+      background: 'var(--nav-bg)',
+      borderBottom: '1px solid var(--nav-border)',
+      transition: 'background 0.25s, border-color 0.25s',
     }}>
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
 
         {/* Left fade */}
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '32px', background: 'linear-gradient(to right, #fff, transparent)', zIndex: 1, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '32px', background: 'linear-gradient(to right, var(--nav-bg), transparent)', zIndex: 1, pointerEvents: 'none' }} />
         {/* Right fade — leaves room for the hide button */}
-        <div style={{ position: 'absolute', right: '44px', top: 0, bottom: 0, width: '32px', background: 'linear-gradient(to left, #fff, transparent)', zIndex: 1, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', right: '44px', top: 0, bottom: 0, width: '32px', background: 'linear-gradient(to left, var(--nav-bg), transparent)', zIndex: 1, pointerEvents: 'none' }} />
 
         {/* Pill strip */}
         <div
@@ -69,9 +70,9 @@ export default function TopicTabBar({ activeDomain, onSelect, onHide }) {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
                     padding: '6px 14px', borderRadius: '20px',
-                    border: `1.5px solid ${active ? domain.color : '#e4e7ec'}`,
+                    border: `1.5px solid ${active ? domain.color : 'var(--border)'}`,
                     background: active ? `${domain.color}14` : 'transparent',
-                    color: active ? domain.color : '#4b5563',
+                    color: active ? domain.color : 'var(--text-secondary)',
                     fontSize: '13px', fontWeight: active ? '600' : '500',
                     cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
                     transition: 'border-color 0.15s, background 0.15s, color 0.15s',
@@ -85,8 +86,8 @@ export default function TopicTabBar({ activeDomain, onSelect, onHide }) {
                   }}
                   onMouseLeave={(e) => {
                     if (!active) {
-                      e.currentTarget.style.borderColor = '#e4e7ec';
-                      e.currentTarget.style.color = '#4b5563';
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
                       e.currentTarget.style.background = 'transparent';
                     }
                   }}
@@ -114,11 +115,12 @@ export default function TopicTabBar({ activeDomain, onSelect, onHide }) {
             flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: '28px', height: '28px', borderRadius: '50%',
-            border: '1.5px solid #e4e7ec', background: '#f9fafb',
-            color: '#9ca3af', cursor: 'pointer', margin: '0 12px',
+            border: '1.5px solid var(--border)', background: 'var(--surface-2)',
+            color: 'var(--text-muted)', cursor: 'pointer', margin: '0 12px',
+            transition: 'background 0.15s',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f4f6')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = '#f9fafb')}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-3)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
         >
           <ChevronUp size={13} />
         </motion.button>

@@ -1,17 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MapPin, Globe, Calendar, UserPlus, UserCheck,
-  MessageSquare, Lock, Edit3, Camera, Loader2,
+  MapPin, Globe, Calendar, UserPlus, UserCheck, UserMinus,
+  MessageSquare, Lock, Edit3, Camera, Loader2, Clock, Check,
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
+import FriendsList from '../components/friends/FriendsList';
 import PostCard from '../components/feed/PostCard';
 import ImageCropper from '../components/ui/ImageCropper';
 import { DOMAINS } from '../data/mockPosts';
 import { useAuthStore } from '../stores/authStore';
 import { useUserProfile, useUserPosts } from '../hooks/useProfile';
+import { useThemeStore } from '../stores/themeStore';
 import api from '../api/axiosInstance';
+import { useSocketStore } from '../stores/socketStore';
 
 /* ── helpers ── */
 const avatarColor = (name) =>
@@ -40,10 +43,10 @@ async function uploadBlob(blob, endpoint) {
 function StatPill({ value, label }) {
   return (
     <div style={{ textAlign: 'center', padding: '0 16px', cursor: 'pointer' }}>
-      <span style={{ display: 'block', fontSize: '18px', fontWeight: '700', color: '#111827' }}>
+      <span style={{ display: 'block', fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>
         {value}
       </span>
-      <span style={{ display: 'block', fontSize: '12px', color: '#9ca3af', marginTop: '1px' }}>
+      <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', marginTop: '1px' }}>
         {label}
       </span>
     </div>
@@ -54,27 +57,136 @@ function SkillBadge({ label }) {
   return (
     <span style={{
       padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '500',
-      background: 'rgba(124,58,237,0.08)', color: '#7c3aed',
-      border: '1px solid rgba(124,58,237,0.18)',
+      background: 'var(--accent-bg)', color: 'var(--accent)',
+      border: '1px solid var(--accent-border)',
     }}>
       {label}
     </span>
   );
 }
 
-const TABS = [
-  { id: 'posts',    label: 'Posts',    available: true  },
-  { id: 'about',    label: 'About',    available: false },
-  { id: 'projects', label: 'Projects', available: false },
-  { id: 'settings', label: 'Settings', available: false },
-];
+const ALL_TABS   = ['posts', 'friends', 'about', 'projects', 'settings'];
+const TAB_LABELS = { posts: 'Posts', friends: 'Friends', about: 'About', projects: 'Projects', settings: 'Settings' };
+const TAB_SOON   = ['about', 'projects']; // Settings unlocked for own profile
+
+/* ── Settings panel ── */
+function SettingsPanel({ profile }) {
+  const [name,     setName]     = useState(profile?.name     ?? '');
+  const [bio,      setBio]      = useState(profile?.bio      ?? '');
+  const [location, setLocation] = useState(profile?.location ?? '');
+  const [website,  setWebsite]  = useState(profile?.website  ?? '');
+  const [saving,   setSaving]   = useState(false);
+  const [saved,    setSaved]    = useState(false);
+  const [error,    setError]    = useState('');
+
+  const { theme, setTheme } = useThemeStore();
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true); setError('');
+    try {
+      await api.patch('/users/profile', { name, bio, location, website });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      setError(err.response?.data?.message ?? 'Failed to save.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const THEMES = [
+    { value: 'light',  label: 'Light',  desc: 'Clean white', preview: { bg: '#f8f9fb', surface: '#fff', accent: '#7c3aed' } },
+    { value: 'dark',   label: 'Dark',   desc: 'Easy on eyes', preview: { bg: '#0d0f18', surface: '#13151f', accent: '#c084fc' } },
+    { value: 'system', label: 'System', desc: 'Follows OS',   preview: { bg: 'linear-gradient(135deg,#f8f9fb 50%,#0d0f18 50%)', surface: '#888', accent: '#7c3aed' } },
+  ];
+
+  const field = (label, value, onChange, opts = {}) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>{label}</label>
+      {opts.textarea ? (
+        <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3} placeholder={opts.placeholder}
+          style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s' }}
+          onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
+          onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+      ) : (
+        <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={opts.placeholder}
+          style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
+          onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
+          onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+      )}
+    </div>
+  );
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
+      style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '14px' }}>
+
+      {/* Basic info */}
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: '14px', padding: '22px 24px' }}>
+        <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '18px' }}>Basic info</h3>
+        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {field('Display name', name, setName, { placeholder: 'Your name' })}
+          {field('Bio', bio, setBio, { placeholder: 'Tell the community about yourself…', textarea: true })}
+          {field('Location', location, setLocation, { placeholder: 'City, Country' })}
+          {field('Website', website, setWebsite, { placeholder: 'https://yoursite.com' })}
+
+          {error && <p style={{ fontSize: '13px', color: '#dc2626' }}>{error}</p>}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <motion.button type="submit" whileTap={{ scale: 0.97 }} disabled={saving}
+              style={{ padding: '9px 22px', borderRadius: '9px', border: 'none', background: saved ? '#dcfce7' : 'var(--accent)', color: saved ? '#16a34a' : '#fff', fontSize: '13px', fontWeight: '600', cursor: saving ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}>
+              {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
+            </motion.button>
+          </div>
+        </form>
+      </div>
+
+      {/* Appearance */}
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: '14px', padding: '22px 24px' }}>
+        <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' }}>Appearance</h3>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px' }}>Choose how DevCommunity looks to you.</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+          {THEMES.map((t) => {
+            const active = theme === t.value;
+            return (
+              <motion.button key={t.value} onClick={() => setTheme(t.value)} whileTap={{ scale: 0.97 }}
+                style={{
+                  padding: '0', borderRadius: '12px', cursor: 'pointer',
+                  border: `2px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+                  background: 'transparent', overflow: 'hidden',
+                  transition: 'border-color 0.15s',
+                  boxShadow: active ? '0 0 0 3px var(--accent-dim)' : 'none',
+                }}>
+                {/* Preview */}
+                <div style={{ height: '70px', background: t.preview.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px' }}>
+                  <div style={{ width: '32px', height: '48px', borderRadius: '6px', background: t.preview.surface, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
+                    <div style={{ height: '8px', background: t.preview.accent, borderRadius: '6px 6px 0 0', opacity: 0.8 }} />
+                    <div style={{ margin: '4px 4px 2px', height: '3px', background: t.value === 'dark' ? '#f0f2fc' : '#111827', borderRadius: '2px', opacity: 0.5 }} />
+                    <div style={{ margin: '0 4px', height: '2px', background: t.value === 'dark' ? '#8b90b0' : '#4b5563', borderRadius: '2px', opacity: 0.4 }} />
+                  </div>
+                </div>
+                {/* Label */}
+                <div style={{ padding: '8px 10px', background: 'var(--surface-2)', textAlign: 'left' }}>
+                  <p style={{ fontSize: '13px', fontWeight: active ? '700' : '500', color: active ? 'var(--accent)' : 'var(--text-primary)', margin: 0 }}>{t.label}</p>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>{t.desc}</p>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 /* ─────────────────────────────────────────
    Main page
 ───────────────────────────────────────── */
 export default function ProfilePage() {
   const { userId }    = useParams();
-  const { user: me, accessToken } = useAuthStore();
+  const { user: me, accessToken, updateFollowing } = useAuthStore();
 
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
@@ -87,29 +199,55 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [bannerUrl, setBannerUrl] = useState(null);
 
-  // Sync from API once fetchMe resolves (me starts null, updates asynchronously)
-  useEffect(() => {
-    if (me?.avatarUrl) setAvatarUrl(me.avatarUrl);
-    if (me?.bannerUrl) setBannerUrl(me.bannerUrl);
-  }, [me?.avatarUrl, me?.bannerUrl]);
-
-  /* uploading spinners */
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [uploadError,     setUploadError]     = useState('');
-
-  const [activeTab, setActiveTab] = useState('posts');
-  const [following, setFollowing] = useState(false);
-
   const isOwnProfile = me?._id === userId;
 
   // For own profile use the store (already hydrated), for others fetch from API
   const { data: fetchedProfile, isLoading: profileLoading } = useUserProfile(
     isOwnProfile ? null : userId
   );
+  
+  const profile = isOwnProfile ? me : fetchedProfile;
+
+  // Sync from API once profile is available
+  useEffect(() => {
+    setAvatarUrl(profile?.avatarUrl || null);
+    setBannerUrl(profile?.bannerUrl || null);
+  }, [profile?.avatarUrl, profile?.bannerUrl]);
+
+  /* uploading spinners */
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadError,     setUploadError]     = useState('');
+
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('posts');
+
+  // Friend request state for other profiles
+  const [friendStatus, setFriendStatus] = useState({ status: 'none' }); // none|pending|accepted
+  const [fsLoading, setFsLoading] = useState(false);
+
   const { data: userPosts = [], isLoading: postsLoading } = useUserPosts(userId);
 
-  const profile = isOwnProfile ? me : fetchedProfile;
+  // Load friend status when viewing another user's profile
+  useEffect(() => {
+    if (isOwnProfile || !me) return;
+    api.get(`/friends/status/${userId}`)
+      .then(({ data }) => setFriendStatus(data))
+      .catch(() => {});
+  }, [userId, isOwnProfile, me]);
+
+  const isFollowing = Array.isArray(me?.following) && me.following.includes(userId);
+  const [followLoading, setFollowLoading] = useState(false);
+
+  const toggleFollowProfile = async () => {
+    if (!me || followLoading) return;
+    setFollowLoading(true);
+    try {
+      const { data } = await api.post(`/users/${userId}/follow`);
+      updateFollowing(data.following);
+    } catch { /* ignore */ }
+    finally { setFollowLoading(false); }
+  };
 
   /* ── file chosen → open cropper ── */
   const onFileChosen = (e, config) => {
@@ -143,10 +281,10 @@ export default function ProfilePage() {
 
   if (isLoading && !profile) {
     return (
-      <div style={{ minHeight: '100svh', background: '#f8f9fb' }}>
+      <div style={{ minHeight: '100svh', background: 'var(--surface-0)' }}>
         <Navbar />
         <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 20px' }}>
-          <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid #e4e7ec', borderTopColor: '#7c3aed', animation: 'spin 0.8s linear infinite' }} />
+          <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', animation: 'spin 0.8s linear infinite' }} />
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
@@ -155,22 +293,51 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div style={{ minHeight: '100svh', background: '#f8f9fb' }}>
+      <div style={{ minHeight: '100svh', background: 'var(--surface-0)' }}>
         <Navbar />
-        <div style={{ textAlign: 'center', padding: '80px 20px', color: '#9ca3af' }}>
+        <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-muted)' }}>
           <p style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>User not found</p>
-          <Link to="/explore" style={{ color: '#7c3aed', fontSize: '14px' }}>← Back to Explore</Link>
+          <Link to="/explore" style={{ color: 'var(--accent)', fontSize: '14px' }}>← Back to Explore</Link>
         </div>
       </div>
     );
   }
 
-  const pinnedPost    = [...userPosts].sort((a, b) => b.likeCount - a.likeCount)[0];
-  const dc            = domainColor(profile.domain ?? 'webdev');
-  const followerCount = (profile.followers ?? 0) + (following ? 1 : 0);
+  const pinnedPost = [...userPosts].sort((a, b) => b.likeCount - a.likeCount)[0];
+  const fmtNum = (n) => (n >= 1000 ? (n / 1000).toFixed(1) + 'k' : n);
+  const followerCount = Array.isArray(profile.followers) ? profile.followers.length : (profile.followers ?? 0);
+  const followingCount = Array.isArray(profile.following) ? profile.following.length : (profile.following ?? 0);
+  const dc          = domainColor(profile.domain ?? 'webdev');
+
+  // Friend request actions
+  const sendFriendRequest = async () => {
+    setFsLoading(true);
+    try {
+      const { data } = await api.post(`/friends/request/${userId}`);
+      setFriendStatus({ status: 'pending', iAmRequester: true, id: data.friendship._id });
+    } finally { setFsLoading(false); }
+  };
+
+  const cancelRequest = async () => {
+    if (!friendStatus.id) return;
+    setFsLoading(true);
+    try {
+      await api.delete(`/friends/${friendStatus.id}`);
+      setFriendStatus({ status: 'none' });
+    } finally { setFsLoading(false); }
+  };
+
+  const acceptRequest = async () => {
+    if (!friendStatus.id) return;
+    setFsLoading(true);
+    try {
+      await api.post(`/friends/accept/${friendStatus.id}`);
+      setFriendStatus((s) => ({ ...s, status: 'accepted' }));
+    } finally { setFsLoading(false); }
+  };
 
   return (
-    <div style={{ minHeight: '100svh', background: '#f8f9fb' }}>
+    <div style={{ minHeight: '100svh', background: 'var(--surface-0)' }}>
       <Navbar />
 
       {/* hidden file inputs */}
@@ -197,7 +364,7 @@ export default function ProfilePage() {
             position: 'relative', overflow: 'hidden',
             background: bannerUrl
               ? `url(${bannerUrl}) center/cover no-repeat`
-              : `linear-gradient(135deg, ${dc}22 0%, ${dc}14 40%, #f5f3ff 100%)`,
+              : `linear-gradient(135deg, ${dc}22 0%, ${dc}14 40%, var(--surface-0) 100%)`,
             cursor: isOwnProfile ? 'pointer' : 'default',
           }}
         >
@@ -257,10 +424,10 @@ export default function ProfilePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            background: '#fff', border: '1px solid #e4e7ec',
+            background: 'var(--card-bg)', border: '1px solid var(--card-border)',
             borderRadius: '16px', padding: '0 24px 24px',
             marginTop: '-48px', position: 'relative',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-card)',
           }}
         >
           {/* Avatar row */}
@@ -280,7 +447,7 @@ export default function ProfilePage() {
                   src={avatarUrl} alt={profile.name}
                   style={{
                     width: '88px', height: '88px', borderRadius: '50%',
-                    objectFit: 'cover', border: '4px solid #fff',
+                    objectFit: 'cover', border: '4px solid var(--avatar-border)',
                     boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
                   }}
                 />
@@ -290,7 +457,7 @@ export default function ProfilePage() {
                   background: avatarColor(profile.name), color: '#fff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '32px', fontWeight: '700',
-                  border: '4px solid #fff',
+                  border: '4px solid var(--avatar-border)',
                   boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
                   userSelect: 'none',
                 }}>
@@ -318,68 +485,144 @@ export default function ProfilePage() {
             {/* Action buttons */}
             <div style={{ display: 'flex', gap: '8px' }}>
               {isOwnProfile ? (
-                <button style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 16px', borderRadius: '9px',
-                  border: '1.5px solid #e4e7ec', background: 'transparent',
-                  fontSize: '13px', fontWeight: '600', color: '#374151', cursor: 'pointer',
-                }}>
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 16px', borderRadius: '9px',
+                    border: '1.5px solid var(--border)', background: 'transparent',
+                    fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', cursor: 'pointer',
+                  }}
+                >
                   <Edit3 size={14} /> Edit profile
                 </button>
               ) : (
                 <>
-                  <button style={{
-                    display: 'flex', alignItems: 'center', gap: '6px',
-                    padding: '8px 14px', borderRadius: '9px',
-                    border: '1.5px solid #e4e7ec', background: 'transparent',
-                    fontSize: '13px', fontWeight: '500', color: '#374151', cursor: 'pointer',
-                  }}>
-                    <MessageSquare size={14} /> Message
-                  </button>
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => setFollowing((v) => !v)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '6px',
-                      padding: '8px 16px', borderRadius: '9px', border: 'none',
-                      background: following ? '#f3f4f6' : '#7c3aed',
-                      color: following ? '#374151' : '#fff',
-                      fontSize: '13px', fontWeight: '600', cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {following ? <><UserCheck size={14} /> Following</> : <><UserPlus size={14} /> Follow</>}
-                  </motion.button>
+                  {/* Message and Unfriend buttons */}
+                  {friendStatus.status === 'accepted' && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => navigate('/messages')}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                          padding: '8px 14px', borderRadius: '9px',
+                          border: '1.5px solid var(--border)', background: 'transparent',
+                          fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', cursor: 'pointer',
+                        }}
+                      >
+                        <MessageSquare size={14} /> Message
+                      </button>
+                      <button
+                        onClick={cancelRequest} disabled={fsLoading}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                          padding: '8px 14px', borderRadius: '9px',
+                          border: '1.5px solid var(--border)', background: 'transparent',
+                          fontSize: '13px', fontWeight: '500', color: '#ef4444', cursor: 'pointer',
+                        }}
+                      >
+                        <UserMinus size={14} /> Unfriend
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Friend request button */}
+                  {friendStatus.status === 'none' && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <motion.button whileTap={{ scale: 0.97 }} onClick={sendFriendRequest} disabled={fsLoading}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                          padding: '8px 16px', borderRadius: '9px', border: 'none',
+                          background: 'var(--accent)', color: '#fff',
+                          fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+                          transition: 'all 0.15s', opacity: fsLoading ? 0.7 : 1,
+                        }}
+                      >
+                        <UserPlus size={14} /> Add Friend
+                      </motion.button>
+                      <button
+                        onClick={toggleFollowProfile} disabled={followLoading}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                          padding: '8px 14px', borderRadius: '9px',
+                          border: isFollowing ? '1.5px solid var(--border)' : '1.5px solid var(--accent)', 
+                          background: isFollowing ? 'transparent' : 'var(--accent)',
+                          fontSize: '13px', fontWeight: '500', 
+                          color: isFollowing ? 'var(--text-secondary)' : '#fff', cursor: 'pointer',
+                        }}
+                      >
+                        {isFollowing ? <Check size={14} /> : <UserPlus size={14} />} 
+                        {isFollowing ? 'Following' : 'Follow'}
+                      </button>
+                    </div>
+                  )}
+
+                  {friendStatus.status === 'pending' && friendStatus.iAmRequester && (
+                    <button onClick={cancelRequest} disabled={fsLoading}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '8px 16px', borderRadius: '9px',
+                        border: '1.5px solid var(--border)', background: 'transparent',
+                        fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)', cursor: 'pointer',
+                      }}
+                    >
+                      <Clock size={14} /> Pending
+                    </button>
+                  )}
+
+                  {friendStatus.status === 'pending' && !friendStatus.iAmRequester && (
+                    <motion.button whileTap={{ scale: 0.97 }} onClick={acceptRequest} disabled={fsLoading}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '8px 16px', borderRadius: '9px', border: 'none',
+                        background: 'var(--accent)', color: '#fff',
+                        fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+                      }}
+                    >
+                      <UserCheck size={14} /> Accept Request
+                    </motion.button>
+                  )}
+
+                  {friendStatus.status === 'accepted' && (
+                    <span style={{
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                      padding: '8px 14px', borderRadius: '9px',
+                      border: '1.5px solid #22c55e', color: '#22c55e',
+                      fontSize: '13px', fontWeight: '600',
+                    }}>
+                      <UserCheck size={14} /> Friends
+                    </span>
+                  )}
                 </>
               )}
             </div>
           </div>
 
-          <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#111827', letterSpacing: '-0.5px', marginBottom: '2px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '2px' }}>
             {profile.name}
           </h1>
-          <p style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '10px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '10px' }}>
             @{profile.username || profile.email?.split('@')[0] || 'user'}
           </p>
 
-          <p style={{ fontSize: '14px', color: '#4b5563', lineHeight: '1.65', marginBottom: '14px', maxWidth: '560px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.65', marginBottom: '14px', maxWidth: '560px' }}>
             {profile.bio}
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
             {profile.location && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: '#6b7280' }}>
-                <MapPin size={13} color="#9ca3af" /> {profile.location}
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                <MapPin size={13} color="var(--text-muted)" /> {profile.location}
               </span>
             )}
             {profile.website && (
               <a href="#" onClick={(e) => e.preventDefault()}
-                style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: '#7c3aed', textDecoration: 'none' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: 'var(--accent)', textDecoration: 'none' }}>
                 <Globe size={13} /> {profile.website}
               </a>
             )}
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: '#6b7280' }}>
-              <Calendar size={13} color="#9ca3af" /> Joined {profile.joinedYear}
+            <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+              <Calendar size={13} color="var(--text-muted)" /> Joined {profile.joinedYear}
             </span>
           </div>
 
@@ -389,45 +632,47 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div style={{ height: '1px', background: '#f3f4f6', marginBottom: '20px' }} />
+          <div style={{ height: '1px', background: 'var(--divider)', marginBottom: '20px' }} />
 
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <StatPill value={userPosts.length}              label="Posts"     />
-            <div style={{ width: '1px', background: '#f3f4f6', margin: '4px 0' }} />
+            <div style={{ width: '1px', background: 'var(--divider)', margin: '4px 0' }} />
             <StatPill value={fmtNum(followerCount)}         label="Followers" />
-            <div style={{ width: '1px', background: '#f3f4f6', margin: '4px 0' }} />
-            <StatPill value={fmtNum(profile.following ?? 0)} label="Following" />
+            <div style={{ width: '1px', background: 'var(--divider)', margin: '4px 0' }} />
+            <StatPill value={fmtNum(followingCount)}        label="Following" />
           </div>
         </motion.div>
 
         {/* ── Tabs ── */}
         <div style={{
-          background: '#fff', border: '1px solid #e4e7ec',
+          background: 'var(--surface-1)', border: '1px solid var(--border)',
           borderRadius: '12px', marginTop: '12px',
           display: 'flex', overflow: 'hidden',
         }}>
-          {TABS.map((tab) => {
-            const active = activeTab === tab.id;
+          {ALL_TABS.map((id) => {
+            const active   = activeTab === id;
+            const isSoon   = TAB_SOON.includes(id);
+            const locked   = isSoon || (id === 'settings' && !isOwnProfile) || (id === 'friends' && !isOwnProfile);
             return (
               <button
-                key={tab.id}
-                onClick={() => tab.available && setActiveTab(tab.id)}
+                key={id}
+                onClick={() => !locked && setActiveTab(id)}
                 style={{
                   flex: 1, padding: '13px 8px', border: 'none',
-                  borderBottom: active ? '2px solid #7c3aed' : '2px solid transparent',
-                  background: active ? 'rgba(124,58,237,0.04)' : 'transparent',
-                  color: active ? '#7c3aed' : tab.available ? '#4b5563' : '#c4c9d4',
+                  borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
+                  background: active ? 'var(--accent-dim)' : 'transparent',
+                  color: active ? 'var(--accent)' : locked ? 'var(--text-muted)' : 'var(--text-secondary)',
                   fontSize: '13px', fontWeight: active ? '700' : '500',
-                  cursor: tab.available ? 'pointer' : 'default',
+                  cursor: locked ? 'default' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
                   transition: 'all 0.15s',
                 }}
               >
-                {tab.label}
-                {!tab.available && (
+                {TAB_LABELS[id]}
+                {locked && (
                   <span style={{
                     fontSize: '10px', padding: '1px 5px', borderRadius: '4px',
-                    background: '#f3f4f6', color: '#9ca3af', fontWeight: '500',
+                    background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: '500',
                     display: 'inline-flex', alignItems: 'center', gap: '2px',
                   }}>
                     <Lock size={9} /> Soon
@@ -438,8 +683,11 @@ export default function ProfilePage() {
           })}
         </div>
 
-        {/* ── Posts ── */}
+        {/* ── Tab content ── */}
         <AnimatePresence mode="wait">
+          {activeTab === 'settings' && isOwnProfile && (
+            <SettingsPanel key="settings" profile={profile} />
+          )}
           {activeTab === 'posts' && (
             <motion.div
               key="posts"
@@ -452,25 +700,25 @@ export default function ProfilePage() {
               {userPosts.length === 0 ? (
                 <div style={{
                   textAlign: 'center', padding: '60px 20px',
-                  background: '#fff', border: '1px solid #e4e7ec', borderRadius: '14px',
+                  background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '14px',
                 }}>
                   <p style={{ fontSize: '32px', marginBottom: '12px' }}>✍️</p>
-                  <p style={{ fontSize: '16px', fontWeight: '600', color: '#111827', marginBottom: '6px' }}>No posts yet</p>
-                  <p style={{ fontSize: '14px', color: '#9ca3af' }}>Posts you share will appear here.</p>
+                  <p style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>No posts yet</p>
+                  <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Posts you share will appear here.</p>
                 </div>
               ) : (
                 <>
                   {pinnedPost && (
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', paddingLeft: '4px' }}>
-                        <span style={{ fontSize: '12px', color: '#9ca3af' }}>📌</span>
-                        <span style={{ fontSize: '12px', fontWeight: '600', color: '#9ca3af', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Pinned post</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>📌</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Pinned post</span>
                       </div>
                       <PostCard post={pinnedPost} index={0} />
                     </div>
                   )}
                   <div style={{ paddingLeft: '4px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '600', color: '#9ca3af', letterSpacing: '0.04em', textTransform: 'uppercase' }}>All posts</span>
+                    <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>All posts</span>
                   </div>
                   {userPosts.map((post, i) => (
                     <PostCard key={post._id} post={post} index={i} />

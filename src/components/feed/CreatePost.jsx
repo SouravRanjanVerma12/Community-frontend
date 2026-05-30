@@ -64,25 +64,25 @@ export default function CreatePost() {
   };
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e4e7ec', borderRadius: '14px', padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+    <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '14px', padding: '16px 20px', boxShadow: 'var(--shadow-sm)', transition: 'background 0.25s, border-color 0.25s' }}>
       {/* Collapsed trigger */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <Avatar name={user?.name ?? 'Guest'} src={user?.avatarUrl || null} />
-        <button onClick={() => setExpanded(true)} style={{ flex: 1, textAlign: 'left', padding: '10px 16px', borderRadius: '24px', border: '1.5px solid #e4e7ec', background: '#f9fafb', color: '#9ca3af', fontSize: '14px', cursor: 'text', transition: 'border-color 0.15s, background 0.15s' }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.35)'; e.currentTarget.style.background = '#fff'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e4e7ec'; e.currentTarget.style.background = '#f9fafb'; }}>
+        <button onClick={() => setExpanded(true)} style={{ flex: 1, textAlign: 'left', padding: '10px 16px', borderRadius: '24px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text-muted)', fontSize: '14px', cursor: 'text', transition: 'border-color 0.15s, background 0.15s' }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-border)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--input-bg)'; }}>
           {user ? `What's on your mind, ${user.name.split(' ')[0]}?` : 'Share something with the community…'}
         </button>
       </div>
 
       {/* Quick type buttons */}
       {!expanded && (
-        <div style={{ display: 'flex', gap: '4px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f3f4f6' }}>
+        <div style={{ display: 'flex', gap: '4px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--divider)' }}>
           {POST_TYPES.map(({ value, label, icon: Icon }) => (
             <button key={value} onClick={() => { setType(value); setExpanded(true); }}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', border: 'none', background: 'transparent', color: '#6b7280', fontSize: '13px', fontWeight: '500', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.color = '#7c3aed'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b7280'; }}>
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', border: 'none', background: 'transparent', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '500', cursor: 'pointer', transition: 'background 0.12s, color 0.12s' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--hover-bg)'; e.currentTarget.style.color = 'var(--accent)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
               <Icon size={15} /> {label}
             </button>
           ))}
@@ -102,13 +102,13 @@ export default function CreatePost() {
                 {POST_TYPES.map(({ value, label, icon: Icon }) => {
                   const active = type === value;
                   return (
-                    <button key={value} type="button" onClick={() => setType(value)} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '8px', border: active ? '1.5px solid rgba(124,58,237,0.4)' : '1.5px solid #e4e7ec', background: active ? 'rgba(124,58,237,0.07)' : 'transparent', color: active ? '#7c3aed' : '#6b7280', fontSize: '13px', fontWeight: active ? '600' : '400', cursor: 'pointer', transition: 'all 0.12s' }}>
+                    <button key={value} type="button" onClick={() => setType(value)} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '8px', border: active ? '1.5px solid var(--accent-border)' : '1.5px solid var(--border)', background: active ? 'var(--accent-bg)' : 'transparent', color: active ? 'var(--accent)' : 'var(--text-secondary)', fontSize: '13px', fontWeight: active ? '600' : '400', cursor: 'pointer', transition: 'all 0.12s' }}>
                       <Icon size={13} /> {label}
                     </button>
                   );
                 })}
                 <select value={domain} onChange={(e) => setDomain(e.target.value)}
-                  style={{ marginLeft: 'auto', padding: '6px 10px', borderRadius: '8px', border: '1.5px solid #e4e7ec', fontSize: '13px', color: '#374151', background: '#fff', cursor: 'pointer', outline: 'none' }}>
+                  style={{ marginLeft: 'auto', padding: '6px 10px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '13px', color: 'var(--text-secondary)', background: 'var(--card-bg)', cursor: 'pointer', outline: 'none' }}>
                   {DOMAINS.filter((d) => d.value !== 'all').map((d) => (
                     <option key={d.value} value={d.value}>{d.label}</option>
                   ))}
@@ -117,35 +117,35 @@ export default function CreatePost() {
 
               {/* Title */}
               <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Post title…" autoFocus required
-                style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #e4e7ec', background: '#f9fafb', fontSize: '15px', fontWeight: '500', color: '#111827', outline: 'none', transition: 'border-color 0.15s' }}
-                onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
-                onBlur={(e) => (e.target.style.borderColor = '#e4e7ec')} />
+                style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
+                onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
+                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
 
               {/* Body */}
               {type !== 'video' && (
                 <textarea value={body} onChange={(e) => setBody(e.target.value)}
                   placeholder={type === 'code' ? 'Brief description…' : 'Write your post…'} rows={3}
-                  style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #e4e7ec', background: '#f9fafb', fontSize: '14px', color: '#374151', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s' }}
-                  onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
-                  onBlur={(e) => (e.target.style.borderColor = '#e4e7ec')} />
+                  style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s' }}
+                  onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
+                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
               )}
 
               {/* Code */}
               {type === 'code' && (
                 <textarea value={code} onChange={(e) => setCode(e.target.value)}
                   placeholder="// Paste your code here…" rows={6}
-                  style={{ padding: '12px 14px', borderRadius: '10px', border: '1.5px solid #e4e7ec', background: '#1e1e2e', fontSize: '13px', color: '#cdd6f4', lineHeight: '1.65', resize: 'vertical', outline: 'none', fontFamily: 'ui-monospace, Consolas, monospace', transition: 'border-color 0.15s' }}
-                  onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
-                  onBlur={(e) => (e.target.style.borderColor = '#e4e7ec')} />
+                  style={{ padding: '12px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--code-bg)', fontSize: '13px', color: 'var(--code-text)', lineHeight: '1.65', resize: 'vertical', outline: 'none', fontFamily: 'ui-monospace, Consolas, monospace', transition: 'border-color 0.15s' }}
+                  onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
+                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
               )}
 
               {/* Video */}
               {type === 'video' && (
                 <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)}
                   placeholder="Paste YouTube or video URL…"
-                  style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #e4e7ec', background: '#f9fafb', fontSize: '14px', color: '#374151', outline: 'none', transition: 'border-color 0.15s' }}
-                  onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
-                  onBlur={(e) => (e.target.style.borderColor = '#e4e7ec')} />
+                  style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-secondary)', outline: 'none', transition: 'border-color 0.15s' }}
+                  onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
+                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
               )}
 
               {/* Error */}
@@ -153,11 +153,11 @@ export default function CreatePost() {
 
               {/* Actions */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" onClick={close} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '8px', border: '1.5px solid #e4e7ec', background: 'transparent', color: '#6b7280', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
+                <button type="button" onClick={close} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
                   <X size={13} /> Cancel
                 </button>
                 <motion.button type="submit" whileTap={{ scale: 0.97 }} disabled={!title.trim() || submitting}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', borderRadius: '8px', border: 'none', background: !title.trim() ? '#ddd6fe' : '#7c3aed', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: title.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', borderRadius: '8px', border: 'none', background: !title.trim() ? 'var(--accent-dim)' : 'var(--accent)', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: title.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}>
                   {submitting ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
                   {submitting ? 'Posting…' : 'Post'}
                 </motion.button>

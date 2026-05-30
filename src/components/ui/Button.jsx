@@ -39,14 +39,14 @@ export default function Button({
 
   const variants = {
     primary: {
-      background: '#7c3aed',
+      background: 'var(--btn-grad)',
       color: '#ffffff',
-      boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+      boxShadow: 'var(--btn-grad-shadow)',
     },
     ghost: {
       background: 'transparent',
-      color: '#7c3aed',
-      border: '1.5px solid #e4e7ec',
+      color: 'var(--accent)',
+      border: '1.5px solid var(--border)',
     },
     danger: {
       background: 'rgba(239,68,68,0.08)',
@@ -65,7 +65,7 @@ export default function Button({
         isDisabled
           ? {}
           : variant === 'primary'
-          ? { boxShadow: '0 4px 16px rgba(124,58,237,0.30)' }
+          ? { boxShadow: 'var(--btn-grad-shadow-hover)', transform: 'translateY(-1px)' }
           : { background: 'rgba(124,58,237,0.06)', borderColor: 'rgba(124,58,237,0.3)' }
       }
       style={{ ...base, ...sizes[size], ...variants[variant], ...style }}

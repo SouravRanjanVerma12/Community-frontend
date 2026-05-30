@@ -12,16 +12,16 @@ function SearchBar({ value, onChange }) {
   const [focused, setFocused] = useState(false);
   return (
     <motion.div
-      animate={{ boxShadow: focused ? '0 0 0 3px rgba(124,58,237,0.14)' : '0 0 0 0px transparent' }}
+      animate={{ boxShadow: focused ? '0 0 0 3px var(--accent-dim)' : '0 0 0 0px transparent' }}
       style={{
         display: 'flex', alignItems: 'center', gap: '8px',
-        background: '#ffffff',
-        border: `1.5px solid ${focused ? 'rgba(124,58,237,0.4)' : '#e4e7ec'}`,
+        background: 'var(--card-bg)',
+        border: `1.5px solid ${focused ? 'var(--accent-border)' : 'var(--border)'}`,
         borderRadius: '10px', padding: '0 14px',
-        transition: 'border-color 0.15s',
+        transition: 'border-color 0.15s, background 0.25s',
       }}
     >
-      <Search size={14} color="#9ca3af" />
+      <Search size={14} color="var(--text-muted)" />
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -31,7 +31,7 @@ function SearchBar({ value, onChange }) {
         style={{
           flex: 1, padding: '9px 0',
           background: 'transparent', border: 'none', outline: 'none',
-          fontSize: '14px', color: '#111827',
+          fontSize: '14px', color: 'var(--text-primary)',
         }}
       />
     </motion.div>
@@ -84,9 +84,10 @@ function CreatePostModal({ onClose }) {
         onClick={(e) => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: '580px',
-          background: '#ffffff',
+          background: 'var(--card-bg)',
           borderRadius: '16px',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+          border: '1px solid var(--card-border)',
+          boxShadow: 'var(--shadow-popup)',
           overflow: 'hidden',
         }}
       >
@@ -95,20 +96,20 @@ function CreatePostModal({ onClose }) {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '18px 22px 0',
         }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#111827', letterSpacing: '-0.2px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
             Create a post
           </h2>
           <button
             onClick={onClose}
             style={{
               width: '30px', height: '30px', borderRadius: '50%',
-              border: 'none', background: '#f3f4f6',
+              border: 'none', background: 'var(--surface-2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#6b7280',
+              cursor: 'pointer', color: 'var(--text-secondary)',
               transition: 'background 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#e4e7ec')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = '#f3f4f6')}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-3)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
           >
             <X size={15} />
           </button>
@@ -126,8 +127,8 @@ function CreatePostModal({ onClose }) {
               {user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
             </div>
             <div>
-              <p style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{user.name}</p>
-              <p style={{ fontSize: '12px', color: '#9ca3af' }}>Posting to the community</p>
+              <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{user.name}</p>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Posting to the community</p>
             </div>
           </div>
         )}
@@ -145,9 +146,9 @@ function CreatePostModal({ onClose }) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '5px',
                     padding: '6px 14px', borderRadius: '8px',
-                    border: active ? '1.5px solid rgba(124,58,237,0.4)' : '1.5px solid #e4e7ec',
-                    background: active ? 'rgba(124,58,237,0.07)' : 'transparent',
-                    color: active ? '#7c3aed' : '#6b7280',
+                    border: active ? '1.5px solid var(--accent-border)' : '1.5px solid var(--border)',
+                    background: active ? 'var(--accent-bg)' : 'transparent',
+                    color: active ? 'var(--accent)' : 'var(--text-secondary)',
                     fontSize: '13px', fontWeight: active ? '600' : '400',
                     cursor: 'pointer', transition: 'all 0.12s',
                   }}
@@ -166,12 +167,12 @@ function CreatePostModal({ onClose }) {
             autoFocus
             style={{
               padding: '11px 14px', borderRadius: '10px',
-              border: '1.5px solid #e4e7ec', background: '#f9fafb',
-              fontSize: '15px', fontWeight: '500', color: '#111827',
+              border: '1.5px solid var(--border)', background: 'var(--input-bg)',
+              fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)',
               outline: 'none', transition: 'border-color 0.15s',
             }}
-            onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
-            onBlur={(e) => (e.target.style.borderColor = '#e4e7ec')}
+            onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
+            onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
           />
 
           {/* Body */}
@@ -183,13 +184,13 @@ function CreatePostModal({ onClose }) {
               rows={4}
               style={{
                 padding: '11px 14px', borderRadius: '10px',
-                border: '1.5px solid #e4e7ec', background: '#f9fafb',
-                fontSize: '14px', color: '#374151', lineHeight: '1.6',
+                border: '1.5px solid var(--border)', background: 'var(--input-bg)',
+                fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6',
                 resize: 'vertical', outline: 'none',
                 fontFamily: 'inherit', transition: 'border-color 0.15s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
-              onBlur={(e) => (e.target.style.borderColor = '#e4e7ec')}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
             />
           )}
 
@@ -202,14 +203,14 @@ function CreatePostModal({ onClose }) {
               rows={7}
               style={{
                 padding: '12px 14px', borderRadius: '10px',
-                border: '1.5px solid #e4e7ec', background: '#1e1e2e',
-                fontSize: '13px', color: '#cdd6f4', lineHeight: '1.65',
+                border: '1.5px solid var(--border)', background: 'var(--code-bg)',
+                fontSize: '13px', color: 'var(--code-text)', lineHeight: '1.65',
                 resize: 'vertical', outline: 'none',
                 fontFamily: 'ui-monospace, Consolas, monospace',
                 transition: 'border-color 0.15s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
-              onBlur={(e) => (e.target.style.borderColor = '#e4e7ec')}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
             />
           )}
 
@@ -221,17 +222,17 @@ function CreatePostModal({ onClose }) {
               placeholder="Paste YouTube or video URL…"
               style={{
                 padding: '11px 14px', borderRadius: '10px',
-                border: '1.5px solid #e4e7ec', background: '#f9fafb',
-                fontSize: '14px', color: '#374151', outline: 'none',
+                border: '1.5px solid var(--border)', background: 'var(--input-bg)',
+                fontSize: '14px', color: 'var(--text-secondary)', outline: 'none',
                 transition: 'border-color 0.15s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
-              onBlur={(e) => (e.target.style.borderColor = '#e4e7ec')}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
             />
           )}
 
           {/* Divider */}
-          <div style={{ height: '1px', background: '#f3f4f6' }} />
+          <div style={{ height: '1px', background: 'var(--divider)' }} />
 
           {/* Actions */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -240,8 +241,8 @@ function CreatePostModal({ onClose }) {
               onClick={onClose}
               style={{
                 padding: '9px 18px', borderRadius: '9px',
-                border: '1.5px solid #e4e7ec', background: 'transparent',
-                color: '#6b7280', fontSize: '14px', fontWeight: '500', cursor: 'pointer',
+                border: '1.5px solid var(--border)', background: 'transparent',
+                color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer',
               }}
             >
               Cancel
@@ -253,7 +254,7 @@ function CreatePostModal({ onClose }) {
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
                 padding: '9px 22px', borderRadius: '9px', border: 'none',
-                background: submitted ? '#dcfce7' : !title.trim() ? '#ddd6fe' : '#7c3aed',
+                background: submitted ? '#dcfce7' : !title.trim() ? 'var(--accent-dim)' : 'var(--accent)',
                 color: submitted ? '#16a34a' : '#fff',
                 fontSize: '14px', fontWeight: '600',
                 cursor: title.trim() && !submitted ? 'pointer' : 'not-allowed',
@@ -283,7 +284,7 @@ export default function ExplorePage() {
   const [filtersOpen, setFiltersOpen]   = useState(true);
 
   return (
-    <div style={{ minHeight: '100svh', background: '#f8f9fb' }}>
+    <div style={{ minHeight: '100svh', background: 'var(--surface-0)', transition: 'background 0.25s' }}>
       <Navbar />
       {filtersOpen && (
         <TopicTabBar
@@ -306,7 +307,7 @@ export default function ExplorePage() {
           {/* Heading row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
             <h1 style={{
-              fontSize: '18px', fontWeight: '700', color: '#111827',
+              fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)',
               letterSpacing: '-0.3px', flex: 1,
             }}>
               {DOMAIN_LABELS[activeDomain] ?? 'Explore'}
@@ -323,8 +324,8 @@ export default function ExplorePage() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
                   padding: '6px 12px', borderRadius: '20px',
-                  border: '1.5px solid #e4e7ec', background: '#fff',
-                  color: '#6b7280', fontSize: '12px', fontWeight: '500',
+                  border: '1.5px solid var(--border)', background: 'var(--card-bg)',
+                  color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '500',
                   cursor: 'pointer', flexShrink: 0,
                 }}
               >
@@ -340,7 +341,7 @@ export default function ExplorePage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
                 padding: '8px 16px', borderRadius: '9px',
-                border: 'none', background: '#7c3aed', color: '#fff',
+                border: 'none', background: 'var(--accent)', color: '#fff',
                 fontSize: '13px', fontWeight: '600', cursor: 'pointer',
                 flexShrink: 0, transition: 'box-shadow 0.2s',
               }}

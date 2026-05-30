@@ -14,41 +14,59 @@ export default function RegisterPage() {
   }, [user, accessToken, navigate]);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100svh', background: 'var(--surface-0)' }}>
-      {/* Left branding — hidden on mobile */}
-      <div className="auth-brand-panel" style={{ flex: '0 0 55%', display: 'flex' }}>
-        <AuthBrandPanel />
+    <div style={{ display: 'flex', minHeight: '100svh', height: '100svh', background: 'var(--surface-0)' }}>
+      {/* Left brand panel — hidden on mobile */}
+      <div className="auth-brand-panel" style={{ flex: '0 0 52%', display: 'flex', overflow: 'hidden' }}>
+        <AuthBrandPanel mode="register" />
       </div>
 
       {/* Right form panel */}
       <div
         style={{
-          flex: '1 1 45%',
+          flex: '1 1 48%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '40px 24px',
-          background: '#ffffff',
+          padding: '40px 32px',
+          background: 'var(--surface-1)',
           overflowY: 'auto',
-          borderLeft: '1px solid var(--card-border)',
+          borderLeft: '1px solid var(--border)',
         }}
       >
         {/* Mobile logo */}
-        <div className="auth-mobile-logo" style={{ display: 'none', marginBottom: '24px', textAlign: 'center' }}>
-          <span style={{ fontSize: '28px', display: 'block', marginBottom: '8px' }}>⚡</span>
-          <span style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)' }}>
+        <div
+          className="auth-mobile-logo"
+          style={{ display: 'none', marginBottom: '28px', textAlign: 'center' }}
+        >
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #7c3aed, #a855f7, #ec4899)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '22px',
+              marginBottom: '10px',
+              boxShadow: '0 4px 20px rgba(124,58,237,0.35)',
+            }}
+          >
+            ⚡
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
             DevCommunity
-          </span>
+          </div>
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          style={{ width: '100%', maxWidth: '400px' }}
+          style={{ width: '100%', maxWidth: '390px' }}
         >
-          <div style={{ marginBottom: '32px' }}>
+          <div style={{ marginBottom: '28px' }}>
             <h2
               style={{
                 fontSize: '26px',
@@ -58,10 +76,10 @@ export default function RegisterPage() {
                 letterSpacing: '-0.5px',
               }}
             >
-              Join the community
+              Create your account
             </h2>
-            <p style={{ fontSize: '15px', color: 'var(--text-muted)' }}>
-              Create your account and start sharing
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+              Join DevCommunity — it only takes a minute
             </p>
           </div>
 
