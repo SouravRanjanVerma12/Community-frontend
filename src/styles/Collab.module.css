@@ -1,0 +1,258 @@
+/* styles/collab.css */
+:root {
+  --amethyst: #9b59b6;
+  --amethyst-dim: #7d3f96;
+  --amethyst-bg: rgba(155, 89, 182, 0.12);
+  --teal: #1abc9c;
+  --teal-dim: #14967d;
+  --teal-bg: rgba(26, 188, 156, 0.12);
+  --coral: #ff7f50;
+  --coral-dim: #d9642f;
+  --coral-bg: rgba(255, 127, 80, 0.12);
+  --green: #2ecc71;
+  --green-bg: rgba(46, 204, 113, 0.12);
+  --bg0: #0d0e14;
+  --bg1: #13151f;
+  --bg2: #1a1d2e;
+  --bg3: #20243a;
+  --bd: #ffffff14;
+  --bd2: #ffffff22;
+  --txt1: #f0f0f0;
+  --txt2: #a8a8b8;
+  --txt3: #6a6a7a;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg0);
+  font-family: "Inter", sans-serif;
+  color: var(--txt1);
+}
+
+/* Layout */
+.collab-container {
+  min-height: 100vh;
+  background: var(--bg0);
+}
+.collab-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+.collab-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--teal), var(--amethyst));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  margin-bottom: 8px;
+}
+.collab-header p {
+  color: var(--txt2);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+.collab-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+.left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--txt1);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-left: 3px solid var(--teal);
+  padding-left: 12px;
+}
+.card {
+  background: var(--bg1);
+  border: 1px solid var(--bd);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border 0.2s;
+}
+.card:hover {
+  border-color: var(--bd2);
+}
+/* Project Board specific */
+.board-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(120vh - 60px);
+  background: var(--bg0);
+}
+.board-topbar {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--bd);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--txt2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.back-btn:hover {
+  color: var(--txt1);
+}
+.board-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.badge {
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-teal {
+  border: 1px solid var(--teal);
+  color: var(--teal);
+  background: var(--teal-bg);
+}
+.badge-amethyst {
+  border: 1px solid var(--amethyst);
+  color: var(--amethyst);
+  background: var(--amethyst-bg);
+}
+.badge-coral {
+  border: 1px solid var(--coral);
+  color: var(--coral);
+  background: var(--coral-bg);
+}
+.invite-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--bd2);
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  color: var(--txt2);
+  cursor: pointer;
+}
+.invite-btn:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+.board-main {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  flex: 1;
+  overflow: hidden;
+}
+.kanban-pane {
+  padding: 24px;
+  overflow-y: auto;
+  border-right: 1px solid var(--bd);
+}
+.kanban-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.add-task-btn {
+  background: none;
+  border: 1px solid var(--teal);
+  color: var(--teal);
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.add-task-btn:hover {
+  background: var(--teal-bg);
+}
+.kanban-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.column {
+  background: rgba(13, 14, 20, 0.5);
+  border: 1px solid var(--bd);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.column-header {
+  background: var(--bg2);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.column-tasks {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 200px;
+}
+.task-card {
+  background: var(--bg2);
+  border: 1px solid var(--bd2);
+  border-radius: var(--radius);
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.task-card:hover {
+  border-color: var(--teal);
+  transform: translateY(-1px);
+}
+.task-card.active {
+  border-color: var(--amethyst);
+  background: var(--bg3);
+}
+/* right panel */
+.detail-pane {
+  background: var(--bg1);
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+/* responsiveness */
+@media (max-width: 768px) {
+  .board-main {
+    grid-template-columns: 1fr;
+  }
+  .kanban-pane {
+    border-right: none;
+    border-bottom: 1px solid var(--bd);
+  }
+}
+
+
