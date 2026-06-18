@@ -10,8 +10,8 @@ export default function UserProjectsList({ projects }) {
 
   return (
     <div>
-      <div className="section-title">
-        <span>📁</span> My Projects
+      <div className="section-title" style={{ borderLeft: '3px solid var(--accent)', paddingLeft: 12 }}>
+        📁 My Projects
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         {projects.map((project) => (
@@ -24,11 +24,11 @@ export default function UserProjectsList({ projects }) {
               }}
             >
               <div>
-                <div style={{ fontSize: 16, fontWeight: 600 }}>
+                <div style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>
                   {project.title}
                 </div>
                 <div
-                  style={{ fontSize: 12, color: "var(--txt2)", marginTop: 4 }}
+                  style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}
                 >
                   {project.myRole} · {project.techStack.join(", ")}
                 </div>

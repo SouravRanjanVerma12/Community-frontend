@@ -8,8 +8,9 @@ import RegisterPage from "./pages/RegisterPage";
 import ExplorePage from "./pages/ExplorePage";
 import ProfilePage from "./pages/ProfilePage";
 import CollabPage from "./pages/CollabPage";
+import CollabRequestsPage from "./pages/CollabRequestsPage";
 import MessagesPage from "./pages/MessagesPage";
-import TaskBoardPreview from "./components/collab/TaskBoardPreview";
+import WorkspacePage from "./pages/WorkspacePage";
 import "./App.css";
 
 function ThemeApplier() {
@@ -61,8 +62,9 @@ export default function App() {
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/profile/:userId" element={<ProfilePage />} />
           <Route path="/collab" element={<CollabPage />} />
+          <Route path="/collab/:postId/requests" element={<CollabRequestsPage />} />
           <Route path="/messages" element={<MessagesPage />} />
-          <Route path="/project/:id" element={<TaskBoardPreview />} />
+          <Route path="/project/:id" element={<WorkspacePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthHydrator>

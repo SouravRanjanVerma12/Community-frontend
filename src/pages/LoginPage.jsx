@@ -44,19 +44,19 @@ export default function LoginPage() {
               width: '48px',
               height: '48px',
               borderRadius: '14px',
-              background: 'linear-gradient(135deg, #7c3aed, #a855f7, #ec4899)',
+              background: 'linear-gradient(135deg, #ff5c35, #ff8060)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '22px',
               marginBottom: '10px',
-              boxShadow: '0 4px 20px rgba(124,58,237,0.35)',
+              boxShadow: '0 4px 20px rgba(255,92,53,0.38)',
             }}
           >
             ⚡
           </div>
           <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
-            DevCommunity
+            Prograstic
           </div>
         </div>
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
               Welcome back
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-              Sign in to continue to DevCommunity
+              Sign in to continue to Prograstic
             </p>
           </div>
 

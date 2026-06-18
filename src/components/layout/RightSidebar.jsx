@@ -163,7 +163,7 @@ export default function RightSidebar() {
             <span key={l}>{i > 0 && ' · '}<a href="#" style={{ color: 'var(--text-muted)' }} onClick={(e) => e.preventDefault()}>{l}</a></span>
           ))}
         </p>
-        <p style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '2px' }}>© 2026 DevCommunity</p>
+        <p style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '2px' }}>© 2026 Prograstic</p>
       </div>
     </aside>
   );

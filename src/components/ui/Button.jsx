@@ -66,11 +66,11 @@ export default function Button({
           ? {}
           : variant === 'primary'
           ? { boxShadow: 'var(--btn-grad-shadow-hover)', transform: 'translateY(-1px)' }
-          : { background: 'rgba(124,58,237,0.06)', borderColor: 'rgba(124,58,237,0.3)' }
+          : { background: 'var(--accent-dim)', borderColor: 'var(--accent-border)' }
       }
       style={{ ...base, ...sizes[size], ...variants[variant], ...style }}
     >
-      {isLoading && <Spinner size="sm" color={variant === 'primary' ? '#fff' : '#7c3aed'} />}
+      {isLoading && <Spinner size="sm" color={variant === 'primary' ? '#fff' : '#ff5c35'} />}
       {children}
     </motion.button>
   );

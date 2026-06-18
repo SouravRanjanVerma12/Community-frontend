@@ -175,9 +175,9 @@ export default function RegisterForm() {
                   onClick={() => setUsername(s)}
                   style={{
                     padding: '4px 12px', borderRadius: '20px', border: '1.5px solid',
-                    borderColor: username === s ? '#7c3aed' : '#e4e7ec',
-                    background: username === s ? 'rgba(124,58,237,0.08)' : '#f9fafb',
-                    color: username === s ? '#7c3aed' : '#4b5563',
+                    borderColor: username === s ? 'var(--accent)' : 'var(--border)',
+                    background: username === s ? 'var(--accent-bg)' : 'var(--input-bg)',
+                    color: username === s ? 'var(--accent)' : 'var(--text-secondary)',
                     fontSize: '12px', fontWeight: '500', cursor: 'pointer',
                     fontFamily: 'ui-monospace, Consolas, monospace',
                     transition: 'all 0.12s',

@@ -37,7 +37,7 @@ export default function InputField({
           boxShadow: error
             ? '0 0 0 2px rgba(239,68,68,0.40)'
             : focused
-            ? '0 0 0 3px rgba(124,58,237,0.18)'
+            ? '0 0 0 3px rgba(255,92,53,0.18)'
             : '0 0 0 1px var(--border)',
         }}
         transition={{ duration: 0.15 }}
@@ -46,7 +46,7 @@ export default function InputField({
           alignItems: 'center',
           borderRadius: '10px',
           background: focused ? 'var(--input-bg-focus)' : 'var(--input-bg)',
-          border: `1.5px solid ${error ? 'rgba(239,68,68,0.5)' : focused ? 'rgba(124,58,237,0.4)' : 'var(--input-border)'}`,
+          border: `1.5px solid ${error ? 'rgba(239,68,68,0.5)' : focused ? 'rgba(255,92,53,0.40)' : 'var(--input-border)'}`,
           transition: 'border-color 0.15s, background 0.15s',
           overflow: 'hidden',
         }}
