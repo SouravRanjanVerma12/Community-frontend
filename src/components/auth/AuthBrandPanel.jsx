@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 
-const LOGIN_CHIPS  = ['<Code />', '{learn}', '#buildinpublic', 'const you', 'share()', 'open source'];
-const REGISTER_CHIPS = ['follow →', '// build', 'devs 🚀', '<Ship />', 'collaborate()', 'grow()'];
+const LOGIN_CHIPS    = ['founders', '#buildinpublic', 'const launch', 'scale()', '→ India', 'ship it'];
+const REGISTER_CHIPS = ['collab()', '// startup', 'ops ready', '<Builder />', 'grow()', 'network →'];
 
 export default function AuthBrandPanel({ mode = 'login' }) {
   const isRegister = mode === 'register';
@@ -82,12 +82,12 @@ export default function AuthBrandPanel({ mode = 'login' }) {
               width: '34px',
               height: '34px',
               borderRadius: '9px',
-              background: 'linear-gradient(135deg, #7c3aed, #a855f7, #ec4899)',
+              background: 'linear-gradient(135deg, #ff5c35, #ff8060)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '15px',
-              boxShadow: '0 3px 12px rgba(124,58,237,0.40)',
+              boxShadow: '0 3px 12px rgba(255,92,53,0.38)',
               flexShrink: 0,
             }}
           >
@@ -101,7 +101,7 @@ export default function AuthBrandPanel({ mode = 'login' }) {
               letterSpacing: '-0.2px',
             }}
           >
-            DevCommunity
+            Prograstic
           </span>
         </motion.div>
 
@@ -147,8 +147,8 @@ export default function AuthBrandPanel({ mode = 'login' }) {
         >
           {isRegister ? (
             <>
-              Join the community<br />
-              of{' '}
+              India's launchpad<br />
+              for{' '}
               <span
                 style={{
                   background: 'var(--auth-headline-grad)',
@@ -157,12 +157,12 @@ export default function AuthBrandPanel({ mode = 'login' }) {
                   backgroundClip: 'text',
                 }}
               >
-                builders.
+                founders.
               </span>
             </>
           ) : (
             <>
-              Where developers<br />
+              Where startups<br />
               <span
                 style={{
                   background: 'var(--auth-headline-grad)',
@@ -171,10 +171,10 @@ export default function AuthBrandPanel({ mode = 'login' }) {
                   backgroundClip: 'text',
                 }}
               >
-                learn, build,
+                launch, scale,
               </span>
               <br />
-              and grow.
+              and win.
             </>
           )}
         </motion.h1>
@@ -194,20 +194,20 @@ export default function AuthBrandPanel({ mode = 'login' }) {
         >
           {isRegister ? (
             <>
-              Share what you're building. Learn from others.
+              Share what you're building. Find collaborators.
               Grow alongside{' '}
               <strong style={{ color: 'var(--auth-desc-strong)', fontWeight: '600' }}>
-                12,000+ developers
+                12,000+ founders
               </strong>{' '}
-              who ship together.
+              building India's next big companies.
             </>
           ) : (
             <>
               A community of{' '}
               <strong style={{ color: 'var(--auth-desc-strong)', fontWeight: '600' }}>
-                12,000+ engineers
+                12,000+ founders &amp; operators
               </strong>{' '}
-              sharing ideas, shipping code, and leveling up — together.
+              shipping products and scaling startups — together.
             </>
           )}
         </motion.p>
@@ -220,8 +220,8 @@ export default function AuthBrandPanel({ mode = 'login' }) {
           style={{ display: 'flex', gap: '32px' }}
         >
           {(isRegister
-            ? [{ value: '12K+', label: 'Developers' }, { value: '4K+', label: 'Posts' }, { value: 'Free', label: 'Always' }]
-            : [{ value: '12K+', label: 'Developers' }, { value: '4K+', label: 'Posts' }, { value: '80+', label: 'Topics' }]
+            ? [{ value: '12K+', label: 'Founders' }, { value: '4K+', label: 'Projects' }, { value: 'Free', label: 'Always' }]
+            : [{ value: '12K+', label: 'Founders' }, { value: '4K+', label: 'Projects' }, { value: '80+', label: 'Sectors' }]
           ).map((stat) => (
             <div key={stat.label}>
               <div

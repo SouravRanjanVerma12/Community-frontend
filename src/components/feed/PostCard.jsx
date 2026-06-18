@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Share2, Copy, Check, Send } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Copy, Check, Send, Users2, CheckCircle, ClipboardList } from 'lucide-react';
+import JoinProjectModal from './JoinProjectModal';
+import CollabRequesters from './CollabRequesters';
 import { DOMAINS } from '../../data/mockPosts';
 import { useAuthStore } from '../../stores/authStore';
 import { getSocket, useSocketStore } from '../../stores/socketStore';
@@ -93,7 +95,12 @@ export default function PostCard({ post: initialPost, index = 0 }) {
   const [liked, setLiked] = useState(initialPost.likes?.includes(user?._id));
 
   const connected = useSocketStore((s) => s.connected);
-  const domain = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
+  const domain   = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
+  const isCollab = post.type === 'collab';
+  const COLLAB_COLOR = '#0891b2';
+  const isOwnPost = user && post.author._id === user._id;
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const [requested, setRequested]         = useState(false);
 
   useEffect(() => {
     const socket = getSocket();
@@ -166,11 +173,11 @@ export default function PostCard({ post: initialPost, index = 0 }) {
       whileHover={{ y: -2, boxShadow: 'var(--shadow-hover)' }}
       style={{
         background: 'var(--card-bg)',
-        border: '1px solid var(--card-border)',
+        border: `1px solid ${isCollab ? COLLAB_COLOR + '35' : 'var(--card-border)'}`,
         borderRadius: '14px',
         padding: '20px 22px',
         cursor: 'default',
-        boxShadow: 'var(--shadow-sm)',
+        boxShadow: isCollab ? `0 2px 12px ${COLLAB_COLOR}18` : 'var(--shadow-sm)',
         transition: 'box-shadow 0.2s, background 0.25s, border-color 0.25s',
       }}
     >
@@ -192,16 +199,25 @@ export default function PostCard({ post: initialPost, index = 0 }) {
             @{post.author.username || post.author.email?.split('@')[0] || 'user'} · {timeAgo(post.createdAt)}
           </p>
         </div>
-        {/* Domain badge */}
-        <span style={{
-          padding: '3px 10px', borderRadius: '20px',
-          fontSize: '12px', fontWeight: '500',
-          background: `${domain.color}12`,
-          color: domain.color,
-          flexShrink: 0,
-        }}>
-          {domain.label}
-        </span>
+        {/* Collab badge OR domain badge */}
+        {isCollab ? (
+          <span style={{
+            padding: '3px 10px', borderRadius: '20px',
+            fontSize: '12px', fontWeight: '600',
+            background: `${COLLAB_COLOR}18`, color: COLLAB_COLOR,
+            display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0,
+          }}>
+            <Users2 size={11} /> Collab
+          </span>
+        ) : (
+          <span style={{
+            padding: '3px 10px', borderRadius: '20px',
+            fontSize: '12px', fontWeight: '500',
+            background: `${domain.color}12`, color: domain.color, flexShrink: 0,
+          }}>
+            {domain.label}
+          </span>
+        )}
       </div>
 
       {/* Title */}
@@ -228,6 +244,153 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         <CodeBlock code={post.codeSnippet} language={post.language} />
       )}
 
+      {/* Collab details */}
+      {isCollab && (
+        <div style={{ marginTop: '14px', padding: '14px 16px', borderRadius: '12px', background: `${COLLAB_COLOR}0a`, border: `1px solid ${COLLAB_COLOR}25`, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Project name + member progress */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            {post.projectName && (
+              <p style={{ fontSize: '13px', fontWeight: '700', color: COLLAB_COLOR, margin: 0 }}>
+                🚀 {post.projectName}
+              </p>
+            )}
+            {post.membersNeeded === 0 ? (
+              /* Unlimited */
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 10px', borderRadius: '20px', background: `${COLLAB_COLOR}10`, border: `1px solid ${COLLAB_COLOR}25` }}>
+                <Users2 size={11} color={COLLAB_COLOR} />
+                <span style={{ fontSize: '11px', fontWeight: '700', color: COLLAB_COLOR }}>
+                  {post.memberCount ?? 0} joined · Unlimited
+                </span>
+              </div>
+            ) : post.membersNeeded > 0 ? (
+              /* Fixed slots */
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', minWidth: '120px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Users2 size={12} color={COLLAB_COLOR} />
+                  <span style={{ fontSize: '12px', fontWeight: '700', color: COLLAB_COLOR }}>
+                    {post.memberCount ?? 0} / {post.membersNeeded} joined
+                  </span>
+                </div>
+                <div style={{ width: '120px', height: '5px', borderRadius: '3px', background: `${COLLAB_COLOR}20`, overflow: 'hidden' }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, ((post.memberCount ?? 0) / post.membersNeeded) * 100)}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    style={{ height: '100%', borderRadius: '3px', background: (post.memberCount ?? 0) >= post.membersNeeded ? '#22c55e' : COLLAB_COLOR }}
+                  />
+                </div>
+                {(post.memberCount ?? 0) >= post.membersNeeded && (
+                  <span style={{ fontSize: '10px', color: '#22c55e', fontWeight: '600' }}>Team full ✓</span>
+                )}
+              </div>
+            ) : null}
+          </div>
+
+          {/* Tech stack */}
+          {post.techStack?.length > 0 && (
+            <div>
+              <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Tech Stack</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                {post.techStack.map((t) => (
+                  <span key={t} style={{ padding: '3px 10px', borderRadius: '6px', background: 'var(--surface-2)', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '500', fontFamily: 'var(--mono)' }}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Creator: link to dedicated review page */}
+          {isOwnPost && (post.requestCount ?? 0) > 0 && (
+            <Link to={`/collab/${post._id}/requests`} style={{ textDecoration: 'none' }}>
+              <motion.div whileHover={{ x: 2 }}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 14px', borderRadius: '10px',
+                  border: `1.5px solid ${COLLAB_COLOR}35`,
+                  background: `${COLLAB_COLOR}08`,
+                  cursor: 'pointer', transition: 'background 0.15s',
+                }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ClipboardList size={15} color={COLLAB_COLOR} />
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: COLLAB_COLOR }}>
+                    Review applications
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ padding: '2px 10px', borderRadius: '20px', background: COLLAB_COLOR, color: '#fff', fontSize: '11px', fontWeight: '700' }}>
+                    {post.requestCount}
+                  </span>
+                  <span style={{ fontSize: '14px', color: COLLAB_COLOR }}>→</span>
+                </div>
+              </motion.div>
+            </Link>
+          )}
+
+          {/* Non-creator: public requester list inline */}
+          {!isOwnPost && (
+            <CollabRequesters
+              postId={post._id}
+              requestCount={post.requestCount ?? 0}
+              isCreator={false}
+            />
+          )}
+
+          {/* Request count — social proof */}
+          {(post.requestCount ?? 0) > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                padding: '4px 10px', borderRadius: '20px',
+                background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.25)',
+                fontSize: '12px', fontWeight: '600', color: '#d97706',
+              }}>
+                🔥 {post.requestCount} {post.requestCount === 1 ? 'person' : 'people'} interested
+              </span>
+            </div>
+          )}
+
+          {/* Roles + Join button */}
+          {post.rolesNeeded?.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Looking For</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {post.rolesNeeded.map((r) => (
+                    <span key={r} style={{ padding: '4px 12px', borderRadius: '20px', background: COLLAB_COLOR, color: '#fff', fontSize: '12px', fontWeight: '500' }}>
+                      {r}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {!isOwnPost && (
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => !requested && setJoinModalOpen(true)}
+                  style={{
+                    padding: '8px 18px', borderRadius: '10px', border: 'none',
+                    background: requested ? 'var(--surface-2)' : COLLAB_COLOR,
+                    color: requested ? 'var(--text-secondary)' : '#fff',
+                    fontSize: '13px', fontWeight: '700', cursor: requested ? 'default' : 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    flexShrink: 0, transition: 'all 0.15s',
+                    boxShadow: requested ? 'none' : `0 4px 14px ${COLLAB_COLOR}40`,
+                  }}
+                >
+                  {requested ? <CheckCircle size={14} /> : <Users2 size={14} />}
+                  {requested ? 'Request Sent' : 'Join Project'}
+                </motion.button>
+              )}
+              {isOwnPost && (
+                <span style={{ fontSize: '12px', color: COLLAB_COLOR, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Users2 size={12} /> Your project
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Action row */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '4px',
@@ -252,6 +415,19 @@ export default function PostCard({ post: initialPost, index = 0 }) {
           <ActionBtn icon={<Share2 size={15} color="var(--text-muted)" />} onClick={share} />
         </div>
       </div>
+
+      {/* Join project modal */}
+      <AnimatePresence>
+        {joinModalOpen && (
+          <JoinProjectModal
+            post={post}
+            onClose={() => {
+              setJoinModalOpen(false);
+              setRequested(true);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Comments section */}
       <AnimatePresence>

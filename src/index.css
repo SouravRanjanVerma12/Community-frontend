@@ -1,112 +1,140 @@
 /* ── Light theme (default) ── */
 :root,
 [data-theme="light"] {
-  --surface-0: #f8f9fb;
-  --surface-1: #ffffff;
-  --surface-2: #f3f4f6;
-  --surface-3: #e9eaed;
-  --border:    #e4e7ec;
-
+  /* ── Core contract tokens (Prograstic spec) ── */
+  --bg:          #f6f3ee;
+  --surface:     #faf8f5;
   --card-bg:     #ffffff;
-  --card-border: #e4e7ec;
+  --nav-bg:      rgba(246, 243, 238, 0.90);
+  --dark-section: #111111;
+  --radius:      28px;
+
+  /* ── Extended surface aliases (kept for component compat) ── */
+  --surface-0: #f6f3ee;
+  --surface-1: #faf8f5;
+  --surface-2: #f0ece4;
+  --surface-3: #e8e3d8;
+
+  --border:     rgba(0, 0, 0, 0.09);
+  --card-border: rgba(0, 0, 0, 0.07);
   --card-radius: 16px;
 
-  --text-primary:   #111827;
-  --text-secondary: #4b5563;
-  --text-muted:     #9ca3af;
-  --text-faint:     #c4c9d4;
+  /* ── Text ── */
+  --text:           #0a0a0a;
+  --text-primary:   #0a0a0a;
+  --text-secondary: rgba(10, 10, 10, 0.58);
+  --text-muted:     rgba(0, 0, 0, 0.45);
+  --text-faint:     rgba(0, 0, 0, 0.22);
 
-  --accent:        #7c3aed;
-  --accent-light:  #a78bfa;
-  --accent-bg:     rgba(124, 58, 237, 0.08);
-  --accent-border: rgba(124, 58, 237, 0.30);
-  --accent-dim:    rgba(124, 58, 237, 0.06);
-  --accent-glow:   0 0 24px rgba(124, 58, 237, 0.18);
+  /* ── Accent: bold orange ── */
+  --accent:        #ff5c35;
+  --accent-light:  #ff8060;
+  --accent-bg:     rgba(255, 92, 53, 0.08);
+  --accent-border: rgba(255, 92, 53, 0.28);
+  --accent-dim:    rgba(255, 92, 53, 0.06);
+  --accent-glow:   0 0 24px rgba(255, 92, 53, 0.18);
 
-  --input-bg:       #f9fafb;
-  --input-border:   #e4e7ec;
+  /* ── Form fields ── */
+  --input-bg:       #f4f1eb;
+  --input-border:   rgba(0, 0, 0, 0.12);
   --input-bg-focus: #ffffff;
-  --nav-bg:         #ffffff;
-  --nav-border:     #e4e7ec;
+  --nav-border:     rgba(0, 0, 0, 0.08);
 
+  /* ── Code blocks ── */
   --code-bg:        #1e1e2e;
   --code-text:      #cdd6f4;
-  --code-header-bg: #f3f4f6;
+  --code-header-bg: #f0ece4;
 
-  --hover-bg:       #f3f4f6;
-  --divider:        #f3f4f6;
+  /* ── Misc ── */
+  --hover-bg: #f0ece4;
+  --divider:  rgba(0, 0, 0, 0.06);
 
-  --shadow-card:  0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
-  --shadow-sm:    0 1px 3px rgba(0,0,0,0.05);
-  --shadow-popup: 0 8px 24px rgba(0,0,0,0.10), 0 24px 64px rgba(0,0,0,0.07);
-  --shadow-hover: 0 4px 24px rgba(0,0,0,0.09);
+  /* ── Shadows ── */
+  --shadow-card:  0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.05);
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.04);
+  --shadow-popup: 0 8px 24px rgba(0,0,0,0.09), 0 24px 64px rgba(0,0,0,0.06);
+  --shadow-hover: 0 4px 24px rgba(0,0,0,0.08);
 
-  --brand-gradient: linear-gradient(145deg, #f5f3ff 0%, #ede9fe 45%, #faf5ff 100%);
+  --brand-gradient: linear-gradient(145deg, #faf8f5 0%, #f6f3ee 45%, #f4f1eb 100%);
   --avatar-border: #fff;
 
-  /* Auth brand panel */
+  /* ── Auth brand panel ── */
   --auth-panel-bg:
-    radial-gradient(ellipse 120% 80% at 40% 30%, rgba(124,58,237,0.14) 0%, rgba(139,92,246,0.06) 50%, transparent 100%),
-    linear-gradient(160deg, #f5f3ff 0%, #ede9fe 45%, #faf5ff 80%, #ffffff 100%);
-  --auth-panel-glow: rgba(124,58,237,0.10);
-  --auth-panel-grid: rgba(124,58,237,0.07);
-  --auth-badge-bg: rgba(255,255,255,0.75);
-  --auth-badge-border: rgba(124,58,237,0.18);
-  --auth-headline: #1e143c;
-  --auth-headline-grad: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
-  --auth-desc: rgba(30,20,60,0.52);
-  --auth-desc-strong: #1e143c;
-  --auth-chip-bg: rgba(124,58,237,0.07);
-  --auth-chip-border: rgba(124,58,237,0.20);
-  --auth-chip-color: #7c3aed;
-  --auth-stat-value: #7c3aed;
-  --auth-stat-label: rgba(30,20,60,0.38);
+    radial-gradient(ellipse 120% 80% at 40% 30%, rgba(255,92,53,0.10) 0%, rgba(255,128,96,0.05) 50%, transparent 100%),
+    linear-gradient(160deg, #faf8f5 0%, #f6f3ee 45%, #f4f1eb 80%, #f0ece4 100%);
+  --auth-panel-glow:   rgba(255, 92, 53, 0.12);
+  --auth-panel-grid:   rgba(255, 92, 53, 0.06);
+  --auth-badge-bg:     rgba(255, 255, 255, 0.75);
+  --auth-badge-border: rgba(255, 92, 53, 0.18);
+  --auth-headline:     #0a0a0a;
+  --auth-headline-grad: linear-gradient(135deg, #ff5c35 0%, #ff8060 50%, #ffaa47 100%);
+  --auth-desc:         rgba(10, 10, 10, 0.52);
+  --auth-desc-strong:  #0a0a0a;
+  --auth-chip-bg:      rgba(255, 92, 53, 0.07);
+  --auth-chip-border:  rgba(255, 92, 53, 0.20);
+  --auth-chip-color:   #ff5c35;
+  --auth-stat-value:   #ff5c35;
+  --auth-stat-label:   rgba(10, 10, 10, 0.38);
 
-  /* Gradient button */
-  --btn-grad: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
-  --btn-grad-shadow: 0 4px 20px rgba(124,58,237,0.40);
-  --btn-grad-shadow-hover: 0 6px 28px rgba(124,58,237,0.58), 0 0 40px rgba(236,72,153,0.18);
+  /* ── Gradient button ── */
+  --btn-grad: linear-gradient(135deg, #ff5c35 0%, #ff8060 100%);
+  --btn-grad-shadow: 0 4px 20px rgba(255, 92, 53, 0.38);
+  --btn-grad-shadow-hover: 0 6px 28px rgba(255, 92, 53, 0.55), 0 0 40px rgba(255, 170, 71, 0.15);
 
   color-scheme: light;
 }
 
 /* ── Dark theme ── */
 [data-theme="dark"] {
+  /* ── Core contract tokens ── */
+  --bg:          #0d0f18;
+  --surface:     #13151f;
+  --card-bg:     #13151f;
+  --nav-bg:      rgba(13, 15, 24, 0.92);
+  --dark-section: #111111;
+  --radius:      28px;
+
+  /* ── Extended surfaces (compat) ── */
   --surface-0: #0d0f18;
   --surface-1: #13151f;
   --surface-2: #1a1c28;
   --surface-3: #22253a;
-  --border:    #2e303a;
 
-  --card-bg:     #13151f;
+  --border:     #2e303a;
   --card-border: rgba(255,255,255,0.08);
   --card-radius: 16px;
 
+  /* ── Text ── */
+  --text:           #f0f2fc;
   --text-primary:   #f0f2fc;
   --text-secondary: #8b90b0;
   --text-muted:     #545870;
   --text-faint:     #3a3d50;
 
-  --accent:        #c084fc;
-  --accent-light:  #d8b4fe;
-  --accent-bg:     rgba(192, 132, 252, 0.12);
-  --accent-border: rgba(192, 132, 252, 0.40);
-  --accent-dim:    rgba(192, 132, 252, 0.06);
-  --accent-glow:   0 0 28px rgba(192, 132, 252, 0.25);
+  /* ── Accent: orange, slightly brighter for dark surfaces ── */
+  --accent:        #ff6b47;
+  --accent-light:  #ff9070;
+  --accent-bg:     rgba(255, 107, 71, 0.12);
+  --accent-border: rgba(255, 107, 71, 0.38);
+  --accent-dim:    rgba(255, 107, 71, 0.06);
+  --accent-glow:   0 0 28px rgba(255, 107, 71, 0.25);
 
-  --input-bg:     #1a1c28;
-  --input-border: #2e303a;
+  /* ── Form fields ── */
+  --input-bg:       #1a1c28;
+  --input-border:   #2e303a;
   --input-bg-focus: #1a1c28;
-  --nav-bg:       #13151f;
-  --nav-border:   #2e303a;
+  --nav-border:     #2e303a;
 
+  /* ── Code blocks ── */
   --code-bg:        #0d0f18;
   --code-text:      #cdd6f4;
   --code-header-bg: #1a1c28;
 
-  --hover-bg:       #1a1c28;
-  --divider:        #22253a;
+  /* ── Misc ── */
+  --hover-bg: #1a1c28;
+  --divider:  #22253a;
 
+  /* ── Shadows ── */
   --shadow-card:  0 1px 3px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.4);
   --shadow-sm:    0 1px 3px rgba(0,0,0,0.4);
   --shadow-popup: 0 8px 24px rgba(0,0,0,0.6), 0 24px 64px rgba(0,0,0,0.5);
@@ -115,34 +143,36 @@
   --brand-gradient: linear-gradient(145deg, #1a1028 0%, #13151f 45%, #1a1028 100%);
   --avatar-border: #22253a;
 
-  /* Auth brand panel — dark */
+  /* ── Auth brand panel — dark ── */
   --auth-panel-bg:
-    radial-gradient(ellipse 120% 80% at 40% 30%, rgba(124,58,237,0.42) 0%, rgba(59,130,246,0.16) 40%, rgba(236,72,153,0.12) 70%, transparent 100%),
-    linear-gradient(160deg, #0e0730 0%, #06050f 100%);
-  --auth-panel-glow: rgba(124,58,237,0.28);
-  --auth-panel-grid: rgba(167,139,250,0.06);
-  --auth-badge-bg: rgba(255,255,255,0.07);
-  --auth-badge-border: rgba(255,255,255,0.13);
-  --auth-headline: #ede9fe;
-  --auth-headline-grad: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 40%, #f9a8d4 100%);
-  --auth-desc: rgba(237,233,254,0.50);
-  --auth-desc-strong: rgba(237,233,254,0.88);
-  --auth-chip-bg: rgba(124,58,237,0.13);
-  --auth-chip-border: rgba(124,58,237,0.30);
-  --auth-chip-color: rgba(167,139,250,0.85);
-  --auth-stat-value: #c4b5fd;
-  --auth-stat-label: rgba(237,233,254,0.38);
+    radial-gradient(ellipse 120% 80% at 40% 30%, rgba(255,92,53,0.35) 0%, rgba(255,128,96,0.12) 40%, transparent 100%),
+    linear-gradient(160deg, #1c0a04 0%, #0d0a08 100%);
+  --auth-panel-glow:   rgba(255, 92, 53, 0.28);
+  --auth-panel-grid:   rgba(255, 128, 96, 0.05);
+  --auth-badge-bg:     rgba(255, 255, 255, 0.07);
+  --auth-badge-border: rgba(255, 255, 255, 0.13);
+  --auth-headline:     #faf8f5;
+  --auth-headline-grad: linear-gradient(135deg, #ff8060 0%, #ff5c35 50%, #ffaa47 100%);
+  --auth-desc:         rgba(250, 248, 245, 0.50);
+  --auth-desc-strong:  rgba(250, 248, 245, 0.88);
+  --auth-chip-bg:      rgba(255, 92, 53, 0.13);
+  --auth-chip-border:  rgba(255, 92, 53, 0.30);
+  --auth-chip-color:   rgba(255, 128, 96, 0.85);
+  --auth-stat-value:   #ff8060;
+  --auth-stat-label:   rgba(250, 248, 245, 0.38);
 
-  /* Gradient button — same in both themes */
-  --btn-grad: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
-  --btn-grad-shadow: 0 4px 24px rgba(139,92,246,0.50), 0 0 40px rgba(236,72,153,0.15);
-  --btn-grad-shadow-hover: 0 6px 32px rgba(139,92,246,0.68), 0 0 56px rgba(236,72,153,0.25);
+  /* ── Gradient button ── */
+  --btn-grad: linear-gradient(135deg, #ff5c35 0%, #ff8060 100%);
+  --btn-grad-shadow: 0 4px 24px rgba(255, 92, 53, 0.45), 0 0 40px rgba(255, 170, 71, 0.10);
+  --btn-grad-shadow-hover: 0 6px 32px rgba(255, 92, 53, 0.65), 0 0 56px rgba(255, 170, 71, 0.18);
 
   color-scheme: dark;
 }
 
 /* ── Shared tokens ── */
 :root {
+  --font-display: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-body:    system-ui, 'Segoe UI', Roboto, sans-serif;
   --sans:    system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono:    ui-monospace, Consolas, monospace;
@@ -161,10 +191,10 @@
   --dur-base: 250ms;
   --dur-slow: 400ms;
 
-  font: 16px/150% var(--sans);
+  font: 16px/150% var(--font-body);
   letter-spacing: 0.01em;
   color: var(--text-secondary);
-  background: var(--surface-0);
+  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -173,8 +203,8 @@
 
 body {
   margin: 0;
-  background: var(--surface-0);
-  color: var(--text-primary);
+  background: var(--bg);
+  color: var(--text);
   transition: background 0.25s, color 0.25s;
 }
 
@@ -187,7 +217,7 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  background: var(--surface-0);
+  background: var(--bg);
   transition: background 0.25s;
 }
 
@@ -196,7 +226,7 @@ body {
 h1, h2, h3, h4 {
   font-family: var(--heading);
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   margin: 0;
 }
 

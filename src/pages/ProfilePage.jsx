@@ -21,7 +21,7 @@ const avatarColor = (name) =>
   `hsl(${[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)`;
 const initials = (name) =>
   name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-const domainColor = (key) => DOMAINS.find((d) => d.value === key)?.color ?? '#7c3aed';
+const domainColor = (key) => DOMAINS.find((d) => d.value === key)?.color ?? '#ff5c35';
 const domainLabel = (key) => DOMAINS.find((d) => d.value === key)?.label ?? key;
 const fmtNum = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
 
@@ -96,9 +96,9 @@ function SettingsPanel({ profile }) {
   };
 
   const THEMES = [
-    { value: 'light',  label: 'Light',  desc: 'Clean white', preview: { bg: '#f8f9fb', surface: '#fff', accent: '#7c3aed' } },
-    { value: 'dark',   label: 'Dark',   desc: 'Easy on eyes', preview: { bg: '#0d0f18', surface: '#13151f', accent: '#c084fc' } },
-    { value: 'system', label: 'System', desc: 'Follows OS',   preview: { bg: 'linear-gradient(135deg,#f8f9fb 50%,#0d0f18 50%)', surface: '#888', accent: '#7c3aed' } },
+    { value: 'light',  label: 'Light',  desc: 'Warm &amp; clean', preview: { bg: '#f6f3ee', surface: '#fff', accent: '#ff5c35' } },
+    { value: 'dark',   label: 'Dark',   desc: 'Easy on eyes', preview: { bg: '#0d0f18', surface: '#13151f', accent: '#ff6b47' } },
+    { value: 'system', label: 'System', desc: 'Follows OS',   preview: { bg: 'linear-gradient(135deg,#f6f3ee 50%,#0d0f18 50%)', surface: '#888', accent: '#ff5c35' } },
   ];
 
   const field = (label, value, onChange, opts = {}) => (
@@ -107,12 +107,12 @@ function SettingsPanel({ profile }) {
       {opts.textarea ? (
         <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3} placeholder={opts.placeholder}
           style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s' }}
-          onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
+          onFocus={(e) => (e.target.style.borderColor = 'rgba(255,92,53,0.40)')}
           onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
       ) : (
         <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={opts.placeholder}
           style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
-          onFocus={(e) => (e.target.style.borderColor = 'rgba(124,58,237,0.4)')}
+          onFocus={(e) => (e.target.style.borderColor = 'rgba(255,92,53,0.40)')}
           onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
       )}
     </div>
@@ -145,7 +145,7 @@ function SettingsPanel({ profile }) {
       {/* Appearance */}
       <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: '14px', padding: '22px 24px' }}>
         <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' }}>Appearance</h3>
-        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px' }}>Choose how DevCommunity looks to you.</p>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px' }}>Choose how Prograstic looks to you.</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
           {THEMES.map((t) => {

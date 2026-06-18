@@ -368,11 +368,11 @@ export default function Navbar() {
     }}>
       {/* Logo */}
       <Link to="/explore" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0, marginRight: '8px' }}>
-        <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'linear-gradient(135deg, #7c3aed, #a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'linear-gradient(135deg, #ff5c35, #ff8060)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Zap size={16} color="#fff" fill="#fff" />
         </div>
         <span className="nav-brand-label" style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
-          DevCommunity
+          Prograstic
         </span>
       </Link>
 

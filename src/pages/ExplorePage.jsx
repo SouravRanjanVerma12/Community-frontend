@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, PenSquare, X, Type, Code2, Video, Send, ChevronDown } from 'lucide-react';
+import { Search, PenSquare, X, Type, Code2, Video, Send, ChevronDown, Users2, Plus, Loader2 } from 'lucide-react';
+import MembersSlider from '../components/feed/MembersSlider';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
 import TopicTabBar from '../components/layout/TopicTabBar';
@@ -7,6 +8,9 @@ import RightSidebar from '../components/layout/RightSidebar';
 import PostFeed from '../components/feed/PostFeed';
 import CreatePost from '../components/feed/CreatePost';
 import { useAuthStore } from '../stores/authStore';
+import { DOMAINS } from '../data/mockPosts';
+import { queryClient } from '../api/queryClient';
+import api from '../api/axiosInstance';
 
 function SearchBar({ value, onChange }) {
   const [focused, setFocused] = useState(false);
@@ -38,26 +42,88 @@ function SearchBar({ value, onChange }) {
   );
 }
 
+const COLLAB_COLOR = '#0891b2';
+const PRESET_ROLES = ['Frontend Dev', 'Backend Dev', 'Full Stack', 'Designer', 'DevOps', 'ML Engineer', 'Mobile Dev', 'QA'];
+
 const POST_TYPES = [
-  { value: 'text',  label: 'Text',  icon: Type  },
-  { value: 'code',  label: 'Code',  icon: Code2 },
-  { value: 'video', label: 'Video', icon: Video },
+  { value: 'text',   label: 'Text',   icon: Type   },
+  { value: 'code',   label: 'Code',   icon: Code2  },
+  { value: 'video',  label: 'Video',  icon: Video  },
+  { value: 'collab', label: 'Collab', icon: Users2 },
 ];
+
+function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
+  const [input, setInput] = useState('');
+  const add = (val) => { const v = val.trim(); if (v && !tags.includes(v)) onAdd(v); setInput(''); };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {presets && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+          {presets.filter((p) => !tags.includes(p)).map((p) => (
+            <button key={p} type="button" onClick={() => onAdd(p)}
+              style={{ padding: '3px 10px', borderRadius: '20px', border: `1px solid ${COLLAB_COLOR}40`, background: `${COLLAB_COLOR}0d`, color: COLLAB_COLOR, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}>
+              <Plus size={10} /> {p}
+            </button>
+          ))}
+        </div>
+      )}
+      {tags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+          {tags.map((t) => (
+            <span key={t} style={{ padding: '3px 10px', borderRadius: '20px', background: COLLAB_COLOR, color: '#fff', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              {t}
+              <button type="button" onClick={() => onRemove(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', lineHeight: 1, padding: 0, fontSize: '14px' }}>×</button>
+            </span>
+          ))}
+        </div>
+      )}
+      {!presets && (
+        <input value={input} onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(input); } }}
+          placeholder={placeholder}
+          style={{ padding: '8px 12px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '13px', color: 'var(--text-primary)', outline: 'none' }}
+          onFocus={(e) => (e.target.style.borderColor = COLLAB_COLOR)}
+          onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; add(input); }} />
+      )}
+    </div>
+  );
+}
 
 function CreatePostModal({ onClose }) {
   const { user } = useAuthStore();
-  const [type, setType]   = useState('text');
-  const [title, setTitle] = useState('');
-  const [body, setBody]   = useState('');
-  const [code, setCode]   = useState('');
-  const [videoUrl, setVideoUrl] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [type, setType]       = useState('text');
+  const [domain, setDomain]   = useState('webdev');
+  const [title, setTitle]     = useState('');
+  const [body, setBody]       = useState('');
+  const [code, setCode]       = useState('');
+  const [videoUrl, setVideoUrl]     = useState('');
+  const [projectName, setProjectName] = useState('');
+  const [techStack,     setTechStack]     = useState([]);
+  const [rolesNeeded,   setRolesNeeded]   = useState([]);
+  const [membersNeeded, setMembersNeeded] = useState(3);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]       = useState('');
 
-  const handleSubmit = (e) => {
+  const isCollab = type === 'collab';
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
-    setSubmitted(true);
-    setTimeout(() => { setSubmitted(false); onClose(); }, 1200);
+    setSubmitting(true); setError('');
+    try {
+      await api.post('/posts', {
+        type, domain, title: title.trim(),
+        body: body.trim(), codeSnippet: code.trim(),
+        language: 'javascript', videoUrl: videoUrl.trim(),
+        projectName: projectName.trim(), techStack, rolesNeeded, membersNeeded,
+      });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message ?? 'Failed to post.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -133,139 +199,119 @@ function CreatePostModal({ onClose }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ padding: '16px 22px 22px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* Post type tabs */}
-          <div style={{ display: 'flex', gap: '6px' }}>
+        <form onSubmit={handleSubmit} style={{ padding: '16px 22px 22px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '70vh', overflowY: 'auto' }}>
+
+          {/* Type tabs + domain */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
             {POST_TYPES.map(({ value, label, icon: Icon }) => {
               const active = type === value;
+              const color  = value === 'collab' ? COLLAB_COLOR : 'var(--accent)';
               return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setType(value)}
+                <button key={value} type="button" onClick={() => setType(value)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '5px',
                     padding: '6px 14px', borderRadius: '8px',
-                    border: active ? '1.5px solid var(--accent-border)' : '1.5px solid var(--border)',
-                    background: active ? 'var(--accent-bg)' : 'transparent',
-                    color: active ? 'var(--accent)' : 'var(--text-secondary)',
-                    fontSize: '13px', fontWeight: active ? '600' : '400',
-                    cursor: 'pointer', transition: 'all 0.12s',
-                  }}
-                >
+                    border: active ? `1.5px solid ${color}60` : '1.5px solid var(--border)',
+                    background: active ? (value === 'collab' ? COLLAB_COLOR : 'var(--accent-bg)') : 'transparent',
+                    color: active ? (value === 'collab' ? '#fff' : 'var(--accent)') : 'var(--text-secondary)',
+                    fontSize: '13px', fontWeight: active ? '600' : '400', cursor: 'pointer', transition: 'all 0.12s',
+                  }}>
                   <Icon size={13} /> {label}
                 </button>
               );
             })}
+            <select value={domain} onChange={(e) => setDomain(e.target.value)}
+              style={{ marginLeft: 'auto', padding: '6px 10px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '13px', color: 'var(--text-secondary)', background: 'var(--card-bg)', cursor: 'pointer', outline: 'none' }}>
+              {DOMAINS.filter((d) => d.value !== 'all').map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
+            </select>
           </div>
 
+          {/* Collab banner */}
+          {isCollab && (
+            <>
+              <div style={{ padding: '10px 14px', borderRadius: '10px', background: `${COLLAB_COLOR}0d`, border: `1px solid ${COLLAB_COLOR}30`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Users2 size={14} color={COLLAB_COLOR} />
+                <span style={{ fontSize: '13px', color: COLLAB_COLOR, fontWeight: '600' }}>Collab Post — looking for collaborators</span>
+              </div>
+              <input value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="Project name (optional)"
+                style={{ padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
+                onFocus={(e) => (e.target.style.borderColor = COLLAB_COLOR)}
+                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+            </>
+          )}
+
           {/* Title */}
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Post title…"
-            autoFocus
-            style={{
-              padding: '11px 14px', borderRadius: '10px',
-              border: '1.5px solid var(--border)', background: 'var(--input-bg)',
-              fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)',
-              outline: 'none', transition: 'border-color 0.15s',
-            }}
-            onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
-            onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-          />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} autoFocus required
+            placeholder={isCollab ? 'What are you building? What help do you need?' : 'Post title…'}
+            style={{ padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
+            onFocus={(e) => (e.target.style.borderColor = isCollab ? COLLAB_COLOR : 'var(--accent-border)')}
+            onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
 
           {/* Body */}
           {type !== 'video' && (
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder={type === 'code' ? 'Brief description of the snippet…' : 'Write your post…'}
-              rows={4}
-              style={{
-                padding: '11px 14px', borderRadius: '10px',
-                border: '1.5px solid var(--border)', background: 'var(--input-bg)',
-                fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6',
-                resize: 'vertical', outline: 'none',
-                fontFamily: 'inherit', transition: 'border-color 0.15s',
-              }}
-              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-            />
+            <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={isCollab ? 4 : 4}
+              placeholder={isCollab ? "Describe the project, what stage it's at, and what you're looking for…" : type === 'code' ? 'Brief description…' : 'Write your post…'}
+              style={{ padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s' }}
+              onFocus={(e) => (e.target.style.borderColor = isCollab ? COLLAB_COLOR : 'var(--accent-border)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
           )}
 
-          {/* Code editor */}
+          {/* Code */}
           {type === 'code' && (
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="// Paste your code here…"
-              rows={7}
-              style={{
-                padding: '12px 14px', borderRadius: '10px',
-                border: '1.5px solid var(--border)', background: 'var(--code-bg)',
-                fontSize: '13px', color: 'var(--code-text)', lineHeight: '1.65',
-                resize: 'vertical', outline: 'none',
-                fontFamily: 'ui-monospace, Consolas, monospace',
-                transition: 'border-color 0.15s',
-              }}
+            <textarea value={code} onChange={(e) => setCode(e.target.value)} placeholder="// Paste your code here…" rows={7}
+              style={{ padding: '12px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--code-bg)', fontSize: '13px', color: 'var(--code-text)', lineHeight: '1.65', resize: 'vertical', outline: 'none', fontFamily: 'ui-monospace, Consolas, monospace', transition: 'border-color 0.15s' }}
               onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-            />
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
           )}
 
-          {/* Video URL */}
+          {/* Video */}
           {type === 'video' && (
-            <input
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="Paste YouTube or video URL…"
-              style={{
-                padding: '11px 14px', borderRadius: '10px',
-                border: '1.5px solid var(--border)', background: 'var(--input-bg)',
-                fontSize: '14px', color: 'var(--text-secondary)', outline: 'none',
-                transition: 'border-color 0.15s',
-              }}
+            <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="Paste YouTube or video URL…"
+              style={{ padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-secondary)', outline: 'none', transition: 'border-color 0.15s' }}
               onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
-            />
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
           )}
 
-          {/* Divider */}
+          {/* Collab: tech stack + roles */}
+          {isCollab && (
+            <>
+              <div>
+                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Tech Stack</p>
+                <TagInput tags={techStack} onAdd={(t) => setTechStack((s) => [...s, t])} onRemove={(t) => setTechStack((s) => s.filter((x) => x !== t))} placeholder="Type a tech and press Enter (e.g. React, Node.js)" />
+              </div>
+              <div>
+                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Roles Needed</p>
+                <TagInput tags={rolesNeeded} onAdd={(r) => setRolesNeeded((s) => [...s, r])} onRemove={(r) => setRolesNeeded((s) => s.filter((x) => x !== r))} presets={PRESET_ROLES} />
+              </div>
+              <MembersSlider value={membersNeeded} onChange={setMembersNeeded} />
+            </>
+          )}
+
+          {error && <p style={{ fontSize: '13px', color: '#dc2626', margin: 0 }}>{error}</p>}
+
           <div style={{ height: '1px', background: 'var(--divider)' }} />
 
           {/* Actions */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                padding: '9px 18px', borderRadius: '9px',
-                border: '1.5px solid var(--border)', background: 'transparent',
-                color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer',
-              }}
-            >
+            <button type="button" onClick={onClose}
+              style={{ padding: '9px 18px', borderRadius: '9px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
               Cancel
             </button>
-            <motion.button
-              type="submit"
-              whileTap={{ scale: 0.97 }}
-              disabled={!title.trim() || submitted}
+            <motion.button type="submit" whileTap={{ scale: 0.97 }} disabled={!title.trim() || submitting}
               style={{
-                display: 'flex', alignItems: 'center', gap: '7px',
-                padding: '9px 22px', borderRadius: '9px', border: 'none',
-                background: submitted ? '#dcfce7' : !title.trim() ? 'var(--accent-dim)' : 'var(--accent)',
-                color: submitted ? '#16a34a' : '#fff',
-                fontSize: '14px', fontWeight: '600',
-                cursor: title.trim() && !submitted ? 'pointer' : 'not-allowed',
-                transition: 'background 0.2s, color 0.2s',
-              }}
-            >
-              <Send size={14} />
-              {submitted ? 'Posted!' : 'Publish post'}
+                display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 22px', borderRadius: '9px', border: 'none',
+                background: !title.trim() ? 'var(--accent-dim)' : isCollab ? COLLAB_COLOR : 'var(--accent)',
+                color: '#fff', fontSize: '14px', fontWeight: '600',
+                cursor: title.trim() && !submitting ? 'pointer' : 'not-allowed', transition: 'background 0.2s',
+              }}>
+              {submitting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : isCollab ? <Users2 size={14} /> : <Send size={14} />}
+              {submitting ? 'Posting…' : isCollab ? 'Post Collab' : 'Publish post'}
             </motion.button>
           </div>
         </form>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </motion.div>
     </motion.div>
   );
