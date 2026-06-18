@@ -32,6 +32,11 @@ export default function CollabPage() {
       });
   }, []);
 
+  // Inside CollabPage component
+  const handleRoomCreated = (newRoom) => {
+    setRooms((prev) => [newRoom, ...prev]); // add new room at top
+  };
+
   if (loading) {
     return (
       <div style={{ padding: "2rem", color: "var(--txt2)" }}>
@@ -46,14 +51,12 @@ export default function CollabPage() {
       <div className={styles["collab-main"]}>
         <div className={styles["collab-grid"]}>
           <div className={styles["left-col"]}>
-            <ActiveRoomsList rooms={rooms} />
+            <ActiveRoomsList rooms={rooms} onRoomCreated={handleRoomCreated} />
             <UserProjectsList projects={projects} />
           </div>
           <div className={styles["right-col"]}>
             <CollaborationSidebar activity={activity} />
           </div>
-
-         
         </div>
       </div>
     </div>

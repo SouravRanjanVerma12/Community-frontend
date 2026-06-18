@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   TASKS: "devEcosystem_tasks",
   ROOMS: "devEcosystem_rooms",
   ACTIVITY: "devEcosystem_activity",
+  REVIEW_REQUESTS: "devEcosystem_reviewRequests",
 };
 
 // Helper to get/set data
@@ -21,6 +22,10 @@ const initSampleData = () => {
         leadId: "user1",
         myRole: "Frontend Contributor",
         techStack: ["React", "Node.js"],
+        member: [
+          { userId: "user2", name: "maya_r", role: "Contributor" },
+          { userid: "user3", name: "tom_l", role: "Contributor" },
+        ],
         createdAt: Date.now(),
       },
       {
@@ -29,6 +34,7 @@ const initSampleData = () => {
         leadId: "user2",
         myRole: "Backend Lead",
         techStack: ["Python", "Click"],
+        member: [{ userId: "user1", name: "anna_ko", role: "Contributor" }],
         createdAt: Date.now(),
       },
     ];
@@ -142,18 +148,19 @@ export const mockApi = {
 
   // Rooms
   getActiveRooms: () => Promise.resolve(getData(STORAGE_KEYS.ROOMS)),
-  createRoom: (room) => {
+  // inside mockApi object
+  createRoom: async (room) => {
     const rooms = getData(STORAGE_KEYS.ROOMS);
     const newRoom = {
       ...room,
       id: Date.now().toString(),
       lastActive: Date.now(),
+      createdAt: Date.now(),
     };
     rooms.push(newRoom);
     setData(STORAGE_KEYS.ROOMS, rooms);
-    return Promise.resolve(newRoom);
+    return newRoom;
   },
-
   // Activity
   getRecentActivity: () =>
     Promise.resolve(
@@ -166,4 +173,62 @@ export const mockApi = {
     activities.unshift({ id: Date.now().toString(), text, time: Date.now() });
     setData(STORAGE_KEYS.ACTIVITY, activities.slice(0, 20));
   },
+
+  // Get project members with names
+
+  getProjectMembers: async (projectId) => {
+    const projects = getData(STORAGE_KEYS.PROJECTS);
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return [];
+    const members = [
+      {
+        userId: project.leadId,
+        name: getUsername(project.leadId),
+        role: "Lead",
+      },
+      ...(project.members || []).map((m) => ({
+        userId: m.userId,
+        name: m.name || getUsername(m.userId),
+        role: m.role || "Contributor",
+      })),
+    ];
+    return members;
+  },
+
+  // New: Create a review request
+  createReviewRequest: async (request) => {
+    const requests = getData(STORAGE_KEYS.REVIEW_REQUESTS) || [];
+    const newRequest = {
+      ...request,
+      id: Date.now().toString(),
+      status: "pending",
+    };
+    requests.push(newRequest);
+    setData(STORAGE_KEYS.REVIEW_REQUESTS, requests);
+    return newRequest;
+  },
+
+  // New: Add activity for a specific user (for notifications)
+  addActivityForUser: async (userId, text) => {
+    const activities = getData(STORAGE_KEYS.ACTIVITY);
+    activities.unshift({
+      id: Date.now().toString(),
+      userId,
+      text,
+      time: Date.now(),
+    });
+    setData(STORAGE_KEYS.ACTIVITY, activities.slice(0, 30));
+  },
+
+  // New: Get current user info (mock)
+  getCurrentUser: () => {
+    // In real app, this would come from auth store
+    return { id: "currentUser", name: "You" };
+  },
 };
+
+// Helper to get a username from userId (for mock)
+function getUsername(userId) {
+  const names = { user1: "anna_ko", user2: "maya_r", user3: "tom_l" };
+  return names[userId] || userId;
+}
