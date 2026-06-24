@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, PenSquare, X, Type, Code2, Video, Send, ChevronDown, Users2, Plus, Loader2 } from 'lucide-react';
 import MembersSlider from '../components/feed/MembersSlider';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -61,7 +62,8 @@ function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
           {presets.filter((p) => !tags.includes(p)).map((p) => (
             <button key={p} type="button" onClick={() => onAdd(p)}
-              style={{ padding: '3px 10px', borderRadius: '20px', border: `1px solid ${COLLAB_COLOR}40`, background: `${COLLAB_COLOR}0d`, color: COLLAB_COLOR, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}>
+              className="explore-focusable"
+              style={{ minHeight: '28px', padding: '3px 10px', borderRadius: '20px', border: `1px solid ${COLLAB_COLOR}40`, background: `${COLLAB_COLOR}0d`, color: COLLAB_COLOR, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}>
               <Plus size={10} /> {p}
             </button>
           ))}
@@ -72,7 +74,9 @@ function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
           {tags.map((t) => (
             <span key={t} style={{ padding: '3px 10px', borderRadius: '20px', background: COLLAB_COLOR, color: '#fff', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
               {t}
-              <button type="button" onClick={() => onRemove(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', lineHeight: 1, padding: 0, fontSize: '14px' }}>×</button>
+              <button type="button" onClick={() => onRemove(t)} aria-label={`Remove ${t}`}
+                className="explore-focusable"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', lineHeight: 1, padding: 0, fontSize: '14px' }}>×</button>
             </span>
           ))}
         </div>
@@ -89,9 +93,10 @@ function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
   );
 }
 
-function CreatePostModal({ onClose }) {
+function CreatePostModal({ onClose, initialType = 'text' }) {
   const { user } = useAuthStore();
-  const [type, setType]       = useState('text');
+  const navigate = useNavigate();
+  const [type, setType]       = useState(initialType);
   const [domain, setDomain]   = useState('webdev');
   const [title, setTitle]     = useState('');
   const [body, setBody]       = useState('');
@@ -111,13 +116,22 @@ function CreatePostModal({ onClose }) {
     if (!title.trim()) return;
     setSubmitting(true); setError('');
     try {
-      await api.post('/posts', {
+      const { data } = await api.post('/posts', {
         type, domain, title: title.trim(),
         body: body.trim(), codeSnippet: code.trim(),
         language: 'javascript', videoUrl: videoUrl.trim(),
         projectName: projectName.trim(), techStack, rolesNeeded, membersNeeded,
       });
       queryClient.invalidateQueries({ queryKey: ['posts'] });
+      if (isCollab) {
+        queryClient.invalidateQueries({ queryKey: ['collab-posts'] });
+        queryClient.invalidateQueries({ queryKey: ['my-collab-posts'] });
+        queryClient.invalidateQueries({ queryKey: ['my-collab-posts-ws'] });
+        queryClient.invalidateQueries({ queryKey: ['my-collab-requests-workspace'] });
+        onClose();
+        navigate(`/project/${data.post._id}`);
+        return;
+      }
       onClose();
     } catch (err) {
       setError(err.response?.data?.message ?? 'Failed to post.');
@@ -167,12 +181,13 @@ function CreatePostModal({ onClose }) {
           </h2>
           <button
             onClick={onClose}
+            className="explore-focusable"
             style={{
-              width: '30px', height: '30px', borderRadius: '50%',
+              width: '44px', height: '44px', borderRadius: '50%',
               border: 'none', background: 'var(--surface-2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', color: 'var(--text-secondary)',
-              transition: 'background 0.12s',
+              transition: 'background-color 0.15s',
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-3)')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
@@ -208,13 +223,15 @@ function CreatePostModal({ onClose }) {
               const color  = value === 'collab' ? COLLAB_COLOR : 'var(--accent)';
               return (
                 <button key={value} type="button" onClick={() => setType(value)}
+                  className="explore-focusable"
                   style={{
                     display: 'flex', alignItems: 'center', gap: '5px',
+                    minHeight: '32px',
                     padding: '6px 14px', borderRadius: '8px',
                     border: active ? `1.5px solid ${color}60` : '1.5px solid var(--border)',
                     background: active ? (value === 'collab' ? COLLAB_COLOR : 'var(--accent-bg)') : 'transparent',
                     color: active ? (value === 'collab' ? '#fff' : 'var(--accent)') : 'var(--text-secondary)',
-                    fontSize: '13px', fontWeight: active ? '600' : '400', cursor: 'pointer', transition: 'all 0.12s',
+                    fontSize: '13px', fontWeight: active ? '600' : '400', cursor: 'pointer', transition: 'background-color 0.15s, border-color 0.15s, color 0.15s',
                   }}>
                   <Icon size={13} /> {label}
                 </button>
@@ -296,15 +313,17 @@ function CreatePostModal({ onClose }) {
           {/* Actions */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button type="button" onClick={onClose}
-              style={{ padding: '9px 18px', borderRadius: '9px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
+              className="explore-focusable"
+              style={{ minHeight: '44px', padding: '9px 18px', borderRadius: '9px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
               Cancel
             </button>
             <motion.button type="submit" whileTap={{ scale: 0.97 }} disabled={!title.trim() || submitting}
+              className="explore-focusable"
               style={{
-                display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 22px', borderRadius: '9px', border: 'none',
+                display: 'flex', alignItems: 'center', gap: '7px', minHeight: '44px', padding: '9px 22px', borderRadius: '9px', border: 'none',
                 background: !title.trim() ? 'var(--accent-dim)' : isCollab ? COLLAB_COLOR : 'var(--accent)',
                 color: '#fff', fontSize: '14px', fontWeight: '600',
-                cursor: title.trim() && !submitting ? 'pointer' : 'not-allowed', transition: 'background 0.2s',
+                cursor: title.trim() && !submitting ? 'pointer' : 'not-allowed', transition: 'background-color 0.2s',
               }}>
               {submitting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : isCollab ? <Users2 size={14} /> : <Send size={14} />}
               {submitting ? 'Posting…' : isCollab ? 'Post Collab' : 'Publish post'}
@@ -324,10 +343,24 @@ const DOMAIN_LABELS = {
 };
 
 export default function ExplorePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeDomain, setActiveDomain] = useState('all');
   const [search, setSearch]             = useState('');
   const [modalOpen, setModalOpen]       = useState(false);
   const [filtersOpen, setFiltersOpen]   = useState(true);
+  const [createType, setCreateType]     = useState('text');
+
+  useEffect(() => {
+    const create = searchParams.get('create');
+    if (create) {
+      setCreateType(create === 'collab' ? 'collab' : 'text');
+      setModalOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('create');
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div style={{ minHeight: '100svh', background: 'var(--surface-0)', transition: 'background 0.25s' }}>
@@ -367,11 +400,12 @@ export default function ExplorePage() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setFiltersOpen(true)}
                 title="Show filters"
+                className="explore-focusable"
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
-                  padding: '6px 12px', borderRadius: '20px',
+                  minHeight: '44px', padding: '6px 12px', borderRadius: '20px',
                   border: '1.5px solid var(--border)', background: 'var(--card-bg)',
-                  color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '500',
+                  color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '500',
                   cursor: 'pointer', flexShrink: 0,
                 }}
               >
@@ -384,12 +418,13 @@ export default function ExplorePage() {
               whileHover={{ boxShadow: '0 4px 16px rgba(124,58,237,0.30)' }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setModalOpen(true)}
+              className="explore-focusable"
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
-                padding: '8px 16px', borderRadius: '9px',
+                minHeight: '44px', padding: '8px 16px', borderRadius: '9px',
                 border: 'none', background: 'var(--accent)', color: '#fff',
                 fontSize: '13px', fontWeight: '600', cursor: 'pointer',
-                flexShrink: 0, transition: 'box-shadow 0.2s',
+                flexShrink: 0, transition: 'box-shadow 200ms ease',
               }}
             >
               <PenSquare size={14} />
@@ -419,7 +454,7 @@ export default function ExplorePage() {
 
       {/* Create post modal */}
       <AnimatePresence>
-        {modalOpen && <CreatePostModal onClose={() => setModalOpen(false)} />}
+        {modalOpen && <CreatePostModal onClose={() => setModalOpen(false)} initialType={createType} />}
       </AnimatePresence>
 
       <style>{`
@@ -427,6 +462,12 @@ export default function ExplorePage() {
         @media (max-width: 960px) { .explore-right { display: none; } }
         @media (max-width: 600px) {
           div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+        }
+        .explore-focusable:focus-visible,
+        button:focus-visible,
+        a:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: 2px;
         }
       `}</style>
     </div>

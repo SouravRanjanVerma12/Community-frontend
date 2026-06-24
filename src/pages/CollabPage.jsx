@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Users2, Compass, Briefcase, LayoutDashboard, Loader2, PenSquare, Sliders } from 'lucide-react';
+import { Search, Users2, Compass, Briefcase, LayoutDashboard, Loader2, PenSquare, Sliders, CheckCircle2, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '../components/layout/Navbar';
 import ProjectCard from '../components/collab/ProjectCard';
@@ -51,7 +51,7 @@ function DiscoverTab() {
     <div>
       {/* Search + filter bar */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--card-bg)', transition: 'border-color 0.15s' }}
+        <div style={{ flex: 1, minWidth: '200px', minHeight: '44px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--card-bg)', transition: 'border-color 150ms ease' }}
           onFocusCapture={(e) => e.currentTarget.style.borderColor = CC}
           onBlurCapture={(e) => e.currentTarget.style.borderColor = 'var(--border)'}>
           <Search size={14} color="var(--text-muted)" />
@@ -59,7 +59,8 @@ function DiscoverTab() {
             style={{ flex: 1, padding: '10px 0', background: 'transparent', border: 'none', outline: 'none', fontSize: '14px', color: 'var(--text-primary)' }} />
         </div>
         <button onClick={() => setShowFilters(v => !v)}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 16px', borderRadius: '10px', border: `1.5px solid ${showFilters ? CC : 'var(--border)'}`, background: showFilters ? `${CC}10` : 'var(--card-bg)', color: showFilters ? CC : 'var(--text-secondary)', fontSize: '13px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+          className="collab-focusable"
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px', padding: '0 16px', borderRadius: '10px', border: `1.5px solid ${showFilters ? CC : 'var(--border)'}`, background: showFilters ? `${CC}10` : 'var(--card-bg)', color: showFilters ? CC : 'var(--text-secondary)', fontSize: '13px', fontWeight: '500', cursor: 'pointer', transition: 'background-color 150ms ease, border-color 150ms ease', whiteSpace: 'nowrap' }}>
           <Sliders size={14} /> Filters {(domainFilter || roleFilter) && '•'}
         </button>
       </div>
@@ -134,7 +135,9 @@ function DiscoverTab() {
 function MyProjectsTab() {
   const { user } = useAuthStore();
 
-  const { data: myPosts = [], isLoading: loadingPosts } = useQuery({
+  const {
+    data: myPosts = [], isLoading: loadingPosts, isError: postsError, refetch: refetchPosts,
+  } = useQuery({
     queryKey: ['my-collab-posts', user?._id],
     queryFn: async () => {
       const { data } = await api.get('/posts', { params: { type: 'collab', author: user._id, limit: 30 } });
@@ -143,7 +146,9 @@ function MyProjectsTab() {
     enabled: !!user,
   });
 
-  const { data: myRequests = [], isLoading: loadingReqs } = useQuery({
+  const {
+    data: myRequests = [], isLoading: loadingReqs, isError: reqsError, refetch: refetchReqs,
+  } = useQuery({
     queryKey: ['my-collab-requests'],
     queryFn: async () => {
       const { data } = await api.get('/collab-requests/my');
@@ -159,6 +164,18 @@ function MyProjectsTab() {
   if (!user) return <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>Log in to see your projects.</div>;
 
   if (isLoading) return <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><Loader2 size={28} color={CC} style={{ animation: 'spin 0.8s linear infinite' }} /></div>;
+
+  if (postsError || reqsError) return (
+    <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
+      <p style={{ fontSize: '15px', fontWeight: '600', color: '#dc2626', marginBottom: '6px' }}>Couldn't load your projects</p>
+      <p style={{ fontSize: '13px', marginBottom: '16px' }}>Your session may have expired. Try refreshing, or log in again.</p>
+      <button onClick={() => { refetchPosts(); refetchReqs(); }}
+        className="collab-focusable"
+        style={{ minHeight: '40px', padding: '8px 18px', borderRadius: '9px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+        Retry
+      </button>
+    </div>
+  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -197,7 +214,7 @@ function MyProjectsTab() {
                   <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '2px' }}>{r.post?.title}</p>
                   <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{r.post?.projectName}</p>
                 </div>
-                <span style={{ padding: '4px 10px', borderRadius: '20px', background: 'rgba(34,197,94,0.1)', color: '#16a34a', fontSize: '12px', fontWeight: '600' }}>✓ Accepted</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '20px', background: 'rgba(34,197,94,0.1)', color: '#16a34a', fontSize: '12px', fontWeight: '600' }}><CheckCircle2 size={12} /> Accepted</span>
               </div>
             ))}
           </div>
@@ -218,7 +235,7 @@ function MyProjectsTab() {
                   <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '2px' }}>{r.post?.title}</p>
                   <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{r.post?.projectName}</p>
                 </div>
-                <span style={{ padding: '4px 10px', borderRadius: '20px', background: 'rgba(245,158,11,0.1)', color: '#d97706', fontSize: '12px', fontWeight: '600' }}>⏳ Pending</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '20px', background: 'rgba(245,158,11,0.1)', color: '#d97706', fontSize: '12px', fontWeight: '600' }}><Clock size={12} /> Pending</span>
               </div>
             ))}
           </div>
@@ -233,7 +250,9 @@ function WorkspaceTab() {
   const { user } = useAuthStore();
   const navigate  = useNavigate();
 
-  const { data: myRequests = [], isLoading } = useQuery({
+  const {
+    data: myRequests = [], isLoading, isError: reqsError, refetch: refetchReqs,
+  } = useQuery({
     queryKey: ['my-collab-requests-workspace'],
     queryFn: async () => {
       const { data } = await api.get('/collab-requests/my');
@@ -245,7 +264,9 @@ function WorkspaceTab() {
   const accepted = myRequests.filter(r => r.status === 'accepted' && r.post);
 
   /* Also fetch collab posts I created */
-  const { data: myPosts = [], isLoading: loadingPosts } = useQuery({
+  const {
+    data: myPosts = [], isLoading: loadingPosts, isError: postsError, refetch: refetchPosts,
+  } = useQuery({
     queryKey: ['my-collab-posts-ws', user?._id],
     queryFn: async () => {
       const { data } = await api.get('/posts', { params: { type: 'collab', author: user._id, limit: 20 } });
@@ -259,6 +280,18 @@ function WorkspaceTab() {
   if (isLoading || loadingPosts) return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
       <Loader2 size={28} color={CC} style={{ animation: 'spin 0.8s linear infinite' }} />
+    </div>
+  );
+
+  if (reqsError || postsError) return (
+    <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
+      <p style={{ fontSize: '15px', fontWeight: '600', color: '#dc2626', marginBottom: '6px' }}>Couldn't load your workspaces</p>
+      <p style={{ fontSize: '13px', marginBottom: '16px' }}>Your session may have expired. Try refreshing, or log in again.</p>
+      <button onClick={() => { refetchReqs(); refetchPosts(); }}
+        className="collab-focusable"
+        style={{ minHeight: '40px', padding: '8px 18px', borderRadius: '9px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+        Retry
+      </button>
     </div>
   );
 
@@ -291,7 +324,8 @@ function WorkspaceTab() {
             <LayoutDashboard size={18} color={CC} style={{ flexShrink: 0, marginTop: '2px' }} />
           </div>
           <button onClick={() => navigate(`/project/${proj.id}`)}
-            style={{ width: '100%', padding: '9px', borderRadius: '9px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', boxShadow: `0 3px 10px ${CC}30` }}>
+            className="collab-focusable"
+            style={{ width: '100%', minHeight: '44px', padding: '9px', borderRadius: '9px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', boxShadow: `0 3px 10px ${CC}30`, transition: 'transform 200ms ease, opacity 200ms ease' }}>
             Open Task Board →
           </button>
         </motion.div>
@@ -308,6 +342,7 @@ const TABS = [
 ];
 
 export default function CollabPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('discover');
 
   return (
@@ -333,10 +368,11 @@ export default function CollabPage() {
                 Find projects to join, manage your team, and build together.
               </p>
             </div>
-            <a href="/explore" onClick={e => { e.preventDefault(); window.location.href = '/explore'; }}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', borderRadius: '10px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', textDecoration: 'none', flexShrink: 0, boxShadow: `0 4px 14px ${CC}35` }}>
+            <button onClick={() => navigate('/explore?create=collab')}
+              className="collab-focusable"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px', padding: '9px 18px', borderRadius: '10px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', flexShrink: 0, boxShadow: `0 4px 14px ${CC}35` }}>
               <PenSquare size={14} /> Post a Project
-            </a>
+            </button>
           </div>
 
           {/* Tab bar */}
@@ -345,13 +381,15 @@ export default function CollabPage() {
               const active = activeTab === id;
               return (
                 <button key={id} onClick={() => setActiveTab(id)}
+                  className="collab-focusable"
                   style={{
                     display: 'flex', alignItems: 'center', gap: '7px',
+                    minHeight: '44px',
                     padding: '10px 20px', border: 'none', background: 'transparent',
                     borderBottom: active ? `2px solid ${CC}` : '2px solid transparent',
                     color: active ? CC : 'var(--text-secondary)',
                     fontSize: '14px', fontWeight: active ? '700' : '500',
-                    cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+                    cursor: 'pointer', transition: 'color 0.15s, border-color 0.15s', whiteSpace: 'nowrap',
                   }}>
                   <Icon size={15} />
                   {label}
@@ -373,7 +411,17 @@ export default function CollabPage() {
         </AnimatePresence>
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .collab-focusable { cursor: pointer; }
+        .collab-focusable:hover { opacity: 0.92; }
+        .collab-focusable:focus-visible,
+        button:focus-visible,
+        a:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: 2px;
+        }
+      `}</style>
     </div>
   );
 }

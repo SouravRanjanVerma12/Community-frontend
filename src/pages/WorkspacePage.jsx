@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { confirm } from '../components/ui/ConfirmDialog';
 import {
   ArrowLeft, LayoutDashboard, CheckSquare, Users, MessageSquare,
   BookOpen, Plus, Trash2, Send, ExternalLink, Loader2,
   Code, Palette, FileText, Globe, Link2,
-  CheckCircle, Clock, Circle, Wifi, WifiOff,Edit, Share2
+  CheckCircle, Clock, Circle, Wifi, WifiOff, Edit, Share2,
+  Square, X, Crown, User, Eye, Calendar, Paperclip,
+  ClipboardCheck, RotateCcw,
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import api from '../api/axiosInstance';
@@ -136,6 +140,7 @@ function Overview({ postId, isOwner }) {
                 </div>
               )}
               <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
                 padding: '4px 12px',
                 borderRadius: '20px',
                 fontSize: '11px',
@@ -144,9 +149,10 @@ function Overview({ postId, isOwner }) {
                 color: isOwner ? CC : 'var(--text-muted)',
                 border: `1px solid ${isOwner ? CC + '35' : 'var(--border)'}`,
               }}>
-                {isOwner ? '👑 Owner' : '👤 Member'}
+                {isOwner ? <Crown size={11} /> : <User size={11} />} {isOwner ? 'Owner' : 'Member'}
               </span>
               <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
                 padding: '4px 12px',
                 borderRadius: '20px',
                 fontSize: '11px',
@@ -155,7 +161,7 @@ function Overview({ postId, isOwner }) {
                 color: isComplete ? '#16a34a' : CC,
                 border: `1px solid ${isComplete ? 'rgba(22,163,74,0.2)' : CC + '35'}`,
               }}>
-                {isComplete ? '✅ Complete' : '🔄 In Progress'}
+                {isComplete ? <CheckCircle size={11} /> : <Clock size={11} />} {isComplete ? 'Complete' : 'In Progress'}
               </span>
             </div>
           </div>
@@ -394,8 +400,8 @@ function Overview({ postId, isOwner }) {
           padding: '18px 22px',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
-              📎 Recent Resources
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+              <Paperclip size={14} /> Recent Resources
             </span>
             <span style={{ fontSize: '11px', color: CC, cursor: 'pointer' }}>View all →</span>
           </div>
@@ -447,7 +453,7 @@ function Overview({ postId, isOwner }) {
 /* ── Members section ── */
 
 function Members({ postId, isOwner }) {
-  const { user } = useAuthStore();
+  const { user: currentUser } = useAuthStore();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -519,42 +525,44 @@ function Members({ postId, isOwner }) {
       setMembers(data.members);
       setInviteEmail('');
       setIsInviteModalOpen(false);
-      alert(`Invitation sent to ${inviteEmail}`);
+      toast.success(`Invitation sent to ${inviteEmail}`);
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to send invitation');
+      toast.error(error.response?.data?.message || 'Failed to send invitation');
     } finally {
       setInviting(false);
     }
   };
 
   const handleChangeRole = async (userId, newRole) => {
-    if (!window.confirm(`Change this member's role to ${newRole}?`)) return;
+    if (!await confirm(`Change this member's role to ${newRole}?`, { title: 'Change role', danger: false, confirmLabel: 'Change role' })) return;
     try {
       await api.patch(`/workspace/${postId}/members/${userId}/role`, { role: newRole });
       setMembers(prev => prev.map(m =>
         m.user._id === userId ? { ...m, role: newRole } : m
       ));
+      toast.success(`Role updated to ${newRole}`);
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to update role');
+      toast.error(error.response?.data?.message || 'Failed to update role');
     }
   };
 
   const handleRemoveMember = async (userId, userName) => {
-    if (!window.confirm(`Remove ${userName} from this project?`)) return;
+    if (!await confirm(`Remove ${userName} from this project?`, { title: 'Remove member', confirmLabel: 'Remove' })) return;
     try {
       await api.delete(`/workspace/${postId}/members/${userId}`);
       setMembers(prev => prev.filter(m => m.user._id !== userId));
+      toast.success(`${userName} removed from the project`);
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to remove member');
+      toast.error(error.response?.data?.message || 'Failed to remove member');
     }
   };
 
   if (loading) return <Loader />;
 
   const roleColors = {
-    Lead: { bg: `${CC}18`, color: CC, icon: '👑' },
-    Contributor: { bg: 'rgba(34,197,94,0.12)', color: '#16a34a', icon: '👤' },
-    Viewer: { bg: 'rgba(107,114,128,0.12)', color: '#6b7280', icon: '👁' },
+    Lead: { bg: `${CC}18`, color: CC, icon: Crown },
+    Contributor: { bg: 'rgba(34,197,94,0.12)', color: '#16a34a', icon: User },
+    Viewer: { bg: 'rgba(107,114,128,0.12)', color: '#6b7280', icon: Eye },
   };
 
   // Get stats
@@ -577,14 +585,14 @@ function Members({ postId, isOwner }) {
             </span>
           </div>
           <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              👑 {leadCount} Lead
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <Crown size={11} /> {leadCount} Lead
             </span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              👤 {contributorCount} Contributors
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <User size={11} /> {contributorCount} Contributors
             </span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              👁 {viewerCount} Viewers
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <Eye size={11} /> {viewerCount} Viewers
             </span>
           </div>
         </div>
@@ -614,12 +622,14 @@ function Members({ postId, isOwner }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '6px 14px',
+                padding: '10px 16px',
+                minHeight: '44px',
+                boxSizing: 'border-box',
                 borderRadius: '8px',
                 border: 'none',
                 background: CC,
                 color: '#fff',
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 boxShadow: `0 4px 12px ${CC}40`,
@@ -639,7 +649,7 @@ function Members({ postId, isOwner }) {
         {sortedMembers.map(({ user, role, joinedAt }) => {
           const isOnline = onlineUsers.has(user._id);
           const roleInfo = roleColors[role] || roleColors.Contributor;
-          const isCurrentUser = user._id === user?._id;
+          const isCurrentUser = user._id === currentUser?._id;
 
           return (
             <div
@@ -711,7 +721,7 @@ function Members({ postId, isOwner }) {
                       gap: '4px',
                     }}
                   >
-                    {roleInfo.icon} {role}
+                    <roleInfo.icon size={11} /> {role}
                   </span>
                   {isOnline && (
                     <span style={{
@@ -756,7 +766,6 @@ function Members({ postId, isOwner }) {
                       cursor: 'pointer',
                     }}
                   >
-                    <option value="Lead">Lead</option>
                     <option value="Contributor">Contributor</option>
                     <option value="Viewer">Viewer</option>
                   </select>
@@ -859,15 +868,24 @@ function Members({ postId, isOwner }) {
               </h2>
               <button
                 onClick={() => setIsInviteModalOpen(false)}
+                aria-label="Close"
                 style={{
                   background: 'none',
                   border: 'none',
                   color: 'var(--text-muted)',
                   cursor: 'pointer',
-                  fontSize: '20px',
+                  width: 36,
+                  height: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '8px',
+                  transition: 'background 0.15s, color 0.15s',
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -922,7 +940,6 @@ function Members({ postId, isOwner }) {
                 >
                   <option value="Contributor">Contributor – Can create and update tasks</option>
                   <option value="Viewer">Viewer – Can only view tasks and discussions</option>
-                  <option value="Lead">Lead – Full access to manage project</option>
                 </select>
               </div>
 
@@ -980,7 +997,7 @@ function Members({ postId, isOwner }) {
 }
 
 /* ── Discussion section — real-time via Socket.io ── */
-function Discussion({ postId, isOwner }) {
+function Discussion({ postId, leadId }) {
   const { user }    = useAuthStore();
   const connected   = useSocketStore((s) => s.connected);
 
@@ -1088,6 +1105,7 @@ function Discussion({ postId, isOwner }) {
           const prevAuthor = messages[i - 1]?.author?._id ?? messages[i - 1]?.author;
           const thisAuthor = msg.author?._id ?? msg.author;
           const showMeta   = i === 0 || prevAuthor !== thisAuthor;
+          const isLead     = leadId && String(thisAuthor) === leadId;
 
           return (
             <motion.div key={msg._id ?? i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}
@@ -1097,17 +1115,20 @@ function Discussion({ postId, isOwner }) {
                 : <div style={{ width: 28, flexShrink: 0 }} />}
               <div style={{ maxWidth: '72%', display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start', gap: '2px' }}>
                 {showMeta && !isMe && (
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', marginLeft: '4px' }}>
+                  <span style={{ fontSize: '11px', color: isLead ? CC : 'var(--text-muted)', fontWeight: '600', marginLeft: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {msg.author?.name}
+                    {isLead && <Crown size={11} color={CC} />}
                   </span>
                 )}
                 <div style={{
                   padding: '9px 13px',
                   borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                  background: isMe ? CC : 'var(--surface-2)',
-                  color: isMe ? '#fff' : 'var(--text-primary)',
+                  background: isMe ? CC : isLead ? `${CC}14` : 'var(--surface-2)',
+                  border: !isMe && isLead ? `1.5px solid ${CC}45` : 'none',
+                  color: isMe ? '#fff' : isLead ? 'var(--text-primary)' : 'var(--text-primary)',
                   fontSize: '14px', lineHeight: '1.5',
                   wordBreak: 'break-word',
+                  fontWeight: !isMe && isLead ? '500' : '400',
                 }}>
                   {msg.text}
                 </div>
@@ -1138,25 +1159,21 @@ function Discussion({ postId, isOwner }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input — owner only */}
-      {isOwner ? (
-        <div style={{ display: 'flex', gap: '8px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-          <input value={text} onChange={handleTyping}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder={connected ? 'Type a message… (Enter to send)' : 'Reconnecting…'}
-            style={{ flex: 1, padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
-            onFocus={e => (e.target.style.borderColor = CC)}
-            onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
-          <motion.button whileTap={{ scale: 0.95 }} onClick={send} disabled={!text.trim()}
-            style={{ width: 42, height: 42, borderRadius: '10px', border: 'none', background: text.trim() ? CC : 'var(--surface-2)', color: text.trim() ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: text.trim() ? 'pointer' : 'not-allowed', flexShrink: 0, boxShadow: text.trim() ? `0 4px 12px ${CC}40` : 'none', transition: 'all 0.15s' }}>
-            <Send size={16} />
-          </motion.button>
-        </div>
-      ) : (
-        <div style={{ paddingTop: '12px', borderTop: '1px solid var(--border)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '12px' }}>
-          👁 You can read discussion — only the project owner can post messages
-        </div>
-      )}
+      {/* Input — open to every member */}
+      <div style={{ display: 'flex', gap: '8px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+        <input value={text} onChange={handleTyping}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+          placeholder={connected ? 'Type a message… (Enter to send)' : 'Reconnecting…'}
+          aria-label="Discussion message"
+          style={{ flex: 1, minHeight: '44px', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '16px', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
+          onFocus={e => (e.target.style.borderColor = CC)}
+          onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
+        <motion.button whileTap={{ scale: 0.95 }} onClick={send} disabled={!text.trim()}
+          aria-label="Send message"
+          style={{ width: 44, height: 44, borderRadius: '10px', border: 'none', background: text.trim() ? CC : 'var(--surface-2)', color: text.trim() ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: text.trim() ? 'pointer' : 'not-allowed', flexShrink: 0, boxShadow: text.trim() ? `0 4px 12px ${CC}40` : 'none', transition: 'all 0.15s' }}>
+          <Send size={16} />
+        </motion.button>
+      </div>
     </div>
   );
 }
@@ -1201,7 +1218,7 @@ function Resources({ postId, isOwner }) {
   };
 
   const removeResource = async (id) => {
-    if (!window.confirm('Remove this resource?')) return;
+    if (!await confirm('Remove this resource?', { title: 'Remove resource', confirmLabel: 'Remove' })) return;
     await api.delete(`/workspace/${postId}/resources/${id}`);
     setResources(prev => prev.filter(r => r._id !== id));
   };
@@ -1265,7 +1282,9 @@ function Resources({ postId, isOwner }) {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '8px 16px',
+              padding: '10px 16px',
+              minHeight: '44px',
+              boxSizing: 'border-box',
               borderRadius: '8px',
               border: 'none',
               background: CC,
@@ -1293,6 +1312,7 @@ function Resources({ postId, isOwner }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search resources..."
+            aria-label="Search resources"
             style={{
               width: '100%',
               padding: '10px 14px 10px 40px',
@@ -1630,15 +1650,24 @@ function Resources({ postId, isOwner }) {
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
+                aria-label="Close"
                 style={{
                   background: 'none',
                   border: 'none',
                   color: 'var(--text-muted)',
                   cursor: 'pointer',
-                  fontSize: '20px',
+                  width: 36,
+                  height: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '8px',
+                  transition: 'background 0.15s, color 0.15s',
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -1809,8 +1838,9 @@ const NAV_ITEMS = [
 
 /* ── Task board (inline) ── */
 const STATUSES = [
-  { id: 'todo',        label: 'To Do',      color: '#6b7280' },
+  { id: 'todo',        label: 'To Do',       color: '#6b7280' },
   { id: 'in_progress', label: 'In Progress', color: '#d97706' },
+  { id: 'in_review',   label: 'In Review',   color: '#0891b2' },
   { id: 'done',        label: 'Done',        color: '#16a34a' },
 ];
 const PRIORITY_COLORS = { high: '#ef4444', medium: '#f59e0b', low: '#6b7280' };
@@ -1823,6 +1853,9 @@ function Tasks({ postId, isOwner }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStatus, setModalStatus] = useState("todo");
   const [saving, setSaving] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewNote, setReviewNote] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     api.get(`/posts/${postId}/tasks`).then(r => { 
@@ -1830,6 +1863,11 @@ function Tasks({ postId, isOwner }) {
       if (r.data.tasks.length) setSelected(r.data.tasks[0]); 
     }).finally(() => setLoading(false));
   }, [postId]);
+
+  useEffect(() => {
+    setShowReviewForm(false);
+    setReviewNote('');
+  }, [selected?._id]);
 
   const refresh = async () => {
     const { data } = await api.get(`/posts/${postId}/tasks`);
@@ -1854,7 +1892,7 @@ function Tasks({ postId, isOwner }) {
   };
 
   const deleteTask = async (id) => {
-    if (!window.confirm('Delete this task?')) return;
+    if (!await confirm('Delete this task?', { title: 'Delete task', confirmLabel: 'Delete' })) return;
     await api.delete(`/tasks/${id}`);
     setTasks(prev => prev.filter(t => t._id !== id));
     if (selected?._id === id) setSelected(null);
@@ -1868,6 +1906,42 @@ function Tasks({ postId, isOwner }) {
   const addChecklistItem = async () => {
     const updated = [...(selected.checklist ?? []), { text: 'New item', completed: false }];
     await patch(selected._id, { checklist: updated });
+  };
+
+  const submitForReview = async () => {
+    if (!reviewNote.trim()) {
+      toast.error('Describe what you completed before submitting.');
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      await patch(selected._id, { status: 'in_review', completionNote: reviewNote.trim() });
+      setShowReviewForm(false);
+      setReviewNote('');
+      toast.success('Submitted for review');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to submit for review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const approveTask = async () => {
+    try {
+      await patch(selected._id, { status: 'done' });
+      toast.success('Task approved');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to approve task');
+    }
+  };
+
+  const requestChanges = async () => {
+    try {
+      await patch(selected._id, { status: 'in_progress' });
+      toast('Sent back for changes', { icon: <RotateCcw size={16} color="#d97706" /> });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update task');
+    }
   };
 
   if (loading) return <Loader />;
@@ -1891,7 +1965,9 @@ function Tasks({ postId, isOwner }) {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '8px 16px',
+              padding: '10px 16px',
+              minHeight: '44px',
+              boxSizing: 'border-box',
               borderRadius: '8px',
               border: 'none',
               background: CC,
@@ -2002,8 +2078,8 @@ function Tasks({ postId, isOwner }) {
                       {task.priority || 'medium'}
                     </span>
                     {task.checklist?.length > 0 && (
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                        ✓ {task.checklist.filter(i => i.completed).length}/{task.checklist.length}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '10px', color: 'var(--text-muted)' }}>
+                        <CheckSquare size={10} /> {task.checklist.filter(i => i.completed).length}/{task.checklist.length}
                       </span>
                     )}
                     {task.assignees?.length > 0 && (
@@ -2020,8 +2096,8 @@ function Tasks({ postId, isOwner }) {
                     )}
                   </div>
                   {task.dueDate && (
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      📅 {new Date(task.dueDate).toLocaleDateString()}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      <Calendar size={10} /> {new Date(task.dueDate).toLocaleDateString()}
                     </div>
                   )}
                 </div>
@@ -2102,13 +2178,13 @@ function Tasks({ postId, isOwner }) {
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '8px' }}>{selected.description}</p>
               )}
             </div>
-            <span style={{ 
-              padding: '2px 10px', 
-              borderRadius: '12px', 
-              fontSize: '10px', 
+            <span style={{
+              padding: '2px 10px',
+              borderRadius: '12px',
+              fontSize: '10px',
               fontWeight: '600',
-              background: selected.status === 'done' ? 'rgba(22,163,74,0.12)' : selected.status === 'in_progress' ? 'rgba(217,119,6,0.12)' : 'rgba(107,114,128,0.12)',
-              color: selected.status === 'done' ? '#16a34a' : selected.status === 'in_progress' ? '#d97706' : '#6b7280',
+              background: `${STATUSES.find(s => s.id === selected.status)?.color ?? '#6b7280'}1f`,
+              color: STATUSES.find(s => s.id === selected.status)?.color ?? '#6b7280',
               flexShrink: 0,
             }}>
               {STATUSES.find(s => s.id === selected.status)?.label || selected.status}
@@ -2121,18 +2197,19 @@ function Tasks({ postId, isOwner }) {
               <label style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Status</label>
               <div style={{ display: 'flex', gap: '4px' }}>
                 {STATUSES.map(s => (
-                  <button 
-                    key={s.id} 
+                  <button
+                    key={s.id}
                     onClick={() => isOwner && patch(selected._id, { status: s.id })}
-                    style={{ 
-                      padding: '4px 10px', 
-                      borderRadius: '12px', 
-                      border: `1.5px solid ${selected.status === s.id ? s.color : 'var(--border)'}`, 
-                      background: selected.status === s.id ? `${s.color}14` : 'transparent', 
-                      color: selected.status === s.id ? s.color : 'var(--text-secondary)', 
-                      fontSize: '10px', 
-                      fontWeight: selected.status === s.id ? '700' : '400', 
-                      cursor: isOwner ? 'pointer' : 'default', 
+                    title={!isOwner ? 'Only the lead can set this directly — use Submit for Review below' : undefined}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      border: `1.5px solid ${selected.status === s.id ? s.color : 'var(--border)'}`,
+                      background: selected.status === s.id ? `${s.color}14` : 'transparent',
+                      color: selected.status === s.id ? s.color : 'var(--text-secondary)',
+                      fontSize: '10px',
+                      fontWeight: selected.status === s.id ? '700' : '400',
+                      cursor: isOwner ? 'pointer' : 'not-allowed',
                       opacity: !isOwner && selected.status !== s.id ? 0.5 : 1,
                       transition: 'all 0.15s',
                     }}
@@ -2196,6 +2273,97 @@ function Tasks({ postId, isOwner }) {
               ) : null}
             </div>
           </div>
+
+          {/* Review workflow */}
+          {!isOwner && selected.status !== 'done' && (
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+              {selected.status === 'in_review' ? (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '10px 12px', borderRadius: '8px', background: 'rgba(8,145,178,0.08)', border: '1px solid rgba(8,145,178,0.2)' }}>
+                  <ClipboardCheck size={15} color={CC} style={{ flexShrink: 0, marginTop: '1px' }} />
+                  <div>
+                    <p style={{ fontSize: '12px', fontWeight: '700', color: CC, marginBottom: '4px' }}>Waiting for lead review</p>
+                    {selected.completionNote && (
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{selected.completionNote}</p>
+                    )}
+                  </div>
+                </div>
+              ) : showReviewForm ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    What did you complete?
+                  </label>
+                  <textarea
+                    value={reviewNote}
+                    onChange={e => setReviewNote(e.target.value)}
+                    placeholder="Describe what you did, so the lead can review it…"
+                    rows={3}
+                    style={{ padding: '10px 12px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '13px', color: 'var(--text-primary)', outline: 'none', resize: 'vertical', fontFamily: 'inherit', lineHeight: '1.5' }}
+                    onFocus={e => (e.target.style.borderColor = CC)}
+                    onBlur={e => (e.target.style.borderColor = 'var(--border)')}
+                  />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={submitForReview}
+                      disabled={!reviewNote.trim() || submittingReview}
+                      style={{ minHeight: '36px', padding: '6px 16px', borderRadius: '8px', border: 'none', background: !reviewNote.trim() || submittingReview ? 'var(--surface-2)' : CC, color: !reviewNote.trim() || submittingReview ? 'var(--text-muted)' : '#fff', fontSize: '12px', fontWeight: '700', cursor: !reviewNote.trim() || submittingReview ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      {submittingReview ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : <ClipboardCheck size={13} />}
+                      Submit for review
+                    </button>
+                    <button
+                      onClick={() => { setShowReviewForm(false); setReviewNote(''); }}
+                      style={{ minHeight: '36px', padding: '6px 16px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowReviewForm(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '40px', padding: '8px 16px', borderRadius: '8px', border: 'none', background: CC, color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 3px 10px ${CC}30` }}
+                >
+                  <ClipboardCheck size={14} /> Mark complete for review
+                </button>
+              )}
+            </div>
+          )}
+
+          {selected.status === 'done' && selected.completionNote && (
+            <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(22,163,74,0.08)', border: '1px solid rgba(22,163,74,0.2)' }}>
+              <p style={{ fontSize: '12px', fontWeight: '700', color: '#16a34a', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle size={13} /> Completed by {selected.completedBy?.name || 'a contributor'}
+              </p>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{selected.completionNote}</p>
+            </div>
+          )}
+
+          {isOwner && selected.status === 'in_review' && (
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+              <div style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(8,145,178,0.08)', border: '1px solid rgba(8,145,178,0.2)', marginBottom: '10px' }}>
+                <p style={{ fontSize: '12px', fontWeight: '700', color: CC, marginBottom: '4px' }}>
+                  Submitted by {selected.completedBy?.name || 'a contributor'} for review
+                </p>
+                {selected.completionNote && (
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{selected.completionNote}</p>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={approveTask}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '36px', padding: '6px 16px', borderRadius: '8px', border: 'none', background: '#16a34a', color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  <CheckCircle size={13} /> Approve
+                </button>
+                <button
+                  onClick={requestChanges}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '36px', padding: '6px 16px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                >
+                  <RotateCcw size={13} /> Request changes
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Checklist */}
           {selected.checklist?.length > 0 && (
@@ -2392,7 +2560,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus, projectMembers = 
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      alert("Task title is required.");
+      toast.error("Task title is required.");
       return;
     }
 
@@ -2415,7 +2583,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus, projectMembers = 
       onClose();
     } catch (error) {
       console.error("Failed to add task:", error);
-      alert("Failed to create task. Please try again.");
+      toast.error("Failed to create task. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -2459,15 +2627,24 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus, projectMembers = 
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close"
             style={{
               background: "none",
               border: "none",
               color: "var(--text-muted)",
               cursor: "pointer",
-              fontSize: "20px",
+              width: 36,
+              height: 36,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "8px",
+              transition: "background 0.15s, color 0.15s",
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface-2)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
           >
-            ✕
+            <X size={18} />
           </button>
         </div>
 
@@ -2895,6 +3072,7 @@ export default function WorkspacePage() {
   const [section,   setSection]   = useState('overview');
   const [postTitle, setPostTitle] = useState('Workspace');
   const [isOwner,   setIsOwner]   = useState(false);
+  const [leadId,    setLeadId]    = useState(null);
   const [roleReady, setRoleReady] = useState(false);
 
   useEffect(() => {
@@ -2905,6 +3083,7 @@ export default function WorkspacePage() {
         // Compare author id with current user id
         const authorId = post?.author?._id ?? post?.author;
         setIsOwner(String(authorId) === String(user?._id));
+        setLeadId(authorId ? String(authorId) : null);
       })
       .catch(() => {})
       .finally(() => setRoleReady(true));
@@ -2915,7 +3094,7 @@ export default function WorkspacePage() {
       case 'overview':   return <Overview   postId={postId} isOwner={isOwner} />;
       case 'tasks':      return <Tasks      postId={postId} isOwner={isOwner} />;
       case 'members':    return <Members    postId={postId} isOwner={isOwner} />;
-      case 'discussion': return <Discussion postId={postId} isOwner={isOwner} />;
+      case 'discussion': return <Discussion postId={postId} isOwner={isOwner} leadId={leadId} />;
       case 'resources':  return <Resources  postId={postId} isOwner={isOwner} />;
       default: return null;
     }
@@ -2925,12 +3104,14 @@ export default function WorkspacePage() {
     <div style={{ minHeight: '100svh', background: 'var(--surface-0)', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
 
-      <div style={{ display: 'flex', flex: 1 }}>
-        {/* Sidebar */}
-        <aside style={{ width: '220px', flexShrink: 0, background: 'var(--card-bg)', borderRight: '1px solid var(--border)', padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: '4px', position: 'sticky', top: '60px', height: 'calc(100svh - 60px)', overflowY: 'auto' }}>
+      <div className="workspace-layout" style={{ display: 'flex', flex: 1 }}>
+        {/* Sidebar (desktop) */}
+        <aside className="workspace-sidebar" style={{ width: '220px', flexShrink: 0, background: 'var(--card-bg)', borderRight: '1px solid var(--border)', padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: '4px', position: 'sticky', top: '60px', height: 'calc(100svh - 60px)', overflowY: 'auto' }}>
           {/* Back */}
           <button onClick={() => navigate('/collab')}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px', borderRadius: '8px', border: 'none', background: 'transparent', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', marginBottom: '8px', textAlign: 'left' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px', minHeight: '40px', boxSizing: 'border-box', borderRadius: '8px', border: 'none', background: 'transparent', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', marginBottom: '8px', textAlign: 'left', transition: 'background 0.15s, color 0.15s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-2)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
             <ArrowLeft size={13} /> Collab Hub
           </button>
 
@@ -2946,7 +3127,7 @@ export default function WorkspacePage() {
                 color: isOwner ? CC : '#16a34a',
                 border: `1px solid ${isOwner ? CC + '35' : 'rgba(34,197,94,0.25)'}`,
               }}>
-                {isOwner ? '👑 Owner' : '👤 Member'}
+                {isOwner ? <Crown size={11} /> : <User size={11} />} {isOwner ? 'Owner' : 'Member'}
               </span>
             )}
           </div>
@@ -2958,10 +3139,10 @@ export default function WorkspacePage() {
               <motion.button key={id} onClick={() => setSection(id)} whileTap={{ scale: 0.97 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '9px 10px', borderRadius: '9px', border: 'none',
+                  padding: '10px', minHeight: '44px', boxSizing: 'border-box', borderRadius: '9px', border: 'none',
                   background: active ? `${CC}14` : 'transparent',
                   color: active ? CC : 'var(--text-secondary)',
-                  fontSize: '13px', fontWeight: active ? '700' : '500',
+                  fontSize: '14px', fontWeight: active ? '700' : '500',
                   cursor: 'pointer', textAlign: 'left', width: '100%',
                   transition: 'background 0.12s, color 0.12s',
                 }}>
@@ -2973,8 +3154,30 @@ export default function WorkspacePage() {
           })}
         </aside>
 
+        {/* Tab bar (mobile/tablet) */}
+        <nav className="workspace-tabbar" style={{ display: 'none', overflowX: 'auto', gap: '4px', padding: '10px 12px', background: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
+          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+            const active = section === id;
+            return (
+              <button key={id} onClick={() => setSection(id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0,
+                  padding: '10px 14px', minHeight: '44px', boxSizing: 'border-box', borderRadius: '9px', border: 'none',
+                  background: active ? `${CC}14` : 'transparent',
+                  color: active ? CC : 'var(--text-secondary)',
+                  fontSize: '13px', fontWeight: active ? '700' : '500',
+                  cursor: 'pointer', whiteSpace: 'nowrap',
+                  transition: 'background 0.12s, color 0.12s',
+                }}>
+                <Icon size={15} strokeWidth={active ? 2.5 : 2} />
+                {label}
+              </button>
+            );
+          })}
+        </nav>
+
         {/* Content */}
-        <main style={{ flex: 1, padding: '24px', overflowX: 'auto' }}>
+        <main style={{ flex: 1, padding: '24px', overflowX: 'auto', minWidth: 0 }}>
           <div style={{ maxWidth: section === 'tasks' ? 'none' : '800px' }}>
             <h1 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '20px', letterSpacing: '-0.3px' }}>
               {NAV_ITEMS.find(n => n.id === section)?.label}
@@ -2988,7 +3191,21 @@ export default function WorkspacePage() {
         </main>
       </div>
 
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+          outline: 2px solid ${CC};
+          outline-offset: 2px;
+        }
+
+        /* Below 900px: collapse the persistent sidebar into a horizontal tab bar */
+        @media (max-width: 899px) {
+          .workspace-layout { flex-direction: column; }
+          .workspace-sidebar { display: none !important; }
+          .workspace-tabbar { display: flex !important; }
+        }
+      `}</style>
     </div>
   );
 }

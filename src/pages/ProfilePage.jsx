@@ -15,6 +15,7 @@ import {
   Loader2,
   Clock,
   Check,
+  Pin,
 } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import FriendsList from "../components/friends/FriendsList";
@@ -166,60 +167,68 @@ function SettingsPanel({ profile }) {
     },
   ];
 
-  const field = (label, value, onChange, opts = {}) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-      <label
-        style={{
-          fontSize: "13px",
-          fontWeight: "500",
-          color: "var(--text-secondary)",
-        }}
-      >
-        {label}
-      </label>
-      {opts.textarea ? (
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          rows={3}
-          placeholder={opts.placeholder}
+  const field = (label, value, onChange, opts = {}) => {
+    const inputId = `profile-field-${label.toLowerCase().replace(/\s+/g, "-")}`;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        <label
+          htmlFor={inputId}
           style={{
-            padding: "10px 14px",
-            borderRadius: "10px",
-            border: "1.5px solid var(--border)",
-            background: "var(--input-bg)",
             fontSize: "14px",
-            color: "var(--text-primary)",
-            lineHeight: "1.6",
-            resize: "vertical",
-            outline: "none",
-            fontFamily: "inherit",
-            transition: "border-color 0.15s",
+            fontWeight: "500",
+            color: "var(--text-secondary)",
           }}
-          onFocus={(e) => (e.target.style.borderColor = "rgba(255,92,53,0.40)")}
-          onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
-        />
-      ) : (
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={opts.placeholder}
-          style={{
-            padding: "10px 14px",
-            borderRadius: "10px",
-            border: "1.5px solid var(--border)",
-            background: "var(--input-bg)",
-            fontSize: "14px",
-            color: "var(--text-primary)",
-            outline: "none",
-            transition: "border-color 0.15s",
-          }}
-          onFocus={(e) => (e.target.style.borderColor = "rgba(255,92,53,0.40)")}
-          onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
-        />
-      )}
-    </div>
-  );
+        >
+          {label}
+        </label>
+        {opts.textarea ? (
+          <textarea
+            id={inputId}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            rows={3}
+            placeholder={opts.placeholder}
+            style={{
+              padding: "10px 14px",
+              borderRadius: "10px",
+              border: "1.5px solid var(--border)",
+              background: "var(--input-bg)",
+              fontSize: "16px",
+              color: "var(--text-primary)",
+              lineHeight: "1.6",
+              resize: "vertical",
+              outline: "none",
+              fontFamily: "inherit",
+              transition: "border-color 0.15s, box-shadow 0.15s",
+            }}
+            onFocus={(e) => { e.target.style.borderColor = "var(--accent-border)"; e.target.style.boxShadow = "0 0 0 3px var(--accent-dim)"; }}
+            onBlur={(e) => { e.target.style.borderColor = "var(--border)"; e.target.style.boxShadow = "none"; }}
+          />
+        ) : (
+          <input
+            id={inputId}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={opts.placeholder}
+            style={{
+              padding: "10px 14px",
+              minHeight: "44px",
+              boxSizing: "border-box",
+              borderRadius: "10px",
+              border: "1.5px solid var(--border)",
+              background: "var(--input-bg)",
+              fontSize: "16px",
+              color: "var(--text-primary)",
+              outline: "none",
+              transition: "border-color 0.15s, box-shadow 0.15s",
+            }}
+            onFocus={(e) => { e.target.style.borderColor = "var(--accent-border)"; e.target.style.boxShadow = "0 0 0 3px var(--accent-dim)"; }}
+            onBlur={(e) => { e.target.style.borderColor = "var(--border)"; e.target.style.boxShadow = "none"; }}
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
     <motion.div
@@ -278,18 +287,35 @@ function SettingsPanel({ profile }) {
               whileTap={{ scale: 0.97 }}
               disabled={saving}
               style={{
-                padding: "9px 22px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
+                padding: "10px 22px",
+                minHeight: "44px",
+                boxSizing: "border-box",
                 borderRadius: "9px",
                 border: "none",
                 background: saved ? "#dcfce7" : "var(--accent)",
                 color: saved ? "#16a34a" : "#fff",
-                fontSize: "13px",
+                fontSize: "14px",
                 fontWeight: "600",
                 cursor: saving ? "not-allowed" : "pointer",
-                transition: "background 0.2s",
+                opacity: saving ? 0.8 : 1,
+                transition: "background 0.2s, opacity 0.2s",
               }}
             >
-              {saving ? "Saving…" : saved ? "✓ Saved" : "Save changes"}
+              {saving ? (
+                <>
+                  <Loader2 size={14} className="spin" /> Saving…
+                </>
+              ) : saved ? (
+                <>
+                  <Check size={14} /> Saved
+                </>
+              ) : (
+                "Save changes"
+              )}
             </motion.button>
           </div>
         </form>
@@ -325,6 +351,7 @@ function SettingsPanel({ profile }) {
         </p>
 
         <div
+          className="theme-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
@@ -914,15 +941,20 @@ export default function ProfilePage() {
                     display: "flex",
                     alignItems: "center",
                     gap: "6px",
-                    padding: "8px 16px",
+                    padding: "10px 16px",
+                    minHeight: "44px",
+                    boxSizing: "border-box",
                     borderRadius: "9px",
                     border: "1.5px solid var(--border)",
                     background: "transparent",
-                    fontSize: "13px",
+                    fontSize: "14px",
                     fontWeight: "600",
                     color: "var(--text-secondary)",
                     cursor: "pointer",
+                    transition: "border-color 0.15s, color 0.15s",
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.color = "var(--accent)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
                 >
                   <Edit3 size={14} /> Edit profile
                 </button>
@@ -1341,7 +1373,10 @@ export default function ProfilePage() {
                     borderRadius: "14px",
                   }}
                 >
-                  <p style={{ fontSize: "32px", marginBottom: "12px" }}>✍️</p>
+                  <Edit3
+                    size={32}
+                    style={{ marginBottom: "12px", opacity: 0.4, color: "var(--text-muted)" }}
+                  />
                   <p
                     style={{
                       fontSize: "16px",
@@ -1369,14 +1404,10 @@ export default function ProfilePage() {
                           paddingLeft: "4px",
                         }}
                       >
-                        <span
-                          style={{
-                            fontSize: "12px",
-                            color: "var(--text-muted)",
-                          }}
-                        >
-                          📌
-                        </span>
+                        <Pin
+                          size={12}
+                          style={{ color: "var(--text-muted)" }}
+                        />
                         <span
                           style={{
                             fontSize: "12px",
@@ -1442,6 +1473,15 @@ export default function ProfilePage() {
         div:hover > .avatar-overlay {
           opacity: 1 !important;
           background: rgba(0,0,0,0.48) !important;
+        }
+
+        button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: 2px;
+        }
+
+        @media (max-width: 480px) {
+          .theme-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

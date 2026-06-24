@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Spinner from './Spinner';
 
@@ -13,12 +14,14 @@ export default function Button({
   fullWidth,
 }) {
   const isDisabled = disabled || isLoading;
+  const [isFocusVisible, setIsFocusVisible] = useState(false);
 
   const base = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
+    minHeight: '44px',
     borderRadius: '10px',
     fontWeight: '600',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
@@ -32,9 +35,9 @@ export default function Button({
   };
 
   const sizes = {
-    sm: { padding: '7px 14px', fontSize: '13px' },
-    md: { padding: '10px 20px', fontSize: '14px' },
-    lg: { padding: '13px 24px', fontSize: '15px' },
+    sm: { padding: '7px 14px', fontSize: '13px', minHeight: '36px' },
+    md: { padding: '10px 20px', fontSize: '14px', minHeight: '40px' },
+    lg: { padding: '13px 24px', fontSize: '15px', minHeight: '48px' },
   };
 
   const variants = {
@@ -49,17 +52,21 @@ export default function Button({
       border: '1.5px solid var(--border)',
     },
     danger: {
-      background: 'rgba(239,68,68,0.08)',
-      color: '#dc2626',
-      border: '1.5px solid rgba(239,68,68,0.2)',
+      background: 'var(--error-bg)',
+      color: 'var(--error-text)',
+      border: '1.5px solid var(--error-border)',
     },
   };
+
+  const focusRing = isFocusVisible ? ', 0 0 0 3px var(--accent-border)' : '';
 
   return (
     <motion.button
       type={type}
       onClick={onClick}
       disabled={isDisabled}
+      onFocus={() => setIsFocusVisible(true)}
+      onBlur={() => setIsFocusVisible(false)}
       whileTap={isDisabled ? {} : { scale: 0.97 }}
       whileHover={
         isDisabled
@@ -68,9 +75,15 @@ export default function Button({
           ? { boxShadow: 'var(--btn-grad-shadow-hover)', transform: 'translateY(-1px)' }
           : { background: 'var(--accent-dim)', borderColor: 'var(--accent-border)' }
       }
-      style={{ ...base, ...sizes[size], ...variants[variant], ...style }}
+      style={{
+        ...base,
+        ...sizes[size],
+        ...variants[variant],
+        ...style,
+        boxShadow: `${(style?.boxShadow ?? variants[variant].boxShadow ?? 'none')}${focusRing}`,
+      }}
     >
-      {isLoading && <Spinner size="sm" color={variant === 'primary' ? '#fff' : '#ff5c35'} />}
+      {isLoading && <Spinner size="sm" color={variant === 'primary' ? '#fff' : 'var(--accent)'} />}
       {children}
     </motion.button>
   );

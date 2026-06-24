@@ -11,6 +11,7 @@ import {
 import { useAuthStore } from "../../stores/authStore";
 import api from "../../api/axiosInstance";
 import { DOMAINS } from "../../data/mockPosts";
+import { confirm } from "../ui/ConfirmDialog";
 
 /* ─────────────────────────── HELPERS ─────────────────────────── */
 const domainColor  = (k) => DOMAINS.find((d) => d.value === k)?.color  ?? "#ff5c35";
@@ -744,7 +745,7 @@ export default function Project({ userId, isOwnProfile }) {
   };
 
   const handleDelete = async (projectId) => {
-    if (!window.confirm("Delete this project?")) return;
+    if (!await confirm("Delete this project?", { title: 'Delete project', confirmLabel: 'Delete' })) return;
     try {
       await api.delete(`/projects/${projectId}`);
     } catch (_) {}

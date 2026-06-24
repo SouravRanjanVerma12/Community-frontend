@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, CheckCircle, X, Loader2, AtSign } from 'lucide-react';
@@ -51,6 +51,7 @@ export default function RegisterForm() {
   const { register, isLoading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
   const debouncedUsername = useDebounce(username, 450);
+  const usernameId = useId();
 
   /* generate suggestions when name changes */
   useEffect(() => {
@@ -95,7 +96,7 @@ export default function RegisterForm() {
   const strengthColors = ['', '#f87171', '#f59e0b', '#34d399'];
   const strengthLabels = ['', 'Weak', 'Good', 'Strong'];
 
-  const statusColor = { available: '#16a34a', taken: '#dc2626', invalid: '#d97706', checking: '#9ca3af', idle: '#9ca3af' }[usernameStatus];
+  const statusColor = { available: 'var(--success-text)', taken: 'var(--error-text)', invalid: 'var(--warning-text)', checking: 'var(--text-muted)', idle: 'var(--text-muted)' }[usernameStatus];
   // Allow submit when: no username entered (auto-generated), OR entered username is confirmed available
   const usernameOk = !username || usernameStatus === 'available';
   const canSubmit  = !isLoading && usernameOk && password === confirm && password.length >= 6;
@@ -106,8 +107,8 @@ export default function RegisterForm() {
       {/* API error */}
       <AnimatePresence>
         {error && (
-          <motion.div initial={{ opacity: 0, y: -8, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }} exit={{ opacity: 0, y: -8, height: 0 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', fontSize: '14px' }}>
+          <motion.div role="alert" initial={{ opacity: 0, y: -8, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }} exit={{ opacity: 0, y: -8, height: 0 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '10px', background: 'var(--error-bg)', border: '1px solid var(--error-border)', color: 'var(--error-text)', fontSize: '14px', lineHeight: '1.5' }}>
             <AlertCircle size={15} style={{ flexShrink: 0 }} /> {error}
           </motion.div>
         )}
@@ -119,35 +120,37 @@ export default function RegisterForm() {
       {/* Username field */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <label style={{ fontSize: '13px', fontWeight: '500', color: '#374151' }}>Username</label>
-          <span style={{ fontSize: '11px', color: '#9ca3af', background: '#f3f4f6', padding: '1px 7px', borderRadius: '10px' }}>optional</span>
+          <label htmlFor={usernameId} style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Username</label>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '1px 7px', borderRadius: '10px' }}>optional</span>
         </div>
 
         {/* Input with @ prefix */}
         <motion.div
-          animate={{ boxShadow: usernameStatus === 'available' ? '0 0 0 3px rgba(22,163,74,0.15)' : usernameStatus === 'taken' ? '0 0 0 3px rgba(220,38,38,0.15)' : '0 0 0 0px transparent' }}
-          style={{ display: 'flex', alignItems: 'center', borderRadius: '10px', background: '#f9fafb', border: `1.5px solid ${usernameStatus === 'available' ? '#16a34a' : usernameStatus === 'taken' || usernameStatus === 'invalid' ? '#dc2626' : '#e4e7ec'}`, overflow: 'hidden', transition: 'border-color 0.15s' }}>
-          <span style={{ padding: '0 0 0 14px', color: '#9ca3af', fontSize: '15px', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+          animate={{ boxShadow: usernameStatus === 'available' ? '0 0 0 3px var(--success-border)' : usernameStatus === 'taken' ? '0 0 0 3px var(--error-border)' : '0 0 0 0px transparent' }}
+          style={{ display: 'flex', alignItems: 'center', borderRadius: '10px', background: 'var(--input-bg)', border: `1.5px solid ${usernameStatus === 'available' ? 'var(--success-text)' : usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'var(--error-text)' : 'var(--input-border)'}`, overflow: 'hidden', transition: 'border-color 150ms' }}>
+          <span style={{ padding: '0 0 0 14px', color: 'var(--text-muted)', fontSize: '15px', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
             <AtSign size={15} />
           </span>
           <input
+            id={usernameId}
             value={username}
             onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
             placeholder="leave blank to auto-generate"
             autoComplete="username"
             maxLength={20}
-            style={{ flex: 1, padding: '11px 10px', background: 'transparent', border: 'none', outline: 'none', fontSize: '15px', color: '#111827', fontFamily: 'ui-monospace, Consolas, monospace' }}
+            aria-describedby={usernameMsg ? `${usernameId}-status` : undefined}
+            style={{ flex: 1, minHeight: '44px', padding: '11px 10px', background: 'transparent', border: 'none', outline: 'none', fontSize: '16px', color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}
           />
           <span style={{ padding: '0 12px', display: 'flex', alignItems: 'center' }}>
-            {usernameStatus === 'checking' && <Loader2 size={15} color="#9ca3af" style={{ animation: 'spin 0.8s linear infinite' }} />}
-            {usernameStatus === 'available' && <CheckCircle size={15} color="#16a34a" />}
-            {(usernameStatus === 'taken' || usernameStatus === 'invalid') && <X size={15} color="#dc2626" />}
+            {usernameStatus === 'checking' && <Loader2 size={15} color="var(--text-muted)" style={{ animation: 'spin 0.8s linear infinite' }} />}
+            {usernameStatus === 'available' && <CheckCircle size={15} color="var(--success-text)" />}
+            {(usernameStatus === 'taken' || usernameStatus === 'invalid') && <X size={15} color="var(--error-text)" />}
           </span>
         </motion.div>
 
         {/* Auto-generate hint when blank */}
         {!username && (
-          <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.5' }}>
             We'll auto-generate one from your name if you skip this.
           </p>
         )}
@@ -155,8 +158,8 @@ export default function RegisterForm() {
         {/* Status message */}
         <AnimatePresence>
           {usernameMsg && (
-            <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ fontSize: '12px', color: statusColor, margin: 0 }}>
+            <motion.p id={`${usernameId}-status`} role="status" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ fontSize: '13px', color: statusColor, margin: 0, lineHeight: '1.5' }}>
               {usernameMsg}
             </motion.p>
           )}
@@ -165,22 +168,23 @@ export default function RegisterForm() {
         {/* Suggestions */}
         {suggestions.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>Suggestions:</p>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>Suggestions:</p>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {suggestions.map((s) => (
                 <motion.button
                   key={s}
                   type="button"
+                  className="auth-link"
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setUsername(s)}
                   style={{
-                    padding: '4px 12px', borderRadius: '20px', border: '1.5px solid',
+                    minHeight: '36px', padding: '6px 14px', borderRadius: '20px', border: '1.5px solid',
                     borderColor: username === s ? 'var(--accent)' : 'var(--border)',
                     background: username === s ? 'var(--accent-bg)' : 'var(--input-bg)',
                     color: username === s ? 'var(--accent)' : 'var(--text-secondary)',
-                    fontSize: '12px', fontWeight: '500', cursor: 'pointer',
-                    fontFamily: 'ui-monospace, Consolas, monospace',
-                    transition: 'all 0.12s',
+                    fontSize: '13px', fontWeight: '500', cursor: 'pointer',
+                    fontFamily: 'var(--mono)',
+                    transition: 'background 150ms, border-color 150ms, transform 150ms',
                   }}
                 >
                   @{s}
@@ -195,10 +199,10 @@ export default function RegisterForm() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <InputField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 characters" autoComplete="new-password" required />
         {password.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} aria-live="polite">
             <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
               {[1, 2, 3].map((level) => (
-                <motion.div key={level} animate={{ background: pwStrength >= level ? strengthColors[pwStrength] : '#e4e7ec' }} transition={{ duration: 0.25 }} style={{ height: '3px', flex: 1, borderRadius: '2px' }} />
+                <motion.div key={level} animate={{ background: pwStrength >= level ? strengthColors[pwStrength] : 'var(--border)' }} transition={{ duration: 0.25 }} style={{ height: '3px', flex: 1, borderRadius: '2px' }} />
               ))}
             </div>
             <span style={{ fontSize: '12px', color: strengthColors[pwStrength], minWidth: '44px' }}>{strengthLabels[pwStrength]}</span>
@@ -209,7 +213,7 @@ export default function RegisterForm() {
       <InputField label="Confirm password" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Repeat your password" autoComplete="new-password" error={confirmError} required />
 
       {confirm && password && confirm === password && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#34d399', fontSize: '13px', marginTop: '-10px' }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} role="status" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success-text)', fontSize: '13px', marginTop: '-10px', lineHeight: '1.5' }}>
           <CheckCircle size={14} /> Passwords match
         </motion.div>
       )}
@@ -218,18 +222,23 @@ export default function RegisterForm() {
         Create account
       </Button>
 
-      <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', margin: 0 }}>
+      <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.6' }}>
         Already a member?{' '}
-        <Link to="/" style={{ color: 'var(--accent)', fontWeight: '500' }}>Sign in</Link>
+        <Link to="/" className="auth-link" style={{ color: 'var(--accent)', fontWeight: '500' }}>Sign in</Link>
       </p>
 
-      <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+      <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.6', maxWidth: '60ch', marginInline: 'auto' }}>
         By creating an account you agree to our{' '}
-        <a href="#" style={{ color: 'var(--text-secondary)' }}>Terms</a> and{' '}
-        <a href="#" style={{ color: 'var(--text-secondary)' }}>Privacy Policy</a>.
+        <a href="#" className="auth-link" style={{ color: 'var(--text-secondary)' }}>Terms</a> and{' '}
+        <a href="#" className="auth-link" style={{ color: 'var(--text-secondary)' }}>Privacy Policy</a>.
       </p>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .auth-link { cursor: pointer; border-radius: 6px; outline: none; }
+        .auth-link:hover { opacity: 0.85; }
+        .auth-link:focus-visible { box-shadow: 0 0 0 3px var(--accent-border); }
+      `}</style>
     </form>
   );
 }

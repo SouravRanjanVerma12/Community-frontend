@@ -84,6 +84,20 @@
   transform: translateY(-2px);
 }
 
+.back-btn:focus-visible,
+.invite-btn:focus-visible,
+.add-task-btn:focus-visible,
+.task-card:focus-visible,
+.btn-teal:focus-visible,
+.btn-coral:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.task-card {
+  min-height: 44px;
+}
+
 /* Project Board / Kanban specific */
 .board-container {
   display: flex;
@@ -150,6 +164,20 @@
   border: 1px solid var(--domain-backend);
   color: var(--domain-backend);
   background: rgba(5, 150, 105, 0.08);
+}
+
+.collab-sidebar-cta {
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+
+.collab-sidebar-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.collab-sidebar-cta:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .badge-amethyst {
@@ -403,6 +431,27 @@
   .kanban-pane {
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+  .kanban-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .collab-main {
+    padding: 20px 14px;
+  }
+  .collab-header h1 {
+    font-size: 24px;
+  }
+  .board-topbar {
+    padding: 12px 14px;
+  }
+  .kanban-pane {
+    padding: 16px;
+  }
+  .detail-pane {
+    padding: 18px;
   }
 }
 

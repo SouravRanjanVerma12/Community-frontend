@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Zap } from 'lucide-react';
 
 const LOGIN_CHIPS    = ['founders', '#buildinpublic', 'const launch', 'scale()', '→ India', 'ship it'];
 const REGISTER_CHIPS = ['collab()', '// startup', 'ops ready', '<Builder />', 'grow()', 'network →'];
@@ -82,16 +83,15 @@ export default function AuthBrandPanel({ mode = 'login' }) {
               width: '34px',
               height: '34px',
               borderRadius: '9px',
-              background: 'linear-gradient(135deg, #ff5c35, #ff8060)',
+              background: 'var(--btn-grad)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '15px',
               boxShadow: '0 3px 12px rgba(255,92,53,0.38)',
               flexShrink: 0,
             }}
           >
-            ⚡
+            <Zap size={17} color="#fff" fill="#fff" aria-hidden />
           </div>
           <span
             style={{

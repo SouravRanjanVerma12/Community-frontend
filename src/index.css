@@ -81,6 +81,15 @@
   --btn-grad-shadow: 0 4px 20px rgba(255, 92, 53, 0.38);
   --btn-grad-shadow-hover: 0 6px 28px rgba(255, 92, 53, 0.55), 0 0 40px rgba(255, 170, 71, 0.15);
 
+  /* ── Status colors (4.5:1+ contrast on surfaces) ── */
+  --error-text:    #c4291a;
+  --error-bg:      rgba(220, 38, 38, 0.08);
+  --error-border:  rgba(220, 38, 38, 0.28);
+  --success-text:  #15803d;
+  --success-bg:    rgba(22, 163, 74, 0.08);
+  --success-border: rgba(22, 163, 74, 0.28);
+  --warning-text:  #b45309;
+
   color-scheme: light;
 }
 
@@ -166,6 +175,15 @@
   --btn-grad-shadow: 0 4px 24px rgba(255, 92, 53, 0.45), 0 0 40px rgba(255, 170, 71, 0.10);
   --btn-grad-shadow-hover: 0 6px 32px rgba(255, 92, 53, 0.65), 0 0 56px rgba(255, 170, 71, 0.18);
 
+  /* ── Status colors (4.5:1+ contrast on dark surfaces) ── */
+  --error-text:    #ff6b6b;
+  --error-bg:      rgba(255, 107, 107, 0.12);
+  --error-border:  rgba(255, 107, 107, 0.32);
+  --success-text:  #4ade80;
+  --success-bg:    rgba(74, 222, 128, 0.12);
+  --success-border: rgba(74, 222, 128, 0.32);
+  --warning-text:  #fbbf24;
+
   color-scheme: dark;
 }
 
@@ -199,6 +217,15 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 body {

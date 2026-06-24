@@ -23,6 +23,7 @@ const GoogleIcon = () => (
 
 const socialBtnStyle = {
   flex: 1,
+  minHeight: '44px',
   padding: '10px 14px',
   borderRadius: '10px',
   background: 'var(--input-bg)',
@@ -36,7 +37,7 @@ const socialBtnStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   gap: '8px',
-  transition: 'all 0.15s',
+  transition: 'opacity 150ms, transform 150ms',
 };
 
 export default function LoginForm() {
@@ -60,16 +61,18 @@ export default function LoginForm() {
             initial={{ opacity: 0, y: -8, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -8, height: 0 }}
+            role="alert"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
               padding: '12px 14px',
               borderRadius: '10px',
-              background: 'rgba(239,68,68,0.08)',
-              border: '1px solid rgba(239,68,68,0.22)',
-              color: '#ef4444',
+              background: 'var(--error-bg)',
+              border: '1px solid var(--error-border)',
+              color: 'var(--error-text)',
               fontSize: '14px',
+              lineHeight: '1.5',
             }}
           >
             <AlertCircle size={15} style={{ flexShrink: 0 }} />
@@ -101,7 +104,18 @@ export default function LoginForm() {
         <div style={{ textAlign: 'right' }}>
           <a
             href="#"
-            style={{ fontSize: '13px', color: 'var(--accent)', opacity: 0.75 }}
+            className="auth-link"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              minHeight: '44px',
+              fontSize: '13px',
+              color: 'var(--accent)',
+              opacity: 0.85,
+              cursor: 'pointer',
+              borderRadius: '6px',
+              transition: 'opacity 150ms',
+            }}
             onClick={(e) => e.preventDefault()}
           >
             Forgot password?
@@ -130,20 +144,27 @@ export default function LoginForm() {
 
       {/* Social buttons */}
       <div style={{ display: 'flex', gap: '10px' }}>
-        <button type="button" disabled style={socialBtnStyle}>
+        <button type="button" disabled aria-disabled="true" title="Coming soon" style={socialBtnStyle}>
           <GithubIcon /> GitHub
         </button>
-        <button type="button" disabled style={socialBtnStyle}>
+        <button type="button" disabled aria-disabled="true" title="Coming soon" style={socialBtnStyle}>
           <GoogleIcon /> Google
         </button>
       </div>
 
-      <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', margin: 0 }}>
+      <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.6' }}>
         New here?{' '}
-        <Link to="/register" style={{ color: 'var(--accent)', fontWeight: '500' }}>
+        <Link to="/register" className="auth-link" style={{ color: 'var(--accent)', fontWeight: '500' }}>
           Create an account
         </Link>
       </p>
+
+      <style>{`
+        .auth-link { cursor: pointer; border-radius: 6px; outline: none; }
+        .auth-link:hover { opacity: 0.8; }
+        .auth-link:focus-visible { box-shadow: 0 0 0 3px var(--accent-border); }
+        button:focus-visible { box-shadow: 0 0 0 3px var(--accent-border); }
+      `}</style>
     </form>
   );
 }

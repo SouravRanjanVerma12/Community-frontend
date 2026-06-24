@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import ConfirmDialogHost from "./components/ui/ConfirmDialog";
 import { useAuthStore } from "./stores/authStore";
 import { useThemeStore } from "./stores/themeStore";
 import { useSocketStore } from "./stores/socketStore";
@@ -55,6 +57,23 @@ export default function App() {
   return (
     <BrowserRouter>
       <ThemeApplier />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: 'var(--card-bg)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--card-border)',
+            boxShadow: 'var(--shadow-popup)',
+            borderRadius: '12px',
+            fontSize: '14px',
+          },
+          success: { iconTheme: { primary: '#16a34a', secondary: '#fff' } },
+          error:   { iconTheme: { primary: '#dc2626', secondary: '#fff' } },
+        }}
+      />
+      <ConfirmDialogHost />
       <AuthHydrator>
         <Routes>
           <Route path="/" element={<LoginPage />} />

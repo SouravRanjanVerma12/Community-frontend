@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from "../../stores/authStore";
 import api from "../../api/axiosInstance";
+import { confirm } from "../ui/ConfirmDialog";
 
 /* ── helpers ── */
 function formatDate(dateStr) {
@@ -711,8 +712,8 @@ export default function UserAbout({ profile, isOwnProfile }) {
     }
   };
 
-  const removeExperience = (idx) => {
-    if (window.confirm("Remove this experience?")) {
+  const removeExperience = async (idx) => {
+    if (await confirm("Remove this experience?", { title: 'Remove experience', confirmLabel: 'Remove' })) {
       setExperiences(experiences.filter((_, i) => i !== idx));
     }
   };
@@ -747,8 +748,8 @@ export default function UserAbout({ profile, isOwnProfile }) {
     }
   };
 
-  const removeEducation = (idx) => {
-    if (window.confirm("Remove this education?")) {
+  const removeEducation = async (idx) => {
+    if (await confirm("Remove this education?", { title: 'Remove education', confirmLabel: 'Remove' })) {
       setEducations(educations.filter((_, i) => i !== idx));
     }
   };

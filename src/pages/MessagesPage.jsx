@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MessageSquare, Search, Send, Circle, ArrowLeft,
-  UserCheck, UserX, Clock, X,
+  MessageSquare, Send, ArrowLeft,
+  UserCheck, UserX,
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import { useAuthStore } from '../stores/authStore';
@@ -62,20 +62,22 @@ function PendingRow({ req, onAccept, onDecline }) {
       <Link to={`/profile/${req.requester._id}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0, textDecoration: 'none' }}>
         <Avatar user={req.requester} size={36} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+          <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
             onMouseEnter={(e) => e.target.style.color = 'var(--accent)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-primary)'}>
             {req.requester.name}
           </p>
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>sent you a friend request</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>sent you a friend request</p>
         </div>
       </Link>
-      <button onClick={() => onAccept(req._id)} title="Accept"
-        style={{ padding: '5px 10px', borderRadius: '7px', border: 'none', background: 'var(--accent)', color: '#fff', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-        <UserCheck size={13} />
+      <button onClick={() => onAccept(req._id)} title="Accept" aria-label="Accept friend request"
+        className="msg-icon-btn"
+        style={{ width: 44, height: 44, borderRadius: '10px', border: 'none', background: 'var(--accent)', color: '#fff', fontSize: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'transform 0.15s, opacity 0.15s' }}>
+        <UserCheck size={16} />
       </button>
-      <button onClick={() => onDecline(req._id)} title="Decline"
-        style={{ padding: '5px', borderRadius: '7px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}>
-        <UserX size={13} />
+      <button onClick={() => onDecline(req._id)} title="Decline" aria-label="Decline friend request"
+        className="msg-icon-btn"
+        style={{ width: 44, height: 44, borderRadius: '10px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'transform 0.15s, border-color 0.15s, color 0.15s' }}>
+        <UserX size={16} />
       </button>
     </motion.div>
   );
@@ -139,8 +141,8 @@ function ChatWindow({ friend, onBack }) {
         padding: '14px 18px', borderBottom: '1px solid var(--border)',
         background: 'var(--card-bg)', flexShrink: 0,
       }}>
-        <button onClick={onBack} className="chat-back-btn"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px', display: 'flex', borderRadius: '6px' }}>
+        <button onClick={onBack} className="chat-back-btn" aria-label="Back to conversations"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', flexShrink: 0, transition: 'background 0.15s, color 0.15s' }}>
           <ArrowLeft size={18} />
         </button>
         <Link to={`/profile/${friend._id}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
@@ -167,8 +169,9 @@ function ChatWindow({ friend, onBack }) {
             Loading messages…
           </div>
         ) : messages.length === 0 ? (
-          <div style={{ textAlign: 'center', paddingTop: '40px', color: 'var(--text-muted)', fontSize: '13px' }}>
-            No messages yet. Say hello! 👋
+          <div style={{ textAlign: 'center', paddingTop: '40px', color: 'var(--text-muted)', fontSize: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <MessageSquare size={28} style={{ opacity: 0.4 }} />
+            No messages yet. Say hello!
           </div>
         ) : (
           messages.map((msg, i) => {
@@ -178,10 +181,11 @@ function ChatWindow({ friend, onBack }) {
                 initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                 style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
                 <div style={{
-                  maxWidth: '70%', padding: '9px 14px', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                  maxWidth: '70%', minHeight: '44px', boxSizing: 'border-box',
+                  padding: '12px 14px', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                   background: isMe ? 'var(--accent)' : 'var(--surface-2)',
                   color: isMe ? '#fff' : 'var(--text-primary)',
-                  fontSize: '14px', lineHeight: '1.5',
+                  fontSize: '15px', lineHeight: '1.6', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                 }}>
                   <p style={{ margin: 0 }}>{msg.text}</p>
                   <p style={{ margin: '3px 0 0', fontSize: '10px', opacity: 0.65, textAlign: 'right' }}>
@@ -221,18 +225,20 @@ function ChatWindow({ friend, onBack }) {
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder={`Message ${friend.name}…`}
+          aria-label="Message input"
           style={{
-            flex: 1, padding: '10px 14px', borderRadius: '10px',
+            flex: 1, minHeight: '44px', boxSizing: 'border-box', padding: '10px 14px', borderRadius: '10px',
             border: '1.5px solid var(--border)', background: 'var(--input-bg)',
-            color: 'var(--text-primary)', fontSize: '14px', outline: 'none',
-            transition: 'border-color 0.15s',
+            color: 'var(--text-primary)', fontSize: '16px', outline: 'none',
+            transition: 'border-color 0.15s, box-shadow 0.15s',
           }}
-          onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
-          onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+          onFocus={(e) => { e.target.style.borderColor = 'var(--accent-border)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)'; }}
+          onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
         />
         <motion.button whileTap={{ scale: 0.93 }} onClick={handleSend} disabled={!text.trim()}
+          aria-label="Send message"
           style={{
-            width: 42, height: 42, borderRadius: '10px', border: 'none',
+            width: 44, height: 44, borderRadius: '10px', border: 'none',
             background: text.trim() ? 'var(--accent)' : 'var(--surface-2)',
             color: text.trim() ? '#fff' : 'var(--text-muted)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -294,14 +300,14 @@ export default function MessagesPage() {
   return (
     <div style={{ minHeight: '100svh', background: 'var(--surface-0)' }}>
       <Navbar />
-      <div style={{
+      <div className="messages-grid" style={{
         maxWidth: '960px', margin: '0 auto', padding: '20px 16px',
         display: 'grid',
         gridTemplateColumns: active ? '300px 1fr' : '1fr',
         gap: '16px', height: 'calc(100svh - 80px)',
       }}>
         {/* Sidebar / friend list */}
-        <div style={{
+        <div className="messages-sidebar" style={{
           background: 'var(--card-bg)', border: '1px solid var(--card-border)',
           borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column',
           ...(active ? {} : { maxWidth: '480px', margin: '0 auto', width: '100%' }),
@@ -349,18 +355,21 @@ export default function MessagesPage() {
                 return (
                   <motion.div key={f._id} whileHover={{ background: 'var(--hover-bg)' }}
                     onClick={() => setActive(f)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(f); } }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '10px',
+                      display: 'flex', alignItems: 'center', gap: '10px', minHeight: '44px',
                       padding: '10px', borderRadius: '10px', cursor: 'pointer',
                       background: isActive ? 'var(--accent-dim)' : 'transparent',
                       transition: 'background 0.12s',
                     }}>
                     <Avatar user={f} size={40} showOnline online={online} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p style={{ margin: 0, fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {f.name}
                       </p>
-                      <p style={{ margin: 0, fontSize: '12px', color: online ? '#22c55e' : 'var(--text-muted)' }}>
+                      <p style={{ margin: 0, fontSize: '13px', color: online ? '#22c55e' : 'var(--text-muted)' }}>
                         {online ? 'Online' : 'Offline'}
                       </p>
                     </div>
@@ -373,19 +382,26 @@ export default function MessagesPage() {
 
         {/* Chat window */}
         {active && (
-          <div style={{
+          <div className="messages-thread" style={{
             background: 'var(--card-bg)', border: '1px solid var(--card-border)',
             borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column',
           }}>
             <ChatWindow friend={active} onBack={() => setActive(null)} />
           </div>
         )}
-
-        {/* Placeholder when nothing selected (desktop) */}
-        {!active && friends.length > 0 && (
-          <div style={{ display: 'none' /* hidden on mobile, shown on desktop via grid */ }} />
-        )}
       </div>
+
+      <style>{`
+        /* Mobile: single-pane — show only the active pane (list or thread) */
+        @media (max-width: 699px) {
+          .messages-grid { grid-template-columns: 1fr !important; padding: 12px !important; }
+          .messages-grid:has(.messages-thread) .messages-sidebar { display: none !important; }
+        }
+        button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: 2px;
+        }
+      `}</style>
     </div>
   );
 }

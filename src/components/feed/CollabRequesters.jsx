@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Check, X, Loader2, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, X, Loader2, ExternalLink, ClipboardList, Users2, CheckCircle2, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axiosInstance';
 
@@ -84,18 +84,24 @@ function CreatorRow({ req, onRespond }) {
         {status === 'pending' && (
           <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
             <motion.button whileTap={{ scale: 0.95 }} onClick={() => respond('accepted')} disabled={acting}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 12px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+              className="collab-requesters-action"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', minHeight: '36px', padding: '5px 12px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '12px', fontWeight: '600', cursor: acting ? 'default' : 'pointer', transition: 'transform 150ms ease, opacity 150ms ease' }}>
               {acting ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Check size={12} />}
               Accept
             </motion.button>
             <motion.button whileTap={{ scale: 0.95 }} onClick={() => respond('rejected')} disabled={acting}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}>
+              className="collab-requesters-action"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', minHeight: '36px', padding: '5px 10px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '12px', fontWeight: '500', cursor: acting ? 'default' : 'pointer', transition: 'transform 150ms ease, opacity 150ms ease' }}>
               <X size={12} /> Reject
             </motion.button>
           </div>
         )}
         {status !== 'pending' && (
-          <span style={{ fontSize: '20px', flexShrink: 0 }}>{status === 'accepted' ? '✅' : '❌'}</span>
+          <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+            {status === 'accepted'
+              ? <CheckCircle2 size={20} color="#16a34a" />
+              : <XCircle size={20} color="#dc2626" />}
+          </span>
         )}
       </div>
     </div>
@@ -116,7 +122,9 @@ function PublicRow({ person }) {
         <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '6px' }}>@{person.username}</span>
       </div>
       {person.status === 'accepted' && (
-        <span style={{ fontSize: '11px', fontWeight: '600', color: '#16a34a', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>Joined ✓</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '11px', fontWeight: '600', color: '#16a34a', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+          <Check size={11} /> Joined
+        </span>
       )}
     </div>
   );
@@ -150,15 +158,19 @@ export default function CollabRequesters({ postId, requestCount, isCreator }) {
     <div style={{ marginTop: '8px' }}>
       {/* Toggle button */}
       <button onClick={toggle}
+        className="collab-requesters-toggle"
         style={{
-          display: 'flex', alignItems: 'center', gap: '6px', width: '100%',
-          padding: '8px 12px', borderRadius: '8px', border: `1px solid ${COLLAB_COLOR}25`,
+          display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+          minHeight: '44px', padding: '10px 14px', borderRadius: '8px', border: `1px solid ${COLLAB_COLOR}25`,
           background: open ? `${COLLAB_COLOR}0a` : 'transparent',
-          color: COLLAB_COLOR, fontSize: '12px', fontWeight: '600',
-          cursor: 'pointer', transition: 'background 0.15s', justifyContent: 'space-between',
+          color: COLLAB_COLOR, fontSize: '13px', fontWeight: '600',
+          cursor: 'pointer', transition: 'background 150ms ease, transform 150ms ease', justifyContent: 'space-between',
         }}>
-        <span>
-          {isCreator ? `📋 Review ${requestCount} application${requestCount !== 1 ? 's' : ''}` : `👥 See who's interested (${requestCount})`}
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {isCreator
+            ? <ClipboardList size={14} />
+            : <Users2 size={14} />}
+          {isCreator ? `Review ${requestCount} application${requestCount !== 1 ? 's' : ''}` : `See who's interested (${requestCount})`}
         </span>
         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
@@ -176,7 +188,10 @@ export default function CollabRequesters({ postId, requestCount, isCreator }) {
                   <Loader2 size={18} color={COLLAB_COLOR} style={{ animation: 'spin 0.8s linear infinite' }} />
                 </div>
               ) : !data?.length ? (
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', padding: '12px 0' }}>No requests yet.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '20px 0', color: 'var(--text-muted)', textAlign: 'center' }}>
+                  <Users2 size={22} color="var(--text-faint)" />
+                  <p style={{ fontSize: '13px', lineHeight: 1.6 }}>No requests yet.</p>
+                </div>
               ) : isCreator ? (
                 data.map((req) => <CreatorRow key={req._id} req={req} onRespond={() => setData(null)} />)
               ) : (
@@ -186,7 +201,13 @@ export default function CollabRequesters({ postId, requestCount, isCreator }) {
           </motion.div>
         )}
       </AnimatePresence>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .collab-requesters-toggle:hover { background: ${COLLAB_COLOR}12; }
+        .collab-requesters-toggle:focus-visible,
+        .collab-requesters-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .collab-requesters-action:hover:not(:disabled) { opacity: 0.88; }
+      `}</style>
     </div>
   );
 }
