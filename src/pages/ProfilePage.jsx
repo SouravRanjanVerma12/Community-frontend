@@ -153,7 +153,7 @@ function SettingsPanel({ profile }) {
       value: "dark",
       label: "Dark",
       desc: "Easy on eyes",
-      preview: { bg: "#0d0f18", surface: "#13151f", accent: "#ff6b47" },
+      preview: { bg: "#0d0f18", surface: "#13151f", accent: "#e8eaf0" },
     },
     {
       value: "system",
@@ -278,7 +278,7 @@ function SettingsPanel({ profile }) {
           })}
 
           {error && (
-            <p style={{ fontSize: "13px", color: "#dc2626" }}>{error}</p>
+            <p style={{ fontSize: "13px", color: "var(--error-text)" }}>{error}</p>
           )}
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -296,12 +296,13 @@ function SettingsPanel({ profile }) {
                 boxSizing: "border-box",
                 borderRadius: "9px",
                 border: "none",
-                background: saved ? "#dcfce7" : "var(--accent)",
-                color: saved ? "#16a34a" : "#fff",
+                background: saved ? "var(--success-bg)" : "var(--btn-grad)",
+                color: saved ? "var(--success-text)" : "#fff",
                 fontSize: "14px",
                 fontWeight: "600",
                 cursor: saving ? "not-allowed" : "pointer",
                 opacity: saving ? 0.8 : 1,
+                boxShadow: saved ? "none" : "var(--btn-grad-shadow)",
                 transition: "background 0.2s, opacity 0.2s",
               }}
             >
@@ -799,9 +800,9 @@ export default function ProfilePage() {
                 margin: "8px 0 0",
                 padding: "10px 14px",
                 borderRadius: "8px",
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.2)",
-                color: "#dc2626",
+                background: "var(--error-bg)",
+                border: "1px solid var(--error-border)",
+                color: "var(--error-text)",
                 fontSize: "13px",
                 display: "flex",
                 alignItems: "center",
@@ -815,7 +816,7 @@ export default function ProfilePage() {
                   background: "none",
                   border: "none",
                   cursor: "pointer",
-                  color: "#dc2626",
+                  color: "var(--error-text)",
                   fontSize: "16px",
                   lineHeight: 1,
                 }}
@@ -990,11 +991,11 @@ export default function ProfilePage() {
                           gap: "6px",
                           padding: "8px 14px",
                           borderRadius: "9px",
-                          border: "1.5px solid var(--border)",
+                          border: "1.5px solid var(--error-border)",
                           background: "transparent",
                           fontSize: "13px",
                           fontWeight: "500",
-                          color: "#ef4444",
+                          color: "var(--error-text)",
                           cursor: "pointer",
                         }}
                       >
@@ -1017,7 +1018,8 @@ export default function ProfilePage() {
                           padding: "8px 16px",
                           borderRadius: "9px",
                           border: "none",
-                          background: "var(--accent)",
+                          background: "var(--btn-grad)",
+                          boxShadow: "var(--btn-grad-shadow)",
                           color: "#fff",
                           fontSize: "13px",
                           fontWeight: "600",
@@ -1042,7 +1044,8 @@ export default function ProfilePage() {
                             : "1.5px solid var(--accent)",
                           background: isFollowing
                             ? "transparent"
-                            : "var(--accent)",
+                            : "var(--btn-grad)",
+                          boxShadow: isFollowing ? "none" : "var(--btn-grad-shadow)",
                           fontSize: "13px",
                           fontWeight: "500",
                           color: isFollowing ? "var(--text-secondary)" : "#fff",
@@ -1095,7 +1098,8 @@ export default function ProfilePage() {
                           padding: "8px 16px",
                           borderRadius: "9px",
                           border: "none",
-                          background: "var(--accent)",
+                          background: "var(--btn-grad)",
+                          boxShadow: "var(--btn-grad-shadow)",
                           color: "#fff",
                           fontSize: "13px",
                           fontWeight: "600",

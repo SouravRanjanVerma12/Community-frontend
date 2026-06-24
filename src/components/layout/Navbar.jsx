@@ -9,6 +9,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useSocketStore } from '../../stores/socketStore';
 import { FriendRow } from '../friends/FriendsList';
 import api from '../../api/axiosInstance';
+import Button from '../ui/Button';
 
 function Avatar({ name, src, size = 34 }) {
   const initials = name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -90,13 +91,13 @@ function GlobalSearch() {
     );
     if (fs.status === 'pending' && !fs.iAmRequester) return (
       <button onClick={() => sendRequest(user._id)}
-        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
+        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', border: 'none', background: 'var(--btn-grad)', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
         Accept
       </button>
     );
     return (
       <button onClick={() => sendRequest(user._id)}
-        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
+        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', border: 'none', background: 'var(--btn-grad)', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
         + Add
       </button>
     );
@@ -196,7 +197,7 @@ function FriendBell() {
       <span style={{
         position: 'absolute', top: -5, right: -5,
         width: 15, height: 15, borderRadius: '50%',
-        background: 'var(--accent)', color: '#fff',
+        background: 'var(--btn-grad)', color: '#fff',
         fontSize: '9px', fontWeight: '700',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         border: '2px solid var(--nav-bg)',
@@ -368,7 +369,7 @@ export default function Navbar() {
     }}>
       {/* Logo */}
       <Link to="/explore" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0, marginRight: '8px' }}>
-        <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'linear-gradient(135deg, #ff5c35, #ff8060)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'var(--btn-grad)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Zap size={16} color="#fff" fill="#fff" />
         </div>
         <span className="nav-brand-label" style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
@@ -418,17 +419,17 @@ export default function Navbar() {
                 {user.name.split(' ')[0]}
               </span>
             </Link>
-            <button onClick={handleLogout} title="Log out" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '13px', fontWeight: '500', cursor: 'pointer', transition: 'border-color 0.15s' }}>
+            <Button variant="ghost" size="sm" onClick={handleLogout} title="Log out">
               <LogOut size={14} />
               <span className="nav-logout-label">Log out</span>
-            </button>
+            </Button>
           </>
         ) : (
           <>
             <Link to="/" style={{ padding: '7px 14px', borderRadius: '8px', border: '1.5px solid var(--border)', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
               <LogIn size={14} /> Log in
             </Link>
-            <Link to="/register" style={{ padding: '7px 14px', borderRadius: '8px', background: 'var(--accent)', color: '#fff', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+            <Link to="/register" style={{ padding: '7px 14px', borderRadius: '8px', background: 'var(--btn-grad)', boxShadow: 'var(--btn-grad-shadow)', color: '#fff', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
               <UserPlus size={14} /> Sign up
             </Link>
           </>

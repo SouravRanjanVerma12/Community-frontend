@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Type, Code2, Video, Send, X, Loader2, Users2, Plus } from 'lucide-react';
 import MembersSlider from './MembersSlider';
+import Button from '../ui/Button';
 import { useAuthStore } from '../../stores/authStore';
 import { DOMAINS } from '../../data/mockPosts';
 import { queryClient } from '../../api/queryClient';
 import api from '../../api/axiosInstance';
 
-const COLLAB_COLOR = '#0891b2';
+const COLLAB_COLOR = '#3a3d4a';
 
 function Avatar({ name, src, size = 38 }) {
   const initials = name?.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) ?? '?';
@@ -267,24 +268,17 @@ export default function CreatePost() {
                 </>
               )}
 
-              {error && <p style={{ fontSize: '13px', color: '#dc2626', margin: 0 }}>{error}</p>}
+              {error && <p style={{ fontSize: '13px', color: 'var(--error-text)', margin: 0 }}>{error}</p>}
 
               {/* Actions */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" onClick={close}
-                  style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
+                <Button type="button" variant="ghost" size="sm" onClick={close}>
                   <X size={13} /> Cancel
-                </button>
-                <motion.button type="submit" whileTap={{ scale: 0.97 }} disabled={!title.trim() || submitting}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', borderRadius: '8px', border: 'none',
-                    background: !title.trim() ? 'var(--accent-dim)' : isCollab ? COLLAB_COLOR : 'var(--accent)',
-                    color: '#fff', fontSize: '13px', fontWeight: '600',
-                    cursor: title.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s',
-                  }}>
-                  {submitting ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : isCollab ? <Users2 size={13} /> : <Send size={13} />}
+                </Button>
+                <Button type="submit" size="sm" isLoading={submitting} disabled={!title.trim() || submitting}>
+                  {!submitting && (isCollab ? <Users2 size={13} /> : <Send size={13} />)}
                   {submitting ? 'Posting…' : isCollab ? 'Post Collab' : 'Post'}
-                </motion.button>
+                </Button>
               </div>
             </div>
           </motion.form>

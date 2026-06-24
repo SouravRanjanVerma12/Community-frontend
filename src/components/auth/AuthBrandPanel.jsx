@@ -1,268 +1,169 @@
 import { motion } from 'framer-motion';
-import { Zap } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import bgPanel from '../../assets/auth-hero/bg-panel.png';
 
-const LOGIN_CHIPS    = ['founders', '#buildinpublic', 'const launch', 'scale()', '→ India', 'ship it'];
-const REGISTER_CHIPS = ['collab()', '// startup', 'ops ready', '<Builder />', 'grow()', 'network →'];
+const LOGIN_CHIPS    = ['founders', '#startupIndia', 'ecosystem', 'growthTools', 'curatedResources'];
+const REGISTER_CHIPS = ['community', 'buildInPublic', 'collab()', '<Builder />', 'scaleReady'];
 
 export default function AuthBrandPanel({ mode = 'login' }) {
   const isRegister = mode === 'register';
   const chips = isRegister ? REGISTER_CHIPS : LOGIN_CHIPS;
 
   return (
-    <div
-      style={{
-        flex: 1,
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '80px 52px',
-        background: 'var(--auth-panel-bg)',
-        minHeight: '100%',
-      }}
-    >
-      {/* Grid overlay */}
+    <>
+      {/* ── Full-viewport background image ── */}
       <div
         aria-hidden
         style={{
-          position: 'absolute',
+          position: 'fixed',
           inset: 0,
-          backgroundImage: `
-            linear-gradient(var(--auth-panel-grid) 1px, transparent 1px),
-            linear-gradient(90deg, var(--auth-panel-grid) 1px, transparent 1px)
-          `,
-          backgroundSize: '48px 48px',
+          zIndex: 0,
+          background: '#02030a',
+          overflow: 'hidden',
           pointerEvents: 'none',
         }}
-      />
+      >
+        <img
+          src={bgPanel}
+          alt=""
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+          }}
+        />
+        {/* Subtle grid pattern overlay */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)
+          `,
+          backgroundSize: '52px 52px',
+          maskImage: 'linear-gradient(to right, transparent 0%, black 25%, black 85%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 25%, black 85%, transparent 100%)',
+        }} />
+      </div>
 
-      {/* Radial glow orb */}
+      {/* ── Left brand copy container ── */}
       <div
         aria-hidden
+        className="auth-brand-panel"
         style={{
-          position: 'absolute',
-          width: '560px',
-          height: '560px',
-          borderRadius: '50%',
-          top: '-80px',
-          left: '10%',
-          background: `radial-gradient(circle, var(--auth-panel-glow) 0%, transparent 65%)`,
-          filter: 'blur(50px)',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '50%',
+          height: '100%',
+          zIndex: 1,
+          overflow: 'hidden',
           pointerEvents: 'none',
-          animation: 'authGlow 6s ease-in-out infinite',
         }}
-      />
-
-      {/* Main content — bottom-aligned */}
-      <motion.div
-        initial={{ opacity: 0, y: 28 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        style={{ position: 'relative', zIndex: 1 }}
       >
-        {/* Logo badge */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.1, ease: [0.34, 1.56, 0.64, 1] }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '10px',
-            background: 'var(--auth-badge-bg)',
-            border: '1px solid var(--auth-badge-border)',
-            borderRadius: '14px',
-            padding: '9px 15px',
-            marginBottom: '28px',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <div
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '9px',
-              background: 'var(--btn-grad)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 3px 12px rgba(255,92,53,0.38)',
-              flexShrink: 0,
-            }}
-          >
-            <Zap size={17} color="#fff" fill="#fff" aria-hidden />
-          </div>
-          <span
-            style={{
-              fontSize: '15px',
-              fontWeight: '700',
-              color: 'var(--auth-headline)',
-              letterSpacing: '-0.2px',
-            }}
-          >
-            Prograstic
-          </span>
-        </motion.div>
-
-        {/* Chip row */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '24px' }}
-        >
-          {chips.map((chip, i) => (
-            <span
-              key={chip}
-              style={{
-                padding: '4px 11px',
-                borderRadius: '20px',
-                fontFamily: 'ui-monospace, Consolas, monospace',
-                fontSize: '11px',
-                background: 'var(--auth-chip-bg)',
-                border: '1px solid var(--auth-chip-border)',
-                color: 'var(--auth-chip-color)',
-                animation: `chipFloat ${4.5 + i * 0.35}s ease-in-out ${i * 0.18}s infinite`,
-              }}
-            >
-              {chip}
-            </span>
-          ))}
-        </motion.div>
-
-        {/* Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            fontSize: 'clamp(1.9rem, 3vw, 2.9rem)',
-            fontWeight: '900',
-            lineHeight: '1.07',
-            letterSpacing: '-1.8px',
-            color: 'var(--auth-headline)',
-            marginBottom: '16px',
-          }}
-        >
-          {isRegister ? (
-            <>
-              India's launchpad<br />
-              for{' '}
-              <span
-                style={{
-                  background: 'var(--auth-headline-grad)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
+            <div style={{
+              position: 'absolute',
+              left: 'min(132px, 9vw)',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: 'min(580px, 45vw)',
+              zIndex: 2,
+            }}>
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                style={{ textAlign: 'left' }}
               >
-                founders.
-              </span>
-            </>
-          ) : (
-            <>
-              Where startups<br />
-              <span
-                style={{
-                  background: 'var(--auth-headline-grad)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                launch, scale,
-              </span>
-              <br />
-              and win.
-            </>
-          )}
-        </motion.h1>
+                {/* "NEW" badge */}
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '20px', padding: '5px 14px 5px 6px',
+                  marginBottom: '20px', backdropFilter: 'blur(10px)',
+                }}>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    background: '#fff', color: '#02030a', fontSize: '9px', fontWeight: '800',
+                    letterSpacing: '0.06em', borderRadius: '12px', padding: '3px 9px',
+                  }}>
+                    <Sparkles size={9} fill="currentColor" /> NEW
+                  </span>
+                  <span style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.7)', fontWeight: '500' }}>
+                    {isRegister ? 'Now open to every builder' : 'Latest ecosystem resources added'}
+                  </span>
+                </div>
 
-        {/* Description */}
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.32, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            fontSize: '15px',
-            color: 'var(--auth-desc)',
-            lineHeight: '1.65',
-            maxWidth: '360px',
-            marginBottom: '32px',
-          }}
-        >
-          {isRegister ? (
-            <>
-              Share what you're building. Find collaborators.
-              Grow alongside{' '}
-              <strong style={{ color: 'var(--auth-desc-strong)', fontWeight: '600' }}>
-                12,000+ founders
-              </strong>{' '}
-              building India's next big companies.
-            </>
-          ) : (
-            <>
-              A community of{' '}
-              <strong style={{ color: 'var(--auth-desc-strong)', fontWeight: '600' }}>
-                12,000+ founders &amp; operators
-              </strong>{' '}
-              shipping products and scaling startups — together.
-            </>
-          )}
-        </motion.p>
+                {/* Headline */}
+                <h1
+                  className="auth-display-font"
+                  style={{
+                    fontSize: 'clamp(2rem, 2.8vw, 3rem)',
+                    fontWeight: '800', lineHeight: '1.15',
+                    letterSpacing: '-0.04em', color: '#fff',
+                    marginBottom: '18px',
+                  }}
+                >
+                  {isRegister ? (
+                    <>
+                      Join the Ultimate{' '}
+                      <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: '500' }}>Founder Hub</span>
+                      <br />and Start Growing.
+                    </>
+                  ) : (
+                    <>
+                      Discover India's{' '}
+                      <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: '500' }}>Startup Ecosystem</span>
+                      <br />with Prograstic.
+                    </>
+                  )}
+                </h1>
 
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.46, duration: 0.6 }}
-          style={{ display: 'flex', gap: '32px' }}
-        >
-          {(isRegister
-            ? [{ value: '12K+', label: 'Founders' }, { value: '4K+', label: 'Projects' }, { value: 'Free', label: 'Always' }]
-            : [{ value: '12K+', label: 'Founders' }, { value: '4K+', label: 'Projects' }, { value: '80+', label: 'Sectors' }]
-          ).map((stat) => (
-            <div key={stat.label}>
-              <div
-                style={{
-                  fontSize: '21px',
-                  fontWeight: '800',
-                  letterSpacing: '-0.5px',
-                  color: 'var(--auth-stat-value)',
-                }}
-              >
-                {stat.value}
-              </div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--auth-stat-label)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.6px',
-                  marginTop: '2px',
-                }}
-              >
-                {stat.label}
-              </div>
+                <p style={{
+                  fontSize: '14px', color: 'rgba(255,255,255,0.45)',
+                  lineHeight: '1.65', marginBottom: '24px',
+                  maxWidth: '38ch',
+                }}>
+                  {isRegister 
+                    ? "Connect with operators, discover opportunities, and leverage India's leading community ecosystem built for startup builders."
+                    : "Access premium community resources, exclusive services, and curated startup tools to accelerate your entrepreneurial journey."}
+                </p>
+
+                {/* Static Chips */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', justifyContent: 'flex-start', marginBottom: '26px' }}>
+                  {chips.map((chip) => (
+                    <span key={chip} style={{
+                      padding: '4px 12px', borderRadius: '20px',
+                      fontFamily: 'ui-monospace, Consolas, monospace', fontSize: '11px',
+                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+                      color: 'rgba(255,255,255,0.65)',
+                    }}>
+                      {chip}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Stats row */}
+                <div style={{ display: 'flex', gap: '28px', justifyContent: 'flex-start' }}>
+                  {(isRegister
+                    ? [{ value: '100%', label: 'Curated' }, { value: 'Free', label: 'Resources' }, { value: '24/7', label: 'Ecosystem' }]
+                    : [{ value: '12K+', label: 'Founders' }, { value: '800+', label: 'Startups' }, { value: '50+', label: 'Partners' }]
+                  ).map((stat) => (
+                    <div key={stat.label}>
+                      <div style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.04em', color: '#fff' }}>{stat.value}</div>
+                      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px' }}>{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             </div>
-          ))}
-        </motion.div>
-      </motion.div>
+      </div>
 
       <style>{`
-        @keyframes authGlow {
-          0%, 100% { opacity: 0.55; transform: scale(1); }
-          50% { opacity: 0.9; transform: scale(1.07); }
-        }
-        @keyframes chipFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
-        }
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
           .auth-brand-panel { display: none !important; }
         }
       `}</style>
-    </div>
+    </>
   );
 }

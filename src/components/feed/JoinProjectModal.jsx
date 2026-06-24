@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Users2, Upload, Link2, CheckCircle, Loader2, FileText } from 'lucide-react';
 import api from '../../api/axiosInstance';
+import Button from '../ui/Button';
 
-const COLLAB_COLOR = '#0891b2';
+const COLLAB_COLOR = '#3a3d4a';
 
 export default function JoinProjectModal({ post, onClose }) {
   const [why,          setWhy]          = useState('');
@@ -167,10 +168,9 @@ export default function JoinProjectModal({ post, onClose }) {
 
             {/* Actions */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button type="button" onClick={onClose}
-                style={{ padding: '9px 18px', borderRadius: '9px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
+              <Button type="button" variant="ghost" size="sm" onClick={onClose}>
                 Cancel
-              </button>
+              </Button>
               <motion.button type="submit" whileTap={{ scale: 0.97 }} disabled={!why.trim() || submitting}
                 style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 22px', borderRadius: '9px', border: 'none', background: !why.trim() ? `${COLLAB_COLOR}40` : COLLAB_COLOR, color: '#fff', fontSize: '14px', fontWeight: '600', cursor: why.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.15s' }}>
                 {submitting ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Users2 size={14} />}

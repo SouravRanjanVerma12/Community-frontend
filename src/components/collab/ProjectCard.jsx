@@ -4,8 +4,9 @@ import { motion } from 'framer-motion';
 import { Users2, Clock, ClipboardList, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import JoinProjectModal from '../feed/JoinProjectModal';
+import Button from '../ui/Button';
 
-const CC = '#0891b2';
+const CC = '#3a3d4a';
 const DOMAIN_COLORS = {
   webdev: '#2563eb', backend: '#059669', devops: '#d97706',
   aiml: '#7c3aed', mobile: '#db2777', oss: '#0891b2', career: '#ea580c',
@@ -130,10 +131,9 @@ export default function ProjectCard({ post, index = 0, showReviewLink = false })
           {isOwn ? (
             showReviewLink && (post.requestCount ?? 0) > 0 ? (
               <Link to={`/collab/${post._id}/requests`} style={{ textDecoration: 'none' }}>
-                <motion.button whileTap={{ scale: 0.96 }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', borderRadius: '8px', border: 'none', background: CC, color: '#fff', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                <Button size="sm" style={{ padding: '6px 12px', fontSize: '12px', minHeight: 'auto' }}>
                   <ClipboardList size={12} /> Review ({post.requestCount})
-                </motion.button>
+                </Button>
               </Link>
             ) : (
               <span style={{ fontSize: '11px', color: CC, fontWeight: '600', padding: '6px 10px', borderRadius: '8px', background: `${CC}10`, border: `1px solid ${CC}25` }}>Your project</span>
@@ -143,10 +143,9 @@ export default function ProjectCard({ post, index = 0, showReviewLink = false })
               <CheckCircle size={13} /> Requested
             </span>
           ) : !filled ? (
-            <motion.button whileTap={{ scale: 0.96 }} onClick={() => setJoinOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 14px', borderRadius: '8px', border: 'none', background: CC, color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 3px 10px ${CC}35` }}>
+            <Button size="sm" onClick={() => setJoinOpen(true)} style={{ padding: '6px 14px', fontSize: '12px', minHeight: 'auto' }}>
               <Users2 size={12} /> Join
-            </motion.button>
+            </Button>
           ) : (
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>Team full</span>
           )}

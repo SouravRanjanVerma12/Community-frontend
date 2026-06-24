@@ -9,15 +9,18 @@ import {
   Code, Palette, FileText, Globe, Link2,
   CheckCircle, Clock, Circle, Wifi, WifiOff, Edit, Share2,
   Square, X, Crown, User, Eye, Calendar, Paperclip,
-  ClipboardCheck, RotateCcw,
+  ClipboardCheck, RotateCcw, Settings as SettingsIcon,
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
+import Button from '../components/ui/Button';
 import api from '../api/axiosInstance';
 import { useAuthStore } from '../stores/authStore';
 import { getSocket, useSocketStore } from '../stores/socketStore';
+import { DOMAINS } from '../data/mockPosts';
+import { PieChart } from '@mui/x-charts/PieChart';
 
 /* ── shared helpers ── */
-const CC = '#0891b2';
+const CC = '#3a3d4a';
 
 function Avatar({ name, src, size = 32 }) {
   const initials = (name ?? 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -35,7 +38,7 @@ function timeAgo(iso) {
 }
 
 const RESOURCE_ICONS = {
-  github: { icon: Code,     color: '#1a1a1a', label: 'GitHub'  },
+  github: { icon: Code,     color: '#8b8f9c', label: 'GitHub'  },
   figma:  { icon: Palette,  color: '#a259ff', label: 'Figma'   },
   docs:   { icon: FileText, color: '#2563eb', label: 'Docs'    },
   deploy: { icon: Globe,    color: '#059669', label: 'Deploy'  },
@@ -44,7 +47,7 @@ const RESOURCE_ICONS = {
 
 /* ── Overview section ── */
 
-function Overview({ postId, isOwner }) {
+function Overview({ postId, isOwner, onEdit }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
@@ -170,6 +173,7 @@ function Overview({ postId, isOwner }) {
           {isOwner && (
             <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
               <button
+                onClick={onEdit}
                 style={{
                   padding: '8px 14px',
                   borderRadius: '8px',
@@ -189,6 +193,14 @@ function Overview({ postId, isOwner }) {
                 <Edit size={14} /> Edit
               </button>
               <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    toast.success('Workspace link copied to clipboard.');
+                  } catch {
+                    toast.error('Could not copy link.');
+                  }
+                }}
                 style={{
                   padding: '8px 14px',
                   borderRadius: '8px',
@@ -301,40 +313,41 @@ function Overview({ postId, isOwner }) {
                 {taskStats.done} / {totalTasks} done
               </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {[
-                { label: 'To Do', value: taskStats.todo, color: '#6b7280', icon: Circle },
-                { label: 'In Progress', value: taskStats.in_progress, color: '#d97706', icon: Clock },
-                { label: 'Done', value: taskStats.done, color: '#16a34a', icon: CheckCircle },
-              ].map(({ label, value, color, icon: Icon }) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Icon size={14} color={color} />
-                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)', minWidth: '80px' }}>
-                    {label}
-                  </span>
-                  <div style={{
-                    flex: 1,
-                    height: '6px',
-                    borderRadius: '3px',
-                    background: 'var(--surface-3)',
-                    overflow: 'hidden',
-                  }}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: totalTasks > 0 ? `${(value / totalTasks) * 100}%` : 0 }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
-                      style={{
-                        height: '100%',
-                        background: color,
-                        borderRadius: '3px',
-                      }}
-                    />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <PieChart
+                series={[{
+                  data: [
+                    { id: 0, label: 'To Do',        value: taskStats.todo,        color: '#6b7280' },
+                    { id: 1, label: 'In Progress',  value: taskStats.in_progress, color: '#d97706' },
+                    { id: 2, label: 'Done',         value: taskStats.done,        color: '#16a34a' },
+                  ],
+                  innerRadius: 28,
+                  outerRadius: 50,
+                  paddingAngle: 2,
+                  cornerRadius: 3,
+                }]}
+                width={120}
+                height={120}
+                slotProps={{ legend: { hidden: true } }}
+                sx={{ flexShrink: 0 }}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                {[
+                  { label: 'To Do', value: taskStats.todo, color: '#6b7280', icon: Circle },
+                  { label: 'In Progress', value: taskStats.in_progress, color: '#d97706', icon: Clock },
+                  { label: 'Done', value: taskStats.done, color: '#16a34a', icon: CheckCircle },
+                ].map(({ label, value, color, icon: Icon }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Icon size={13} color={color} />
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', flex: 1 }}>
+                      {label}
+                    </span>
+                    <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                      {value}
+                    </span>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', minWidth: '30px', textAlign: 'right' }}>
-                    {value}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -616,30 +629,9 @@ function Members({ postId, isOwner }) {
             <option value="role">Sort by: Role</option>
           </select>
           {isOwner && (
-            <button
-              onClick={() => setIsInviteModalOpen(true)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '10px 16px',
-                minHeight: '44px',
-                boxSizing: 'border-box',
-                borderRadius: '8px',
-                border: 'none',
-                background: CC,
-                color: '#fff',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                boxShadow: `0 4px 12px ${CC}40`,
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = `0 6px 20px ${CC}60`)}
-              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = `0 4px 12px ${CC}40`)}
-            >
+            <Button size="sm" onClick={() => setIsInviteModalOpen(true)}>
               <Plus size={14} /> Invite Member
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -774,15 +766,15 @@ function Members({ postId, isOwner }) {
                     style={{
                       padding: '4px 8px',
                       borderRadius: '6px',
-                      border: '1px solid rgba(239,68,68,0.2)',
+                      border: '1px solid var(--error-border)',
                       background: 'transparent',
-                      color: '#dc2626',
+                      color: 'var(--error-text)',
                       fontSize: '11px',
                       cursor: 'pointer',
                       transition: 'all 0.15s',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(239,68,68,0.08)';
+                      e.currentTarget.style.background = 'var(--error-bg)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'transparent';
@@ -814,22 +806,9 @@ function Members({ postId, isOwner }) {
             {isOwner ? 'Invite your team members to start collaborating.' : 'The project owner will add members soon.'}
           </p>
           {isOwner && (
-            <button
-              onClick={() => setIsInviteModalOpen(true)}
-              style={{
-                marginTop: '16px',
-                padding: '8px 20px',
-                borderRadius: '8px',
-                border: 'none',
-                background: CC,
-                color: '#fff',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'pointer',
-              }}
-            >
-              <Plus size={14} style={{ display: 'inline', marginRight: '4px' }} /> Invite first member
-            </button>
+            <Button size="sm" style={{ marginTop: '16px' }} onClick={() => setIsInviteModalOpen(true)}>
+              <Plus size={14} /> Invite first member
+            </Button>
           )}
         </div>
       )}
@@ -944,42 +923,12 @@ function Members({ postId, isOwner }) {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
-                <button
-                  onClick={() => setIsInviteModalOpen(false)}
-                  style={{
-                    padding: '10px 24px',
-                    borderRadius: '10px',
-                    border: '1.5px solid var(--border)',
-                    background: 'transparent',
-                    color: 'var(--text-secondary)',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
+                <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)}>
                   Cancel
-                </button>
-                <button
-                  onClick={handleInvite}
-                  disabled={!inviteEmail.trim() || inviting}
-                  style={{
-                    padding: '10px 28px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: !inviteEmail.trim() || inviting ? 'var(--surface-2)' : CC,
-                    color: !inviteEmail.trim() || inviting ? 'var(--text-muted)' : '#fff',
-                    fontSize: '14px',
-                    fontWeight: '700',
-                    cursor: !inviteEmail.trim() || inviting ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.15s',
-                    boxShadow: !inviteEmail.trim() || inviting ? 'none' : `0 4px 12px ${CC}40`,
-                  }}
-                >
+                </Button>
+                <Button onClick={handleInvite} disabled={!inviteEmail.trim() || inviting} isLoading={inviting}>
                   {inviting ? 'Sending...' : 'Send Invite'}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1276,30 +1225,9 @@ function Resources({ postId, isOwner }) {
           )}
         </div>
         {isOwner && (
-          <button
-            onClick={openAddModal}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '10px 16px',
-              minHeight: '44px',
-              boxSizing: 'border-box',
-              borderRadius: '8px',
-              border: 'none',
-              background: CC,
-              color: '#fff',
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: `0 4px 12px ${CC}40`,
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = `0 6px 20px ${CC}60`)}
-            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = `0 4px 12px ${CC}40`)}
-          >
+          <Button size="sm" onClick={openAddModal}>
             <Plus size={16} /> Add Resource
-          </button>
+          </Button>
         )}
       </div>
 
@@ -1416,26 +1344,13 @@ function Resources({ postId, isOwner }) {
             }
           </p>
           {isOwner && !searchQuery && filter === 'all' && (
-            <button
-              onClick={openAddModal}
-              style={{
-                marginTop: '16px',
-                padding: '8px 20px',
-                borderRadius: '8px',
-                border: 'none',
-                background: CC,
-                color: '#fff',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'pointer',
-              }}
-            >
-              <Plus size={14} style={{ display: 'inline', marginRight: '4px' }} /> Add your first resource
-            </button>
+            <Button size="sm" style={{ marginTop: '16px' }} onClick={openAddModal}>
+              <Plus size={14} /> Add your first resource
+            </Button>
           )}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
           {filteredResources.map(r => {
             const { icon: Icon, color, label } = RESOURCE_ICONS[r.type] ?? RESOURCE_ICONS.other;
             return (
@@ -1590,15 +1505,15 @@ function Resources({ postId, isOwner }) {
                           style={{
                             padding: '4px 8px',
                             borderRadius: '6px',
-                            border: '1px solid rgba(239,68,68,0.2)',
+                            border: '1px solid var(--error-border)',
                             background: 'transparent',
-                            color: '#dc2626',
+                            color: 'var(--error-text)',
                             fontSize: '11px',
                             cursor: 'pointer',
                             transition: 'all 0.15s',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(239,68,68,0.08)';
+                            e.currentTarget.style.background = 'var(--error-bg)';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.background = 'transparent';
@@ -1777,42 +1692,16 @@ function Resources({ postId, isOwner }) {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  style={{
-                    padding: '10px 24px',
-                    borderRadius: '10px',
-                    border: '1.5px solid var(--border)',
-                    background: 'transparent',
-                    color: 'var(--text-secondary)',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
+                <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={editingId ? updateResource : addResource}
                   disabled={!form.title.trim() || !form.url.trim() || saving}
-                  style={{
-                    padding: '10px 28px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: !form.title.trim() || !form.url.trim() || saving ? 'var(--surface-2)' : CC,
-                    color: !form.title.trim() || !form.url.trim() || saving ? 'var(--text-muted)' : '#fff',
-                    fontSize: '14px',
-                    fontWeight: '700',
-                    cursor: !form.title.trim() || !form.url.trim() || saving ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.15s',
-                    boxShadow: !form.title.trim() || !form.url.trim() || saving ? 'none' : `0 4px 12px ${CC}40`,
-                  }}
+                  isLoading={saving}
                 >
                   {saving ? 'Saving...' : (editingId ? 'Update Resource' : 'Add Resource')}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1827,6 +1716,211 @@ function Loader() {
   return <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><Loader2 size={24} color={CC} style={{ animation: 'spin 0.8s linear infinite' }} /></div>;
 }
 
+/* ── Settings section (lead only) ── */
+function Settings({ postId, isOwner, onTitleChange }) {
+  const [loading, setLoading] = useState(true);
+  const [saving,  setSaving]  = useState(false);
+  const [form, setForm] = useState({
+    title: '', projectName: '', body: '', domain: 'webdev',
+    techStack: [], rolesNeeded: [], membersNeeded: 1,
+  });
+  const [techInput, setTechInput] = useState('');
+  const [roleInput, setRoleInput] = useState('');
+
+  useEffect(() => {
+    if (!isOwner) return;
+    api.get(`/workspace/${postId}/overview`).then(r => {
+      const post = r.data.post;
+      setForm({
+        title:         post?.title || '',
+        projectName:   post?.projectName || '',
+        body:          post?.body || '',
+        domain:        post?.domain || 'webdev',
+        techStack:     post?.techStack || [],
+        rolesNeeded:   post?.rolesNeeded || [],
+        membersNeeded: post?.membersNeeded ?? 1,
+      });
+    }).finally(() => setLoading(false));
+  }, [postId, isOwner]);
+
+  if (!isOwner) return null;
+  if (loading) return <Loader />;
+
+  const addTag = (key, value, setInput) => {
+    const v = value.trim();
+    if (v && !form[key].includes(v)) setForm(f => ({ ...f, [key]: [...f[key], v] }));
+    setInput('');
+  };
+  const removeTag = (key, val) => setForm(f => ({ ...f, [key]: f[key].filter(t => t !== val) }));
+
+  const save = async () => {
+    if (!form.title.trim()) { toast.error('Title is required.'); return; }
+    setSaving(true);
+    try {
+      const { data } = await api.patch(`/workspace/${postId}/settings`, form);
+      onTitleChange?.(data.post.projectName || data.post.title);
+      toast.success('Workspace settings saved.');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to save settings.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputStyle = {
+    width: '100%', padding: '10px 14px', borderRadius: '10px',
+    border: '1.5px solid var(--border)', background: 'var(--input-bg)',
+    fontSize: '14px', color: 'var(--text-primary)', outline: 'none',
+    fontFamily: 'inherit', transition: 'border-color 0.15s',
+  };
+  const labelStyle = { fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' };
+  const focusOn  = (e) => (e.target.style.borderColor = CC);
+  const focusOff = (e) => (e.target.style.borderColor = 'var(--border)');
+
+  const tagPill = (key, value) => (
+    <span key={value} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '20px', background: CC, color: '#fff', fontSize: '12px', fontWeight: '500' }}>
+      {value}
+      <button type="button" onClick={() => removeTag(key, value)} aria-label={`Remove ${value}`}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', display: 'flex', padding: 0, lineHeight: 1 }}>
+        <X size={12} />
+      </button>
+    </span>
+  );
+
+  return (
+    <div className="workspace-settings-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 280px', gap: '20px', alignItems: 'stretch' }}>
+      <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+
+        <div>
+          <label style={labelStyle}>Project Name</label>
+          <input type="text" value={form.projectName} onChange={(e) => setForm(f => ({ ...f, projectName: e.target.value }))}
+            placeholder="e.g., E-commerce Platform" style={inputStyle} onFocus={focusOn} onBlur={focusOff} />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Title <span style={{ color: '#ef4444' }}>*</span></label>
+          <input type="text" value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
+            placeholder="Workspace title" style={inputStyle} onFocus={focusOn} onBlur={focusOff} />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Description</label>
+          <textarea value={form.body} onChange={(e) => setForm(f => ({ ...f, body: e.target.value }))}
+            placeholder="What is this project about?" rows={4} style={{ ...inputStyle, resize: 'vertical' }}
+            onFocus={focusOn} onBlur={focusOff} />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Domain</label>
+          <select value={form.domain} onChange={(e) => setForm(f => ({ ...f, domain: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+            {DOMAINS.filter(d => d.value !== 'all').map(d => (
+              <option key={d.value} value={d.value}>{d.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label style={labelStyle}>Members Needed</label>
+          <input type="number" min={0} max={50} value={form.membersNeeded}
+            onChange={(e) => setForm(f => ({ ...f, membersNeeded: e.target.value }))}
+            style={inputStyle} onFocus={focusOn} onBlur={focusOff} />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Tech Stack</label>
+          {form.techStack.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+              {form.techStack.map(t => tagPill('techStack', t))}
+            </div>
+          )}
+          <input type="text" value={techInput} onChange={(e) => setTechInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag('techStack', techInput, setTechInput); } }}
+            placeholder="Type a tech and press Enter (e.g. React, Node.js)" style={inputStyle}
+            onFocus={focusOn} onBlur={(e) => { focusOff(e); addTag('techStack', techInput, setTechInput); }} />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Roles Needed</label>
+          {form.rolesNeeded.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+              {form.rolesNeeded.map(r => tagPill('rolesNeeded', r))}
+            </div>
+          )}
+          <input type="text" value={roleInput} onChange={(e) => setRoleInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag('rolesNeeded', roleInput, setRoleInput); } }}
+            placeholder="Type a role and press Enter (e.g. Frontend Dev)" style={inputStyle}
+            onFocus={focusOn} onBlur={(e) => { focusOff(e); addTag('rolesNeeded', roleInput, setRoleInput); }} />
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+          <Button onClick={save} isLoading={saving} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Live preview */}
+      <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', height: '100%' }}>
+        <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Preview</p>
+
+        <div>
+          <p style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', lineHeight: '1.3', wordBreak: 'break-word' }}>
+            {form.projectName || form.title || 'Untitled project'}
+          </p>
+          {form.title && form.projectName && (
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{form.title}</p>
+          )}
+        </div>
+
+        {form.body && (
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{form.body}</p>
+        )}
+
+        <span style={{
+          alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '4px',
+          padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '700',
+          background: `${DOMAINS.find(d => d.value === form.domain)?.color ?? CC}18`,
+          color: DOMAINS.find(d => d.value === form.domain)?.color ?? CC,
+        }}>
+          {DOMAINS.find(d => d.value === form.domain)?.label ?? form.domain}
+        </span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <Users size={13} /> {form.membersNeeded || 0} member{Number(form.membersNeeded) === 1 ? '' : 's'} needed
+        </div>
+
+        {form.techStack.length > 0 && (
+          <div>
+            <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '6px' }}>Tech Stack</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+              {form.techStack.map(t => (
+                <span key={t} style={{ padding: '2px 8px', borderRadius: '20px', background: 'var(--surface-2)', color: 'var(--text-secondary)', fontSize: '11px' }}>{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {form.rolesNeeded.length > 0 && (
+          <div>
+            <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '6px' }}>Roles Needed</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+              {form.rolesNeeded.map(r => (
+                <span key={r} style={{ padding: '2px 8px', borderRadius: '20px', background: 'var(--surface-2)', color: 'var(--text-secondary)', fontSize: '11px' }}>{r}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @media (max-width: 760px) {
+          .workspace-settings-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 /* ── Sidebar nav item ── */
 const NAV_ITEMS = [
   { id: 'overview',    label: 'Overview',    icon: LayoutDashboard },
@@ -1834,6 +1928,7 @@ const NAV_ITEMS = [
   { id: 'members',     label: 'Members',     icon: Users           },
   { id: 'discussion',  label: 'Discussion',  icon: MessageSquare   },
   { id: 'resources',   label: 'Resources',   icon: BookOpen        },
+  { id: 'settings',    label: 'Settings',    icon: SettingsIcon,   ownerOnly: true },
 ];
 
 /* ── Task board (inline) ── */
@@ -1959,30 +2054,9 @@ function Tasks({ postId, isOwner }) {
           </span>
         </div>
         {isOwner && (
-          <button
-            onClick={() => { setModalStatus('todo'); setIsModalOpen(true); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '10px 16px',
-              minHeight: '44px',
-              boxSizing: 'border-box',
-              borderRadius: '8px',
-              border: 'none',
-              background: CC,
-              color: '#fff',
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: `0 4px 12px ${CC}40`,
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = `0 6px 20px ${CC}60`)}
-            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = `0 4px 12px ${CC}40`)}
-          >
+          <Button size="sm" onClick={() => { setModalStatus('todo'); setIsModalOpen(true); }}>
             <Plus size={16} /> New Task
-          </button>
+          </Button>
         )}
       </div>
 
@@ -2302,29 +2376,19 @@ function Tasks({ postId, isOwner }) {
                     onBlur={e => (e.target.style.borderColor = 'var(--border)')}
                   />
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={submitForReview}
-                      disabled={!reviewNote.trim() || submittingReview}
-                      style={{ minHeight: '36px', padding: '6px 16px', borderRadius: '8px', border: 'none', background: !reviewNote.trim() || submittingReview ? 'var(--surface-2)' : CC, color: !reviewNote.trim() || submittingReview ? 'var(--text-muted)' : '#fff', fontSize: '12px', fontWeight: '700', cursor: !reviewNote.trim() || submittingReview ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                    >
-                      {submittingReview ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : <ClipboardCheck size={13} />}
+                    <Button size="sm" onClick={submitForReview} disabled={!reviewNote.trim() || submittingReview} isLoading={submittingReview}>
+                      {!submittingReview && <ClipboardCheck size={13} />}
                       Submit for review
-                    </button>
-                    <button
-                      onClick={() => { setShowReviewForm(false); setReviewNote(''); }}
-                      style={{ minHeight: '36px', padding: '6px 16px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                    >
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setShowReviewForm(false); setReviewNote(''); }}>
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => setShowReviewForm(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '40px', padding: '8px 16px', borderRadius: '8px', border: 'none', background: CC, color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 3px 10px ${CC}30` }}
-                >
+                <Button size="sm" onClick={() => setShowReviewForm(true)}>
                   <ClipboardCheck size={14} /> Mark complete for review
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -2446,24 +2510,22 @@ function Tasks({ postId, isOwner }) {
               >
                 <Plus size={12} /> Add checklist item
               </button>
-              <button 
+              <button
                 onClick={() => deleteTask(selected._id)}
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  gap: '4px', 
-                  padding: '6px 12px', 
-                  borderRadius: '6px', 
-                  border: '1px solid rgba(239,68,68,0.2)', 
-                  background: 'rgba(239,68,68,0.06)', 
-                  color: '#dc2626', 
-                  fontSize: '11px', 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: '1.5px solid var(--error-border)',
+                  background: 'var(--error-bg)',
+                  color: 'var(--error-text)',
+                  fontSize: '11px',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.06)'; }}
               >
                 <Trash2 size={12} /> Delete task
               </button>
@@ -2843,21 +2905,9 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus, projectMembers = 
                   outline: "none",
                 }}
               />
-              <button
-                onClick={() => handleAddAssignee(assigneeInput)}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  border: "none",
-                  background: CC,
-                  color: "#fff",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                }}
-              >
+              <Button size="sm" onClick={() => handleAddAssignee(assigneeInput)}>
                 Add
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -2929,8 +2979,9 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus, projectMembers = 
                 padding: "6px 12px",
                 borderRadius: "6px",
                 border: "none",
-                background: CC,
+                background: "var(--btn-grad)",
                 color: "#fff",
+                boxShadow: "var(--btn-grad-shadow)",
                 fontSize: "12px",
                 fontWeight: "600",
                 cursor: "pointer",
@@ -3022,42 +3073,12 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus, projectMembers = 
 
         {/* Actions */}
         <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", borderTop: "1px solid var(--border)", paddingTop: "20px" }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: "10px 24px",
-              borderRadius: "10px",
-              border: "1.5px solid var(--border)",
-              background: "transparent",
-              color: "var(--text-secondary)",
-              fontSize: "14px",
-              fontWeight: "600",
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-          >
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!title.trim() || isSubmitting}
-            style={{
-              padding: "10px 28px",
-              borderRadius: "10px",
-              border: "none",
-              background: !title.trim() || isSubmitting ? "var(--surface-2)" : CC,
-              color: !title.trim() || isSubmitting ? "var(--text-muted)" : "#fff",
-              fontSize: "14px",
-              fontWeight: "700",
-              cursor: !title.trim() || isSubmitting ? "not-allowed" : "pointer",
-              transition: "all 0.15s",
-              boxShadow: !title.trim() || isSubmitting ? "none" : `0 4px 12px ${CC}40`,
-            }}
-          >
+          </Button>
+          <Button onClick={handleSubmit} disabled={!title.trim() || isSubmitting} isLoading={isSubmitting}>
             {isSubmitting ? "Creating..." : "Create Task"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -3091,14 +3112,17 @@ export default function WorkspacePage() {
 
   const renderSection = () => {
     switch (section) {
-      case 'overview':   return <Overview   postId={postId} isOwner={isOwner} />;
+      case 'overview':   return <Overview   postId={postId} isOwner={isOwner} onEdit={() => setSection('settings')} />;
       case 'tasks':      return <Tasks      postId={postId} isOwner={isOwner} />;
       case 'members':    return <Members    postId={postId} isOwner={isOwner} />;
       case 'discussion': return <Discussion postId={postId} isOwner={isOwner} leadId={leadId} />;
       case 'resources':  return <Resources  postId={postId} isOwner={isOwner} />;
+      case 'settings':   return <Settings   postId={postId} isOwner={isOwner} onTitleChange={setPostTitle} />;
       default: return null;
     }
   };
+
+  const visibleNavItems = NAV_ITEMS.filter(item => !item.ownerOnly || isOwner);
 
   return (
     <div style={{ minHeight: '100svh', background: 'var(--surface-0)', display: 'flex', flexDirection: 'column' }}>
@@ -3133,7 +3157,7 @@ export default function WorkspacePage() {
           </div>
 
           {/* Nav items */}
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+          {visibleNavItems.map(({ id, label, icon: Icon }) => {
             const active = section === id;
             return (
               <motion.button key={id} onClick={() => setSection(id)} whileTap={{ scale: 0.97 }}
@@ -3156,7 +3180,7 @@ export default function WorkspacePage() {
 
         {/* Tab bar (mobile/tablet) */}
         <nav className="workspace-tabbar" style={{ display: 'none', overflowX: 'auto', gap: '4px', padding: '10px 12px', background: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+          {visibleNavItems.map(({ id, label, icon: Icon }) => {
             const active = section === id;
             return (
               <button key={id} onClick={() => setSection(id)}
@@ -3178,7 +3202,7 @@ export default function WorkspacePage() {
 
         {/* Content */}
         <main style={{ flex: 1, padding: '24px', overflowX: 'auto', minWidth: 0 }}>
-          <div style={{ maxWidth: section === 'tasks' ? 'none' : '800px' }}>
+          <div style={{ maxWidth: section === 'tasks' ? 'none' : '1100px' }}>
             <h1 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '20px', letterSpacing: '-0.3px' }}>
               {NAV_ITEMS.find(n => n.id === section)?.label}
             </h1>

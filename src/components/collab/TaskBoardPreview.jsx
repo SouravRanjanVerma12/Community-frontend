@@ -8,6 +8,7 @@ import {
 import Navbar from '../layout/Navbar';
 import api from '../../api/axiosInstance';
 import { useAuthStore } from '../../stores/authStore';
+import Button from '../ui/Button';
 
 const STATUSES = [
   { id: 'todo',        label: 'To Do',       color: '#6b7280' },
@@ -103,7 +104,7 @@ export default function TaskBoardPreview() {
     <div style={{ minHeight: '100svh', background: 'var(--surface-0)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}>
-        <Loader2 size={28} color="#0891b2" style={{ animation: 'spin 0.8s linear infinite' }} />
+        <Loader2 size={28} color="var(--accent)" style={{ animation: 'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     </div>
@@ -112,12 +113,12 @@ export default function TaskBoardPreview() {
   if (error) return (
     <div style={{ minHeight: '100svh', background: 'var(--surface-0)' }}>
       <Navbar />
-      <div style={{ textAlign: 'center', padding: '80px', color: '#dc2626' }}>
+      <div style={{ textAlign: 'center', padding: '80px', color: 'var(--error-text)' }}>
         <AlertCircle size={36} style={{ marginBottom: '12px' }} />
         <p style={{ fontSize: '15px', fontWeight: '600' }}>{error}</p>
-        <button onClick={() => navigate('/collab')} style={{ marginTop: '16px', padding: '8px 20px', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px' }}>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/collab')} style={{ marginTop: '16px' }}>
           ← Back to Collab
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -128,16 +129,15 @@ export default function TaskBoardPreview() {
 
       {/* Top bar */}
       <div style={{ background: 'var(--nav-bg)', borderBottom: '1px solid var(--nav-border)', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', position: 'sticky', top: '60px', zIndex: 80 }}>
-        <button onClick={() => navigate('/collab')}
-          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer' }}>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/collab')} style={{ gap: '5px', color: 'var(--text-secondary)' }}>
           <ArrowLeft size={13} /> Collab Hub
-        </button>
+        </Button>
         <div style={{ width: '1px', height: '20px', background: 'var(--border)' }} />
         <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>
           {post?.projectName || post?.title}
         </span>
         {post?.domain && (
-          <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(8,145,178,0.12)', color: '#0891b2' }}>
+          <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'var(--accent-bg)', color: 'var(--accent)' }}>
             {post.domain}
           </span>
         )}
@@ -162,7 +162,8 @@ export default function TaskBoardPreview() {
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--surface-3)', padding: '1px 6px', borderRadius: '10px' }}>{colTasks.length}</span>
                   </div>
                   <button onClick={() => { setAddingStatus(status); setNewTitle(''); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '2px' }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '2px' }}
+                    aria-label="Add task">
                     <Plus size={16} />
                   </button>
                 </div>
@@ -173,9 +174,9 @@ export default function TaskBoardPreview() {
                     onClick={() => setSelected(task)}
                     style={{
                       background: 'var(--card-bg)', borderRadius: '10px', padding: '12px',
-                      border: selected?._id === task._id ? `1.5px solid #0891b2` : '1px solid var(--card-border)',
+                      border: selected?._id === task._id ? '1.5px solid var(--accent)' : '1px solid var(--card-border)',
                       cursor: 'pointer', transition: 'box-shadow 0.15s',
-                      boxShadow: selected?._id === task._id ? '0 0 0 3px rgba(8,145,178,0.15)' : 'none',
+                      boxShadow: selected?._id === task._id ? '0 0 0 3px var(--accent-border)' : 'none',
                     }}>
                     <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', lineHeight: '1.4', marginBottom: '8px' }}>{task.title}</p>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
@@ -209,16 +210,16 @@ export default function TaskBoardPreview() {
                   {addingStatus === status && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                       style={{ overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'var(--card-bg)', borderRadius: '10px', padding: '10px', border: '1.5px solid #0891b2' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'var(--card-bg)', borderRadius: '10px', padding: '10px', border: '1.5px solid var(--accent)' }}>
                         <input autoFocus value={newTitle} onChange={e => setNewTitle(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') addTask(status); if (e.key === 'Escape') setAddingStatus(null); }}
                           placeholder="Task title…"
                           style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--input-bg)', fontSize: '13px', color: 'var(--text-primary)', outline: 'none' }} />
                         <div style={{ display: 'flex', gap: '6px' }}>
-                          <button onClick={() => addTask(status)} disabled={!newTitle.trim() || saving}
-                            style={{ flex: 1, padding: '5px', borderRadius: '6px', border: 'none', background: '#0891b2', color: '#fff', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                          <Button size="sm" onClick={() => addTask(status)} disabled={!newTitle.trim() || saving}
+                            style={{ flex: 1, padding: '5px', fontSize: '12px', minHeight: 'auto' }}>
                             {saving ? '…' : 'Add'}
-                          </button>
+                          </Button>
                           <button onClick={() => setAddingStatus(null)}
                             style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer' }}>
                             ✕
@@ -233,7 +234,7 @@ export default function TaskBoardPreview() {
                 {addingStatus !== status && (
                   <button onClick={() => { setAddingStatus(status); setNewTitle(''); }}
                     style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1.5px dashed var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', transition: 'border-color 0.15s, color 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#0891b2'; e.currentTarget.style.color = '#0891b2'; }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
                     <Plus size={13} /> Add task
                   </button>
@@ -297,7 +298,7 @@ export default function TaskBoardPreview() {
                     Checklist {selected.checklist?.length > 0 && `(${selected.checklist.filter(i => i.completed).length}/${selected.checklist.length})`}
                   </label>
                   <button onClick={addChecklistItem}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0891b2', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: '600' }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: '600' }}>
                     <Plus size={12} /> Add
                   </button>
                 </div>
@@ -326,10 +327,9 @@ export default function TaskBoardPreview() {
 
               {/* Delete */}
               <div style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid var(--divider)' }}>
-                <button onClick={() => deleteTask(selected._id)}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.06)', color: '#dc2626', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
+                <Button variant="danger" fullWidth onClick={() => deleteTask(selected._id)} style={{ fontSize: '13px', fontWeight: '500' }}>
                   <Trash2 size={13} /> Delete task
-                </button>
+                </Button>
               </div>
             </motion.div>
           )}

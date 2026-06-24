@@ -8,7 +8,7 @@ export default function PostFeed({ domain, search }) {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0', color: '#9ca3af' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0', color: 'var(--text-muted)' }}>
         <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -17,7 +17,7 @@ export default function PostFeed({ domain, search }) {
 
   if (isError) {
     return (
-      <div style={{ textAlign: 'center', padding: '48px 20px', color: '#9ca3af' }}>
+      <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted)' }}>
         <p style={{ fontSize: '15px' }}>Failed to load posts. Make sure the backend is running.</p>
       </div>
     );
@@ -27,7 +27,7 @@ export default function PostFeed({ domain, search }) {
     return (
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        style={{ textAlign: 'center', padding: '60px 20px', color: '#9ca3af', fontSize: '15px' }}
+        style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)', fontSize: '15px' }}
       >
         No posts yet. Be the first to share something!
       </motion.div>

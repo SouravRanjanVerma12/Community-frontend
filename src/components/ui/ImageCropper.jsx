@@ -3,6 +3,7 @@ import Cropper from 'react-easy-crop';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, ZoomOut, Check, RotateCcw } from 'lucide-react';
 import { getCroppedBlob } from '../../utils/cropImage';
+import Button from './Button';
 
 export default function ImageCropper({ file, aspect, shape, label, onComplete, onCancel }) {
   const [crop, setCrop]               = useState({ x: 0, y: 0 });
@@ -161,33 +162,13 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <button
-              onClick={onCancel}
-              style={{
-                padding: '9px 18px', borderRadius: '9px',
-                border: '1.5px solid var(--border)', background: 'transparent',
-                fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', cursor: 'pointer',
-              }}
-            >
+            <Button variant="ghost" size="sm" onClick={onCancel}>
               Cancel
-            </button>
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={handleApply}
-              disabled={applying}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '9px 22px', borderRadius: '9px', border: 'none',
-                background: 'var(--accent)', color: '#fff',
-                fontSize: '13px', fontWeight: '600',
-                cursor: applying ? 'not-allowed' : 'pointer',
-                opacity: applying ? 0.7 : 1,
-                transition: 'opacity 0.15s',
-              }}
-            >
+            </Button>
+            <Button size="sm" onClick={handleApply} disabled={applying}>
               <Check size={14} />
               {applying ? 'Applying…' : 'Apply & Upload'}
-            </motion.button>
+            </Button>
           </div>
         </div>
       </motion.div>

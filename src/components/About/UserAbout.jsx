@@ -11,6 +11,7 @@ import {
 import { useAuthStore } from "../../stores/authStore";
 import api from "../../api/axiosInstance";
 import { confirm } from "../ui/ConfirmDialog";
+import Button from "../ui/Button";
 
 /* ── helpers ── */
 function formatDate(dateStr) {
@@ -67,21 +68,9 @@ function EmptySection({ icon: Icon, title, description, action, actionLabel }) {
         {description}
       </p>
       {action && (
-        <button
-          onClick={action}
-          style={{
-            padding: "6px 16px",
-            borderRadius: "8px",
-            border: "none",
-            background: "var(--accent)",
-            color: "#fff",
-            fontSize: "13px",
-            fontWeight: "600",
-            cursor: "pointer",
-          }}
-        >
+        <Button onClick={action} size="sm">
           {actionLabel || "Add"}
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -167,11 +156,12 @@ function SkillInput({ skills, onAdd, onRemove }) {
             padding: "6px 12px",
             borderRadius: "6px",
             border: "none",
-            background: "var(--accent)",
+            background: "var(--btn-grad)",
             color: "#fff",
             fontSize: "13px",
             fontWeight: "600",
             cursor: "pointer",
+            boxShadow: "var(--btn-grad-shadow)",
           }}
         >
           <Plus size={14} />
@@ -280,9 +270,9 @@ function ExperienceSection({
                   style={{
                     padding: "4px 8px",
                     borderRadius: "6px",
-                    border: "1px solid rgba(239,68,68,0.2)",
+                    border: "1px solid var(--error-border)",
                     background: "transparent",
-                    color: "#dc2626",
+                    color: "var(--error-text)",
                     cursor: "pointer",
                     fontSize: "11px",
                   }}
@@ -405,9 +395,9 @@ function EducationSection({ educations, isEditing, onAdd, onEdit, onRemove }) {
                   style={{
                     padding: "4px 8px",
                     borderRadius: "6px",
-                    border: "1px solid rgba(239,68,68,0.2)",
+                    border: "1px solid var(--error-border)",
                     background: "transparent",
-                    color: "#dc2626",
+                    color: "var(--error-text)",
                     cursor: "pointer",
                     fontSize: "11px",
                   }}
@@ -792,25 +782,9 @@ export default function UserAbout({ profile, isOwnProfile }) {
         >
           {isEditing ? (
             <>
-              <button
-                onClick={handleCancel}
-                disabled={saving}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  border: "1.5px solid var(--border)",
-                  background: "transparent",
-                  color: "var(--text-secondary)",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: saving ? "not-allowed" : "pointer",
-                }}
-              >
+              <Button variant="ghost" onClick={handleCancel} disabled={saving}>
                 <X size={14} /> Cancel
-              </button>
+              </Button>
               <button
                 onClick={handleSave}
                 disabled={saving}
@@ -821,14 +795,14 @@ export default function UserAbout({ profile, isOwnProfile }) {
                   padding: "8px 16px",
                   borderRadius: "8px",
                   border: "none",
-                  background: saveSuccess ? "#16a34a" : "var(--accent)",
-                  color: "#fff",
+                  background: saveSuccess ? "var(--success-bg)" : "var(--btn-grad)",
+                  color: saveSuccess ? "var(--success-text)" : "#fff",
                   fontSize: "13px",
                   fontWeight: "600",
                   cursor: saving ? "not-allowed" : "pointer",
                   boxShadow: saveSuccess
                     ? "none"
-                    : "0 4px 12px var(--accent-dim)",
+                    : "var(--btn-grad-shadow)",
                 }}
               >
                 {saving ? (
@@ -842,24 +816,9 @@ export default function UserAbout({ profile, isOwnProfile }) {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "8px 16px",
-                borderRadius: "8px",
-                border: "1.5px solid var(--border)",
-                background: "transparent",
-                color: "var(--text-secondary)",
-                fontSize: "13px",
-                fontWeight: "600",
-                cursor: "pointer",
-              }}
-            >
+            <Button variant="ghost" onClick={() => setIsEditing(true)}>
               <Edit3 size={14} /> Edit Profile
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -869,9 +828,9 @@ export default function UserAbout({ profile, isOwnProfile }) {
           style={{
             padding: "10px 14px",
             borderRadius: "8px",
-            background: "rgba(239,68,68,0.08)",
-            border: "1px solid rgba(239,68,68,0.2)",
-            color: "#dc2626",
+            background: "var(--error-bg)",
+            border: "1px solid var(--error-border)",
+            color: "var(--error-text)",
             fontSize: "13px",
             display: "flex",
             alignItems: "center",
@@ -891,7 +850,7 @@ export default function UserAbout({ profile, isOwnProfile }) {
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "#dc2626",
+              color: "var(--error-text)",
               fontSize: "18px",
               lineHeight: 1,
             }}

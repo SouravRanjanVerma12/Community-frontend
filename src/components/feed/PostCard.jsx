@@ -61,8 +61,8 @@ function CodeBlock({ code, language }) {
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '3px 8px', borderRadius: '5px', border: 'none',
-            background: copied ? '#dcfce7' : 'transparent',
-            color: copied ? '#16a34a' : 'var(--text-muted)',
+            background: copied ? 'var(--success-bg)' : 'transparent',
+            color: copied ? 'var(--success-text)' : 'var(--text-muted)',
             fontSize: '12px', cursor: 'pointer', transition: 'all 0.15s',
           }}
         >
@@ -97,7 +97,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
   const connected = useSocketStore((s) => s.connected);
   const domain   = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
   const isCollab = post.type === 'collab';
-  const COLLAB_COLOR = '#0891b2';
+  const COLLAB_COLOR = '#3a3d4a';
   const isOwnPost = user && post.author._id === user._id;
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [requested, setRequested]         = useState(false);
@@ -343,7 +343,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
                 display: 'inline-flex', alignItems: 'center', gap: '5px',
                 padding: '4px 10px', borderRadius: '20px',
                 background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.25)',
-                fontSize: '12px', fontWeight: '600', color: '#d97706',
+                fontSize: '12px', fontWeight: '600', color: 'var(--warning-text)',
               }}>
                 🔥 {post.requestCount} {post.requestCount === 1 ? 'person' : 'people'} interested
               </span>

@@ -71,7 +71,7 @@ function PendingRow({ req, onAccept, onDecline }) {
       </Link>
       <button onClick={() => onAccept(req._id)} title="Accept" aria-label="Accept friend request"
         className="msg-icon-btn"
-        style={{ width: 44, height: 44, borderRadius: '10px', border: 'none', background: 'var(--accent)', color: '#fff', fontSize: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'transform 0.15s, opacity 0.15s' }}>
+        style={{ width: 44, height: 44, borderRadius: '10px', border: 'none', background: 'var(--btn-grad)', color: '#fff', boxShadow: 'var(--btn-grad-shadow)', fontSize: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'transform 0.15s, opacity 0.15s' }}>
         <UserCheck size={16} />
       </button>
       <button onClick={() => onDecline(req._id)} title="Decline" aria-label="Decline friend request"
@@ -239,8 +239,9 @@ function ChatWindow({ friend, onBack }) {
           aria-label="Send message"
           style={{
             width: 44, height: 44, borderRadius: '10px', border: 'none',
-            background: text.trim() ? 'var(--accent)' : 'var(--surface-2)',
+            background: text.trim() ? 'var(--btn-grad)' : 'var(--surface-2)',
             color: text.trim() ? '#fff' : 'var(--text-muted)',
+            boxShadow: text.trim() ? 'var(--btn-grad-shadow)' : 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: text.trim() ? 'pointer' : 'not-allowed',
             transition: 'background 0.15s, color 0.15s',

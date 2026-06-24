@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users2, Minus, Plus, Infinity } from 'lucide-react';
 
-const COLLAB_COLOR = '#0891b2';
+const COLLAB_COLOR = '#3a3d4a';
 
 export default function MembersSlider({ value, onChange }) {
   const unlimited = value === 0;

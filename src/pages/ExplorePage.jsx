@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
 import TopicTabBar from '../components/layout/TopicTabBar';
 import RightSidebar from '../components/layout/RightSidebar';
+import LeftSidebar from '../components/layout/LeftSidebar';
 import PostFeed from '../components/feed/PostFeed';
 import CreatePost from '../components/feed/CreatePost';
 import { useAuthStore } from '../stores/authStore';
@@ -43,7 +44,7 @@ function SearchBar({ value, onChange }) {
   );
 }
 
-const COLLAB_COLOR = '#0891b2';
+const COLLAB_COLOR = '#3a3d4a';
 const PRESET_ROLES = ['Frontend Dev', 'Backend Dev', 'Full Stack', 'Designer', 'DevOps', 'ML Engineer', 'Mobile Dev', 'QA'];
 
 const POST_TYPES = [
@@ -306,7 +307,7 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
             </>
           )}
 
-          {error && <p style={{ fontSize: '13px', color: '#dc2626', margin: 0 }}>{error}</p>}
+          {error && <p style={{ fontSize: '13px', color: 'var(--error-text)', margin: 0 }}>{error}</p>}
 
           <div style={{ height: '1px', background: 'var(--divider)' }} />
 
@@ -347,7 +348,7 @@ export default function ExplorePage() {
   const [activeDomain, setActiveDomain] = useState('all');
   const [search, setSearch]             = useState('');
   const [modalOpen, setModalOpen]       = useState(false);
-  const [filtersOpen, setFiltersOpen]   = useState(true);
+  const [filtersOpen, setFiltersOpen]   = useState(false);
   const [createType, setCreateType]     = useState('text');
 
   useEffect(() => {
@@ -374,13 +375,18 @@ export default function ExplorePage() {
       )}
 
       <div style={{
-        maxWidth: '1160px', margin: '0 auto',
+        maxWidth: '1400px', margin: '0 auto',
         padding: '20px 20px',
         display: 'grid',
-        gridTemplateColumns: '1fr 280px',
+        gridTemplateColumns: '240px 1fr 280px',
         gap: '24px',
         alignItems: 'start',
       }}>
+        {/* Left sidebar */}
+        <div className="explore-left">
+          <LeftSidebar />
+        </div>
+
         {/* Main feed column */}
         <main style={{ minWidth: 0 }}>
           {/* Heading row */}
@@ -415,16 +421,17 @@ export default function ExplorePage() {
 
             {/* Create post button */}
             <motion.button
-              whileHover={{ boxShadow: '0 4px 16px rgba(124,58,237,0.30)' }}
+              whileHover={{ boxShadow: 'var(--btn-grad-shadow-hover)' }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setModalOpen(true)}
               className="explore-focusable"
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
                 minHeight: '44px', padding: '8px 16px', borderRadius: '9px',
-                border: 'none', background: 'var(--accent)', color: '#fff',
+                border: 'none', background: 'var(--btn-grad)', color: '#fff',
                 fontSize: '13px', fontWeight: '600', cursor: 'pointer',
                 flexShrink: 0, transition: 'box-shadow 200ms ease',
+                boxShadow: 'var(--btn-grad-shadow)',
               }}
             >
               <PenSquare size={14} />
@@ -459,8 +466,10 @@ export default function ExplorePage() {
 
       <style>{`
         .explore-right { display: block; }
+        .explore-left { display: block; }
+        @media (max-width: 1200px) { .explore-left { display: none; } }
         @media (max-width: 960px) { .explore-right { display: none; } }
-        @media (max-width: 600px) {
+        @media (max-width: 960px) {
           div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
         }
         .explore-focusable:focus-visible,

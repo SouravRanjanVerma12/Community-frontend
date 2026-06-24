@@ -70,10 +70,10 @@ export default function ConfirmDialogHost() {
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
               <div style={{
                 width: 36, height: 36, borderRadius: '10px', flexShrink: 0,
-                background: danger ? 'rgba(220,38,38,0.1)' : 'var(--accent-bg)',
+                background: danger ? 'var(--error-bg)' : 'var(--accent-bg)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <AlertTriangle size={18} color={danger ? '#dc2626' : 'var(--accent)'} />
+                <AlertTriangle size={18} color={danger ? 'var(--error-text)' : 'var(--accent)'} />
               </div>
               <div>
                 {title && (
@@ -105,11 +105,11 @@ export default function ConfirmDialogHost() {
                 onClick={() => close(true)}
                 style={{
                   minHeight: '40px', padding: '8px 18px', borderRadius: '9px',
-                  border: 'none',
-                  background: danger ? '#dc2626' : 'var(--accent)',
-                  color: '#fff', fontSize: '13px', fontWeight: '700',
+                  border: danger ? '1.5px solid var(--error-border)' : 'none',
+                  background: danger ? 'var(--error-bg)' : 'var(--btn-grad)',
+                  color: danger ? 'var(--error-text)' : '#fff', fontSize: '13px', fontWeight: '700',
                   cursor: 'pointer', transition: 'opacity 150ms ease',
-                  boxShadow: danger ? '0 4px 14px rgba(220,38,38,0.35)' : 'var(--btn-grad-shadow)',
+                  boxShadow: danger ? 'none' : 'var(--btn-grad-shadow)',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}

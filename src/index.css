@@ -96,18 +96,18 @@
 /* ── Dark theme ── */
 [data-theme="dark"] {
   /* ── Core contract tokens ── */
-  --bg:          #0d0f18;
-  --surface:     #13151f;
-  --card-bg:     #13151f;
-  --nav-bg:      rgba(13, 15, 24, 0.92);
-  --dark-section: #111111;
+  --bg:          #1b1e29;
+  --surface:     #232732;
+  --card-bg:     #232732;
+  --nav-bg:      rgba(27, 30, 41, 0.92);
+  --dark-section: #1b1e29;
   --radius:      28px;
 
   /* ── Extended surfaces (compat) ── */
-  --surface-0: #0d0f18;
-  --surface-1: #13151f;
-  --surface-2: #1a1c28;
-  --surface-3: #22253a;
+  --surface-0: #1b1e29;
+  --surface-1: #232732;
+  --surface-2: #2a2e3a;
+  --surface-3: #33384a;
 
   --border:     #2e303a;
   --card-border: rgba(255,255,255,0.08);
@@ -120,13 +120,13 @@
   --text-muted:     #545870;
   --text-faint:     #3a3d50;
 
-  /* ── Accent: orange, slightly brighter for dark surfaces ── */
-  --accent:        #ff6b47;
-  --accent-light:  #ff9070;
-  --accent-bg:     rgba(255, 107, 71, 0.12);
-  --accent-border: rgba(255, 107, 71, 0.38);
-  --accent-dim:    rgba(255, 107, 71, 0.06);
-  --accent-glow:   0 0 28px rgba(255, 107, 71, 0.25);
+  /* ── Accent: monochrome silver/white ── */
+  --accent:        #e8eaf0;
+  --accent-light:  #ffffff;
+  --accent-bg:     rgba(232, 234, 240, 0.10);
+  --accent-border: rgba(232, 234, 240, 0.30);
+  --accent-dim:    rgba(232, 234, 240, 0.06);
+  --accent-glow:   0 0 28px rgba(232, 234, 240, 0.22);
 
   /* ── Form fields ── */
   --input-bg:       #1a1c28;
@@ -152,28 +152,28 @@
   --brand-gradient: linear-gradient(145deg, #1a1028 0%, #13151f 45%, #1a1028 100%);
   --avatar-border: #22253a;
 
-  /* ── Auth brand panel — dark ── */
+  /* ── Auth brand panel — dark, monochrome ── */
   --auth-panel-bg:
-    radial-gradient(ellipse 120% 80% at 40% 30%, rgba(255,92,53,0.35) 0%, rgba(255,128,96,0.12) 40%, transparent 100%),
-    linear-gradient(160deg, #1c0a04 0%, #0d0a08 100%);
-  --auth-panel-glow:   rgba(255, 92, 53, 0.28);
-  --auth-panel-grid:   rgba(255, 128, 96, 0.05);
+    radial-gradient(ellipse 120% 80% at 40% 30%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 40%, transparent 100%),
+    linear-gradient(160deg, #02030a 0%, #0d0a08 100%);
+  --auth-panel-glow:   rgba(255, 255, 255, 0.18);
+  --auth-panel-grid:   rgba(255, 255, 255, 0.05);
   --auth-badge-bg:     rgba(255, 255, 255, 0.07);
   --auth-badge-border: rgba(255, 255, 255, 0.13);
   --auth-headline:     #faf8f5;
-  --auth-headline-grad: linear-gradient(135deg, #ff8060 0%, #ff5c35 50%, #ffaa47 100%);
+  --auth-headline-grad: linear-gradient(135deg, #ffffff 0%, #c4c7d4 50%, #ffffff 100%);
   --auth-desc:         rgba(250, 248, 245, 0.50);
   --auth-desc-strong:  rgba(250, 248, 245, 0.88);
-  --auth-chip-bg:      rgba(255, 92, 53, 0.13);
-  --auth-chip-border:  rgba(255, 92, 53, 0.30);
-  --auth-chip-color:   rgba(255, 128, 96, 0.85);
-  --auth-stat-value:   #ff8060;
+  --auth-chip-bg:      rgba(255, 255, 255, 0.08);
+  --auth-chip-border:  rgba(255, 255, 255, 0.18);
+  --auth-chip-color:   rgba(255, 255, 255, 0.85);
+  --auth-stat-value:   #ffffff;
   --auth-stat-label:   rgba(250, 248, 245, 0.38);
 
-  /* ── Gradient button ── */
-  --btn-grad: linear-gradient(135deg, #ff5c35 0%, #ff8060 100%);
-  --btn-grad-shadow: 0 4px 24px rgba(255, 92, 53, 0.45), 0 0 40px rgba(255, 170, 71, 0.10);
-  --btn-grad-shadow-hover: 0 6px 32px rgba(255, 92, 53, 0.65), 0 0 56px rgba(255, 170, 71, 0.18);
+  /* ── Gradient button: dark pill, monochrome ── */
+  --btn-grad: linear-gradient(135deg, #2c2f3a 0%, #3a3d4a 100%);
+  --btn-grad-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  --btn-grad-shadow-hover: 0 6px 28px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.18) inset;
 
   /* ── Status colors (4.5:1+ contrast on dark surfaces) ── */
   --error-text:    #ff6b6b;

@@ -12,6 +12,7 @@ import { useAuthStore } from "../../stores/authStore";
 import api from "../../api/axiosInstance";
 import { DOMAINS } from "../../data/mockPosts";
 import { confirm } from "../ui/ConfirmDialog";
+import Button from "../ui/Button";
 
 /* ─────────────────────────── HELPERS ─────────────────────────── */
 const domainColor  = (k) => DOMAINS.find((d) => d.value === k)?.color  ?? "#ff5c35";
@@ -126,7 +127,7 @@ function ProjectCard({ project, isOwner, onEdit, onDelete, onView }) {
                   >
                     <Edit3 size={13} /> Edit
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(project._id); }} style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 10px", borderRadius: "7px", border: "none", background: "transparent", color: "#dc2626", cursor: "pointer", fontSize: "13px" }}
+                  <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(project._id); }} style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 10px", borderRadius: "7px", border: "none", background: "transparent", color: "var(--error-text)", cursor: "pointer", fontSize: "13px" }}
                     onMouseEnter={(e) => e.currentTarget.style.background = "rgba(239,68,68,.08)"}
                     onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                   >
@@ -187,7 +188,7 @@ function ProjectCard({ project, isOwner, onEdit, onDelete, onView }) {
           {project.githubRepoURL && (
             <a href={project.githubRepoURL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
               style={{ color: "var(--text-muted)", fontSize: "11px", display: "flex", alignItems: "center", gap: "3px", textDecoration: "none", padding: "3px 7px", borderRadius: "6px", border: "1px solid var(--border)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#fff"; e.currentTarget.style.color = "var(--text-primary)"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--text-primary)"; e.currentTarget.style.color = "var(--text-primary)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
             >
               <GitBranch size={11} /> Repo
@@ -261,9 +262,9 @@ function EmptyState({ filter, isOwner, onAdd }) {
             : "This user hasn't added any projects yet."}
       </p>
       {isOwner && (
-        <button onClick={onAdd} style={{ padding: "10px 22px", borderRadius: "10px", border: "none", background: "var(--accent)", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+        <Button onClick={onAdd}>
           <Plus size={14} /> Add Project
-        </button>
+        </Button>
       )}
     </motion.div>
   );
@@ -394,7 +395,7 @@ function ProjectForm({ project, onSave, onCancel, isEditing }) {
           {activeTab === "basics" && (
             <motion.div key="basics" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               <div>
-                <label style={labelStyle}>Project Name <span style={{ color: "#ef4444" }}>*</span></label>
+                <label style={labelStyle}>Project Name <span style={{ color: "var(--error-text)" }}>*</span></label>
                 <input value={form.projectName} onChange={(e) => set("projectName", e.target.value)} placeholder="e.g., DevEcosystem Frontend" style={inputStyle} />
               </div>
               <div>
@@ -499,19 +500,19 @@ function ProjectForm({ project, onSave, onCancel, isEditing }) {
       <div style={{ padding: "16px 24px", borderTop: "1px solid var(--card-border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
         <div style={{ flex: 1 }}>
           {error && (
-            <div style={{ padding: "8px 12px", borderRadius: "8px", background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", color: "#dc2626", fontSize: "12px" }}>
+            <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--error-bg)", border: "1px solid var(--error-border)", color: "var(--error-text)", fontSize: "12px" }}>
               {error}
             </div>
           )}
         </div>
         <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
-          <button onClick={onCancel} style={{ padding: "9px 20px", borderRadius: "10px", border: "1.5px solid var(--border)", background: "transparent", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
+          <Button variant="ghost" onClick={onCancel}>
             Cancel
-          </button>
-          <button onClick={handleSubmit} disabled={saving} style={{ padding: "9px 22px", borderRadius: "10px", border: "none", background: saving ? "var(--surface-2)" : "var(--accent)", color: saving ? "var(--text-muted)" : "#fff", fontSize: "13px", fontWeight: "700", cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+          </Button>
+          <Button onClick={handleSubmit} disabled={saving}>
             {saving ? <Loader2 size={14} style={{ animation: "spin .8s linear infinite" }} /> : null}
             {saving ? "Saving…" : isEditing ? "Update Project" : "Create Project"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -775,7 +776,7 @@ export default function Project({ userId, isOwnProfile }) {
   );
 
   if (error) return (
-    <div style={{ textAlign: "center", padding: "40px 20px", color: "#dc2626" }}>
+    <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--error-text)" }}>
       <AlertCircle size={32} style={{ marginBottom: "12px" }} />
       <p style={{ fontSize: "15px", fontWeight: "600" }}>{error}</p>
     </div>
@@ -796,10 +797,9 @@ export default function Project({ userId, isOwnProfile }) {
           </p>
         </div>
         {isOwnProfile && (
-          <button onClick={openCreate}
-            style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 18px", borderRadius: "10px", border: "none", background: "var(--accent)", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 12px var(--accent-dim, rgba(255,92,53,.3))" }}>
+          <Button onClick={openCreate}>
             <Plus size={14} /> Add Project
-          </button>
+          </Button>
         )}
       </div>
 

@@ -5,8 +5,7 @@ import ConfirmDialogHost from "./components/ui/ConfirmDialog";
 import { useAuthStore } from "./stores/authStore";
 import { useThemeStore } from "./stores/themeStore";
 import { useSocketStore } from "./stores/socketStore";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import AuthPage from "./pages/AuthPage";
 import ExplorePage from "./pages/ExplorePage";
 import ProfilePage from "./pages/ProfilePage";
 import CollabPage from "./pages/CollabPage";
@@ -76,8 +75,8 @@ export default function App() {
       <ConfirmDialogHost />
       <AuthHydrator>
         <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<AuthPage />} />
+          <Route path="/register" element={<AuthPage />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/profile/:userId" element={<ProfilePage />} />
           <Route path="/collab" element={<CollabPage />} />

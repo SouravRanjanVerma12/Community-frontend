@@ -5,10 +5,11 @@ import { Search, Users2, Compass, Briefcase, LayoutDashboard, Loader2, PenSquare
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '../components/layout/Navbar';
 import ProjectCard from '../components/collab/ProjectCard';
+import Button from '../components/ui/Button';
 import { useAuthStore } from '../stores/authStore';
 import api from '../api/axiosInstance';
 
-const CC = '#0891b2';
+const CC = '#3a3d4a';
 
 const DOMAIN_FILTERS = [
   { value: '', label: 'All Domains' },
@@ -167,13 +168,11 @@ function MyProjectsTab() {
 
   if (postsError || reqsError) return (
     <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
-      <p style={{ fontSize: '15px', fontWeight: '600', color: '#dc2626', marginBottom: '6px' }}>Couldn't load your projects</p>
+      <p style={{ fontSize: '15px', fontWeight: '600', color: 'var(--error-text)', marginBottom: '6px' }}>Couldn't load your projects</p>
       <p style={{ fontSize: '13px', marginBottom: '16px' }}>Your session may have expired. Try refreshing, or log in again.</p>
-      <button onClick={() => { refetchPosts(); refetchReqs(); }}
-        className="collab-focusable"
-        style={{ minHeight: '40px', padding: '8px 18px', borderRadius: '9px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+      <Button size="sm" onClick={() => { refetchPosts(); refetchReqs(); }}>
         Retry
-      </button>
+      </Button>
     </div>
   );
 
@@ -285,13 +284,11 @@ function WorkspaceTab() {
 
   if (reqsError || postsError) return (
     <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
-      <p style={{ fontSize: '15px', fontWeight: '600', color: '#dc2626', marginBottom: '6px' }}>Couldn't load your workspaces</p>
+      <p style={{ fontSize: '15px', fontWeight: '600', color: 'var(--error-text)', marginBottom: '6px' }}>Couldn't load your workspaces</p>
       <p style={{ fontSize: '13px', marginBottom: '16px' }}>Your session may have expired. Try refreshing, or log in again.</p>
-      <button onClick={() => { refetchReqs(); refetchPosts(); }}
-        className="collab-focusable"
-        style={{ minHeight: '40px', padding: '8px 18px', borderRadius: '9px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+      <Button size="sm" onClick={() => { refetchReqs(); refetchPosts(); }}>
         Retry
-      </button>
+      </Button>
     </div>
   );
 
@@ -323,11 +320,9 @@ function WorkspaceTab() {
             </div>
             <LayoutDashboard size={18} color={CC} style={{ flexShrink: 0, marginTop: '2px' }} />
           </div>
-          <button onClick={() => navigate(`/project/${proj.id}`)}
-            className="collab-focusable"
-            style={{ width: '100%', minHeight: '44px', padding: '9px', borderRadius: '9px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', boxShadow: `0 3px 10px ${CC}30`, transition: 'transform 200ms ease, opacity 200ms ease' }}>
+          <Button size="sm" fullWidth onClick={() => navigate(`/project/${proj.id}`)}>
             Open Task Board →
-          </button>
+          </Button>
         </motion.div>
       ))}
     </div>
@@ -368,11 +363,9 @@ export default function CollabPage() {
                 Find projects to join, manage your team, and build together.
               </p>
             </div>
-            <button onClick={() => navigate('/explore?create=collab')}
-              className="collab-focusable"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px', padding: '9px 18px', borderRadius: '10px', border: 'none', background: CC, color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', flexShrink: 0, boxShadow: `0 4px 14px ${CC}35` }}>
+            <Button size="sm" onClick={() => navigate('/explore?create=collab')} style={{ flexShrink: 0 }}>
               <PenSquare size={14} /> Post a Project
-            </button>
+            </Button>
           </div>
 
           {/* Tab bar */}

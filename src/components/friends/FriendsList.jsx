@@ -307,8 +307,8 @@ export function FriendRow({
             }}
             onMouseEnter={(e) => {
               if (!removing) {
-                e.currentTarget.style.borderColor = "#ef4444";
-                e.currentTarget.style.color = "#ef4444";
+                e.currentTarget.style.borderColor = "var(--error-border)";
+                e.currentTarget.style.color = "var(--error-text)";
               }
             }}
             onMouseLeave={(e) => {

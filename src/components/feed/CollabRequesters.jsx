@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Check, X, Loader2, ExternalLink, ClipboardList, Users2, CheckCircle2, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axiosInstance';
+import Button from '../ui/Button';
 
-const COLLAB_COLOR = '#0891b2';
+const COLLAB_COLOR = '#3a3d4a';
 
 function Avatar({ name, src, size = 32 }) {
   const initials = (name ?? 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -83,17 +84,17 @@ function CreatorRow({ req, onRespond }) {
         {/* Accept / Reject */}
         {status === 'pending' && (
           <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => respond('accepted')} disabled={acting}
+            <Button size="sm" onClick={() => respond('accepted')} disabled={acting}
               className="collab-requesters-action"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', minHeight: '36px', padding: '5px 12px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '12px', fontWeight: '600', cursor: acting ? 'default' : 'pointer', transition: 'transform 150ms ease, opacity 150ms ease' }}>
+              style={{ padding: '5px 12px', minHeight: '36px', fontSize: '12px' }}>
               {acting ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Check size={12} />}
               Accept
-            </motion.button>
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => respond('rejected')} disabled={acting}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => respond('rejected')} disabled={acting}
               className="collab-requesters-action"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', minHeight: '36px', padding: '5px 10px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '12px', fontWeight: '500', cursor: acting ? 'default' : 'pointer', transition: 'transform 150ms ease, opacity 150ms ease' }}>
+              style={{ padding: '5px 10px', minHeight: '36px', fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)' }}>
               <X size={12} /> Reject
-            </motion.button>
+            </Button>
           </div>
         )}
         {status !== 'pending' && (

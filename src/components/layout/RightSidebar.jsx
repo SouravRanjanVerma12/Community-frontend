@@ -80,7 +80,7 @@ export default function RightSidebar() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
               <button onClick={() => setComposing(false)} style={{ padding: '5px 10px', borderRadius: '7px', border: '1.5px solid var(--border)', background: 'transparent', fontSize: '12px', cursor: 'pointer', color: 'var(--text-secondary)' }}>Cancel</button>
               <button onClick={handlePost} disabled={!postBody.trim() || posted}
-                style={{ padding: '5px 12px', borderRadius: '7px', border: 'none', background: posted ? '#dcfce7' : postBody.trim() ? 'var(--accent)' : 'var(--accent-dim)', color: posted ? '#16a34a' : '#fff', fontSize: '12px', fontWeight: '600', cursor: postBody.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}>
+                style={{ padding: '5px 12px', borderRadius: '7px', border: 'none', background: posted ? 'var(--success-bg)' : postBody.trim() ? 'var(--accent)' : 'var(--accent-dim)', color: posted ? 'var(--success-text)' : '#fff', fontSize: '12px', fontWeight: '600', cursor: postBody.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}>
                 {posted ? 'Posted! ✓' : 'Post'}
               </button>
             </div>

@@ -8,7 +8,7 @@ import {
 import Navbar from '../components/layout/Navbar';
 import api from '../api/axiosInstance';
 
-const COLLAB_COLOR = '#0891b2';
+const COLLAB_COLOR = '#3a3d4a';
 
 const STATUS_STYLES = {
   pending:  { bg: 'rgba(245,158,11,0.12)', color: '#d97706', border: 'rgba(245,158,11,0.3)', label: 'Pending'  },
@@ -99,7 +99,7 @@ function ApplicantCard({ req, onUpdate }) {
           <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => respond('accepted')} disabled={!!acting}
               className="collab-req-btn"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', minHeight: '44px', padding: '8px 16px', borderRadius: '9px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: acting ? 'default' : 'pointer', boxShadow: '0 2px 8px rgba(34,197,94,0.3)', transition: 'transform 200ms ease, opacity 200ms ease' }}>
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', minHeight: '44px', padding: '8px 16px', borderRadius: '9px', border: 'none', background: 'var(--btn-grad)', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: acting ? 'default' : 'pointer', boxShadow: 'var(--btn-grad-shadow)', transition: 'transform 200ms ease, opacity 200ms ease' }}>
               {acting === 'accepted' ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Check size={13} />}
               Accept
             </motion.button>
@@ -268,7 +268,7 @@ export default function CollabRequestsPage() {
             <Loader2 size={28} color={COLLAB_COLOR} style={{ animation: 'spin 0.8s linear infinite' }} />
           </div>
         ) : error ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#dc2626', fontSize: '14px' }}>
+          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--error-text)', fontSize: '14px' }}>
             <AlertTriangle size={32} style={{ marginBottom: '8px' }} />
             <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6 }}>{error}</p>
           </div>
