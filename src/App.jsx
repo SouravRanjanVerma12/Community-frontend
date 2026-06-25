@@ -5,6 +5,7 @@ import ConfirmDialogHost from "./components/ui/ConfirmDialog";
 import { useAuthStore } from "./stores/authStore";
 import { useThemeStore } from "./stores/themeStore";
 import { useSocketStore } from "./stores/socketStore";
+import api from "./api/axiosInstance";
 import AuthPage from "./pages/AuthPage";
 import ExplorePage from "./pages/ExplorePage";
 import ProfilePage from "./pages/ProfilePage";
@@ -30,7 +31,7 @@ function ThemeApplier() {
 
 function AuthHydrator({ children }) {
   const { accessToken, fetchMe, user } = useAuthStore();
-  const { connect, disconnect, setMyId } = useSocketStore();
+  const { connect, disconnect, setMyId, seedNotifications } = useSocketStore();
 
   useEffect(() => {
     if (accessToken) fetchMe();
@@ -41,6 +42,9 @@ function AuthHydrator({ children }) {
     if (accessToken && user) {
       setMyId(user._id);
       connect(accessToken);
+      api.get('/notifications').then(({ data }) => {
+        seedNotifications(data.notifications, data.unreadCount);
+      }).catch(() => {});
     } else {
       disconnect();
     }

@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import { create } from 'zustand';
+import toast from 'react-hot-toast';
 
 let socket = null;
 
@@ -14,6 +15,9 @@ export const useSocketStore = create((set, get) => ({
 
   // { [senderId]: boolean }
   typingMap: {},
+
+  notifications: [],
+  unreadCount: 0,
 
   connect(token) {
     if (socket?.connected) return;
@@ -57,12 +61,38 @@ export const useSocketStore = create((set, get) => ({
     socket.on('message:typing', ({ senderId, isTyping }) => {
       set((s) => ({ typingMap: { ...s.typingMap, [senderId]: isTyping } }));
     });
+
+    socket.on('notification:new', (notification) => {
+      set((s) => ({
+        notifications: [notification, ...s.notifications],
+        unreadCount: s.unreadCount + 1,
+      }));
+      toast(notification.text, { icon: '🔔' });
+    });
   },
 
   disconnect() {
     socket?.disconnect();
     socket = null;
-    set({ connected: false, onlineUsers: new Set(), conversations: {}, typingMap: {} });
+    set({ connected: false, onlineUsers: new Set(), conversations: {}, typingMap: {}, notifications: [], unreadCount: 0 });
+  },
+
+  seedNotifications(notifications, unreadCount) {
+    set({ notifications, unreadCount });
+  },
+
+  markNotificationRead(id) {
+    set((s) => ({
+      notifications: s.notifications.map((n) => (n._id === id ? { ...n, read: true } : n)),
+      unreadCount: Math.max(0, s.unreadCount - (s.notifications.find((n) => n._id === id && !n.read) ? 1 : 0)),
+    }));
+  },
+
+  markAllNotificationsRead() {
+    set((s) => ({
+      notifications: s.notifications.map((n) => ({ ...n, read: true })),
+      unreadCount: 0,
+    }));
   },
 
   // Store my own userId so we can route incoming messages

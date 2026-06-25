@@ -10,6 +10,7 @@ import { useSocketStore } from '../../stores/socketStore';
 import { FriendRow } from '../friends/FriendsList';
 import api from '../../api/axiosInstance';
 import Button from '../ui/Button';
+import NotificationBell from './NotificationBell';
 
 function Avatar({ name, src, size = 34 }) {
   const initials = name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -413,6 +414,7 @@ export default function Navbar() {
             </Link>
             <FriendsDropdown />
             <FriendBell />
+            <NotificationBell />
             <Link to={`/profile/${user._id}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
               <Avatar name={user.name} src={user.avatarUrl || null} />
               <span className="nav-user-label" style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>
