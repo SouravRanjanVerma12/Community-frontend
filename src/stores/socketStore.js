@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
+import { API_URL } from '../config';
 
 let socket = null;
 
@@ -22,7 +23,7 @@ export const useSocketStore = create((set, get) => ({
   connect(token) {
     if (socket?.connected) return;
 
-    socket = io('http://localhost:3000', {
+    socket = io(API_URL, {
       auth: { token },
       transports: ['websocket'],
     });

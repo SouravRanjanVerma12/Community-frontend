@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
+import { API_URL } from '../config';
 
-const BASE = 'http://localhost:3000/api';
+const BASE = `${API_URL}/api`;
 
 export const useAuthStore = create(
   persist(

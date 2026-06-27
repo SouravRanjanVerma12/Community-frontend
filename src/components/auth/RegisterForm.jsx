@@ -6,8 +6,9 @@ import { useAuthStore } from '../../stores/authStore';
 import InputField from '../ui/InputField';
 import Button from '../ui/Button';
 import axios from 'axios';
+import { API_URL } from '../../config';
 
-const BASE = 'http://localhost:3000/api';
+const BASE = `${API_URL}/api`;
 
 /* generate 3 unique username suggestions from a name */
 function generateSuggestions(name) {
