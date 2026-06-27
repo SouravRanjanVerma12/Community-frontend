@@ -1,43 +1,95 @@
-import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import ConfirmDialogHost from "./components/ui/ConfirmDialog";
+import { useAuthStore } from "./stores/authStore";
+import { useThemeStore } from "./stores/themeStore";
+import { useSocketStore } from "./stores/socketStore";
+import api from "./api/axiosInstance";
+import AuthPage from "./pages/AuthPage";
+import ExplorePage from "./pages/ExplorePage";
+import ProfilePage from "./pages/ProfilePage";
+import CollabPage from "./pages/CollabPage";
+import CollabRequestsPage from "./pages/CollabRequestsPage";
+import MessagesPage from "./pages/MessagesPage";
+import WorkspacePage from "./pages/WorkspacePage";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
-  const [apiStatus, setApiStatus] = useState('Loading...');
-
+function ThemeApplier() {
+  const { theme } = useThemeStore();
   useEffect(() => {
-    fetch('http://localhost:3001/api/health')
-      .then(res => res.json())
-      .then(data => setApiStatus(data.message))
-      .catch(err => setApiStatus('Failed to connect to API'));
-  }, []);
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Backend API Status: {apiStatus}
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const root = document.documentElement;
+    if (theme === "system") {
+      const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      root.setAttribute("data-theme", dark ? "dark" : "light");
+    } else {
+      root.setAttribute("data-theme", theme);
+    }
+  }, [theme]);
+  return null;
 }
 
-export default App
+function AuthHydrator({ children }) {
+  const { accessToken, fetchMe, user } = useAuthStore();
+  const { connect, disconnect, setMyId, seedNotifications } = useSocketStore();
+
+  useEffect(() => {
+    if (accessToken) fetchMe();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Connect / disconnect Socket.io based on auth state
+  useEffect(() => {
+    if (accessToken && user) {
+      setMyId(user._id);
+      connect(accessToken);
+      api.get('/notifications').then(({ data }) => {
+        seedNotifications(data.notifications, data.unreadCount);
+      }).catch(() => {});
+    } else {
+      disconnect();
+    }
+    return () => {
+      /* keep socket alive across navigations */
+    };
+  }, [accessToken, user?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return children;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <ThemeApplier />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: 'var(--card-bg)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--card-border)',
+            boxShadow: 'var(--shadow-popup)',
+            borderRadius: '12px',
+            fontSize: '14px',
+          },
+          success: { iconTheme: { primary: '#16a34a', secondary: '#fff' } },
+          error:   { iconTheme: { primary: '#dc2626', secondary: '#fff' } },
+        }}
+      />
+      <ConfirmDialogHost />
+      <AuthHydrator>
+        <Routes>
+          <Route path="/" element={<AuthPage />} />
+          <Route path="/register" element={<AuthPage />} />
+          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
+          <Route path="/collab" element={<CollabPage />} />
+          <Route path="/collab/:postId/requests" element={<CollabRequestsPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/project/:id" element={<WorkspacePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthHydrator>
+    </BrowserRouter>
+  );
+}
