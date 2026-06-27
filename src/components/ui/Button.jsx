@@ -2,6 +2,24 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Spinner from './Spinner';
 
+const sizeClasses = {
+  sm: 'px-3.5 py-[7px] text-[13px] min-h-9',
+  md: 'px-5 py-2.5 text-sm min-h-10',
+  lg: 'px-6 py-[13px] text-[15px] min-h-12',
+};
+
+const variantClasses = {
+  primary: 'bg-(image:--btn-grad) text-white',
+  ghost: 'bg-transparent text-accent border-[1.5px] border-border',
+  danger: 'bg-error-bg text-error border-[1.5px] border-error-border',
+};
+
+const variantShadow = {
+  primary: 'var(--btn-grad-shadow)',
+  ghost: 'none',
+  danger: 'none',
+};
+
 export default function Button({
   children,
   variant = 'primary',
@@ -16,49 +34,8 @@ export default function Button({
   const isDisabled = disabled || isLoading;
   const [isFocusVisible, setIsFocusVisible] = useState(false);
 
-  const base = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    minHeight: '44px',
-    borderRadius: '10px',
-    fontWeight: '600',
-    cursor: isDisabled ? 'not-allowed' : 'pointer',
-    border: 'none',
-    outline: 'none',
-    userSelect: 'none',
-    whiteSpace: 'nowrap',
-    opacity: isDisabled ? 0.55 : 1,
-    width: fullWidth ? '100%' : undefined,
-    transition: 'background 0.15s, box-shadow 0.2s',
-  };
-
-  const sizes = {
-    sm: { padding: '7px 14px', fontSize: '13px', minHeight: '36px' },
-    md: { padding: '10px 20px', fontSize: '14px', minHeight: '40px' },
-    lg: { padding: '13px 24px', fontSize: '15px', minHeight: '48px' },
-  };
-
-  const variants = {
-    primary: {
-      background: 'var(--btn-grad)',
-      color: '#ffffff',
-      boxShadow: 'var(--btn-grad-shadow)',
-    },
-    ghost: {
-      background: 'transparent',
-      color: 'var(--accent)',
-      border: '1.5px solid var(--border)',
-    },
-    danger: {
-      background: 'var(--error-bg)',
-      color: 'var(--error-text)',
-      border: '1.5px solid var(--error-border)',
-    },
-  };
-
   const focusRing = isFocusVisible ? ', 0 0 0 3px var(--accent-border)' : '';
+  const boxShadow = `${style?.boxShadow ?? variantShadow[variant]}${focusRing}`;
 
   return (
     <motion.button
@@ -75,13 +52,16 @@ export default function Button({
           ? { boxShadow: 'var(--btn-grad-shadow-hover)', transform: 'translateY(-1px)' }
           : { background: 'var(--accent-dim)', borderColor: 'var(--accent-border)' }
       }
-      style={{
-        ...base,
-        ...sizes[size],
-        ...variants[variant],
-        ...style,
-        boxShadow: `${(style?.boxShadow ?? variants[variant].boxShadow ?? 'none')}${focusRing}`,
-      }}
+      className={[
+        'inline-flex items-center justify-center gap-2 rounded-[10px] font-semibold',
+        'border-none outline-none select-none whitespace-nowrap',
+        'transition-[background,box-shadow] duration-150',
+        'disabled:cursor-not-allowed disabled:opacity-[0.55] cursor-pointer',
+        fullWidth ? 'w-full' : '',
+        sizeClasses[size],
+        variantClasses[variant],
+      ].join(' ')}
+      style={{ ...style, boxShadow }}
     >
       {isLoading && <Spinner size="sm" color={variant === 'primary' ? '#fff' : 'var(--accent)'} />}
       {children}

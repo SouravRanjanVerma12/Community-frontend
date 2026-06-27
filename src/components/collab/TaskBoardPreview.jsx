@@ -21,8 +21,8 @@ const PRIORITY_COLORS = { high: '#ef4444', medium: '#f59e0b', low: '#6b7280' };
 function Avatar({ name, src, size = 22 }) {
   const initials = (name ?? 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const hue = [...(name ?? 'U')].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-  if (src) return <img src={src} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} />;
-  return <div style={{ width: size, height: size, borderRadius: '50%', background: `hsl(${hue},55%,55%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.38, fontWeight: '700' }}>{initials}</div>;
+  if (src) return <img src={src} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover border border-border" />;
+  return <div style={{ width: size, height: size, background: `hsl(${hue},55%,55%)`, fontSize: size * 0.38 }} className="rounded-full text-white flex items-center justify-center font-bold">{initials}</div>;
 }
 
 export default function TaskBoardPreview() {
@@ -101,21 +101,20 @@ export default function TaskBoardPreview() {
 
   /* Loading / error states */
   if (loading) return (
-    <div style={{ minHeight: '100svh', background: 'var(--surface-0)' }}>
+    <div className="min-h-svh bg-surface-0">
       <Navbar />
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}>
-        <Loader2 size={28} color="var(--accent)" style={{ animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <div className="flex justify-center p-20">
+        <Loader2 size={28} color="var(--accent)" className="animate-spin" />
       </div>
     </div>
   );
 
   if (error) return (
-    <div style={{ minHeight: '100svh', background: 'var(--surface-0)' }}>
+    <div className="min-h-svh bg-surface-0">
       <Navbar />
-      <div style={{ textAlign: 'center', padding: '80px', color: 'var(--error-text)' }}>
-        <AlertCircle size={36} style={{ marginBottom: '12px' }} />
-        <p style={{ fontSize: '15px', fontWeight: '600' }}>{error}</p>
+      <div className="text-center p-20 text-error">
+        <AlertCircle size={36} className="mb-3" />
+        <p className="text-[15px] font-semibold">{error}</p>
         <Button variant="ghost" size="sm" onClick={() => navigate('/collab')} style={{ marginTop: '16px' }}>
           ← Back to Collab
         </Button>
@@ -124,81 +123,84 @@ export default function TaskBoardPreview() {
   );
 
   return (
-    <div style={{ minHeight: '100svh', background: 'var(--surface-0)', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-svh bg-surface-0 flex flex-col">
       <Navbar />
 
       {/* Top bar */}
-      <div style={{ background: 'var(--nav-bg)', borderBottom: '1px solid var(--nav-border)', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', position: 'sticky', top: '60px', zIndex: 80 }}>
+      <div className="bg-nav border-b border-nav-border px-5 py-3 flex items-center gap-3 flex-wrap sticky top-[60px] z-80">
         <Button variant="ghost" size="sm" onClick={() => navigate('/collab')} style={{ gap: '5px', color: 'var(--text-secondary)' }}>
           <ArrowLeft size={13} /> Collab Hub
         </Button>
-        <div style={{ width: '1px', height: '20px', background: 'var(--border)' }} />
-        <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>
+        <div className="w-px h-5 bg-border" />
+        <span className="text-[15px] font-bold text-text-primary">
           {post?.projectName || post?.title}
         </span>
         {post?.domain && (
-          <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'var(--accent-bg)', color: 'var(--accent)' }}>
+          <span className="px-2.5 py-[3px] rounded-full text-[11px] font-semibold bg-accent-bg text-accent">
             {post.domain}
           </span>
         )}
-        <div style={{ flex: 1 }} />
-        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{tasks.length} task{tasks.length !== 1 ? 's' : ''}</span>
+        <div className="flex-1" />
+        <span className="text-xs text-text-muted">{tasks.length} task{tasks.length !== 1 ? 's' : ''}</span>
       </div>
 
       {/* Board + detail pane */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100svh - 120px)' }}>
+      <div className="flex flex-1 overflow-hidden h-[calc(100svh-120px)]">
 
         {/* Kanban columns */}
-        <div style={{ flex: 1, display: 'flex', gap: '0', overflowX: 'auto', padding: '20px', gap: '14px', alignItems: 'flex-start' }}>
+        <div className="flex-1 flex gap-3.5 overflow-x-auto p-5 items-start">
           {STATUSES.map(({ id: status, label, color }) => {
             const colTasks = tasks.filter(t => t.status === status);
             return (
-              <div key={status} style={{ width: '280px', flexShrink: 0, background: 'var(--surface-2)', borderRadius: '14px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div key={status} className="w-70 shrink-0 bg-surface-2 rounded-2xl p-3.5 flex flex-col gap-2.5">
                 {/* Column header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
-                    <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{label}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--surface-3)', padding: '1px 6px', borderRadius: '10px' }}>{colTasks.length}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full" style={{ background: color }} />
+                    <span className="text-[13px] font-bold text-text-primary">{label}</span>
+                    <span className="text-[11px] text-text-muted bg-surface-3 px-1.5 py-px rounded-[10px]">{colTasks.length}</span>
                   </div>
-                  <button onClick={() => { setAddingStatus(status); setNewTitle(''); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '2px' }}
-                    aria-label="Add task">
+                  <button
+                    onClick={() => { setAddingStatus(status); setNewTitle(''); }}
+                    className="bg-none border-none cursor-pointer text-text-muted flex items-center p-0.5"
+                    aria-label="Add task"
+                  >
                     <Plus size={16} />
                   </button>
                 </div>
 
                 {/* Task cards */}
                 {colTasks.map(task => (
-                  <motion.div key={task._id} layout whileHover={{ y: -1, boxShadow: 'var(--shadow-md)' }}
+                  <motion.div
+                    key={task._id} layout whileHover={{ y: -1, boxShadow: 'var(--shadow-md)' }}
                     onClick={() => setSelected(task)}
-                    style={{
-                      background: 'var(--card-bg)', borderRadius: '10px', padding: '12px',
-                      border: selected?._id === task._id ? '1.5px solid var(--accent)' : '1px solid var(--card-border)',
-                      cursor: 'pointer', transition: 'box-shadow 0.15s',
-                      boxShadow: selected?._id === task._id ? '0 0 0 3px var(--accent-border)' : 'none',
-                    }}>
-                    <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', lineHeight: '1.4', marginBottom: '8px' }}>{task.title}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-                      <span style={{ fontSize: '10px', fontWeight: '600', padding: '2px 7px', borderRadius: '4px', background: `${PRIORITY_COLORS[task.priority]}18`, color: PRIORITY_COLORS[task.priority] }}>
+                    className={[
+                      'bg-card rounded-[10px] p-3 cursor-pointer transition-shadow duration-150',
+                      selected?._id === task._id ? 'border-[1.5px] border-accent' : 'border border-card-border',
+                    ].join(' ')}
+                    style={{ boxShadow: selected?._id === task._id ? '0 0 0 3px var(--accent-border)' : 'none' }}
+                  >
+                    <p className="text-[13px] font-semibold text-text-primary leading-[1.4] mb-2">{task.title}</p>
+                    <div className="flex items-center justify-between flex-wrap gap-1.5">
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: `${PRIORITY_COLORS[task.priority]}18`, color: PRIORITY_COLORS[task.priority] }}>
                         {task.priority}
                       </span>
-                      <div style={{ display: 'flex', gap: '-4px' }}>
+                      <div className="flex">
                         {task.assignees?.slice(0, 3).map((u, i) => (
-                          <div key={u._id ?? i} style={{ marginLeft: i > 0 ? '-6px' : 0 }}>
+                          <div key={u._id ?? i} className={i > 0 ? '-ml-1.5' : ''}>
                             <Avatar name={u.name} src={u.avatarUrl} size={20} />
                           </div>
                         ))}
                       </div>
                     </div>
                     {task.checklist?.length > 0 && (
-                      <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                      <div className="mt-1.5 flex items-center gap-1 text-[11px] text-text-muted">
                         <CheckSquare size={11} />
                         {task.checklist.filter(i => i.completed).length}/{task.checklist.length}
                       </div>
                     )}
                     {task.dueDate && (
-                      <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                      <div className="mt-1 flex items-center gap-1 text-[11px] text-text-muted">
                         <Calendar size={11} /> {new Date(task.dueDate).toLocaleDateString()}
                       </div>
                     )}
@@ -208,20 +210,19 @@ export default function TaskBoardPreview() {
                 {/* Add task inline */}
                 <AnimatePresence>
                   {addingStatus === status && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                      style={{ overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'var(--card-bg)', borderRadius: '10px', padding: '10px', border: '1.5px solid var(--accent)' }}>
-                        <input autoFocus value={newTitle} onChange={e => setNewTitle(e.target.value)}
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                      <div className="flex flex-col gap-1.5 bg-card rounded-[10px] p-2.5 border-[1.5px] border-accent">
+                        <input
+                          autoFocus value={newTitle} onChange={e => setNewTitle(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') addTask(status); if (e.key === 'Escape') setAddingStatus(null); }}
                           placeholder="Task title…"
-                          style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--input-bg)', fontSize: '13px', color: 'var(--text-primary)', outline: 'none' }} />
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <Button size="sm" onClick={() => addTask(status)} disabled={!newTitle.trim() || saving}
-                            style={{ flex: 1, padding: '5px', fontSize: '12px', minHeight: 'auto' }}>
+                          className="px-2 py-1.5 rounded-md border border-border bg-input text-[13px] text-text-primary outline-none"
+                        />
+                        <div className="flex gap-1.5">
+                          <Button size="sm" onClick={() => addTask(status)} disabled={!newTitle.trim() || saving} style={{ flex: 1, padding: '5px', fontSize: '12px', minHeight: 'auto' }}>
                             {saving ? '…' : 'Add'}
                           </Button>
-                          <button onClick={() => setAddingStatus(null)}
-                            style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer' }}>
+                          <button onClick={() => setAddingStatus(null)} className="px-2 py-1.5 rounded-md border border-border bg-transparent text-text-muted text-xs cursor-pointer">
                             ✕
                           </button>
                         </div>
@@ -232,10 +233,10 @@ export default function TaskBoardPreview() {
 
                 {/* Add task button */}
                 {addingStatus !== status && (
-                  <button onClick={() => { setAddingStatus(status); setNewTitle(''); }}
-                    style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1.5px dashed var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', transition: 'border-color 0.15s, color 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+                  <button
+                    onClick={() => { setAddingStatus(status); setNewTitle(''); }}
+                    className="w-full p-2 rounded-lg border-[1.5px] border-dashed border-border bg-transparent text-text-muted text-xs cursor-pointer flex items-center justify-center gap-1.5 transition-colors duration-150 hover:border-accent hover:text-accent"
+                  >
                     <Plus size={13} /> Add task
                   </button>
                 )}
@@ -250,20 +251,29 @@ export default function TaskBoardPreview() {
             <motion.div
               initial={{ width: 0, opacity: 0 }} animate={{ width: '320px', opacity: 1 }} exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.22 }}
-              style={{ flexShrink: 0, background: 'var(--card-bg)', borderLeft: '1px solid var(--border)', overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
-
+              className="shrink-0 bg-card border-l border-border overflow-y-auto overflow-x-hidden flex flex-col gap-4 p-5"
+            >
               {/* Title */}
-              <input value={selected.title} onChange={e => setSelected(s => ({ ...s, title: e.target.value }))}
+              <input
+                value={selected.title} onChange={e => setSelected(s => ({ ...s, title: e.target.value }))}
                 onBlur={() => patch(selected._id, { title: selected.title })}
-                style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', background: 'transparent', border: 'none', outline: 'none', width: '100%', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }} />
+                className="text-[15px] font-bold text-text-primary bg-transparent border-none outline-none w-full border-b border-border pb-2"
+              />
 
               {/* Status */}
               <div>
-                <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px' }}>Status</label>
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">Status</label>
+                <div className="flex gap-1.5">
                   {STATUSES.map(s => (
-                    <button key={s.id} onClick={() => patch(selected._id, { status: s.id })}
-                      style={{ padding: '5px 12px', borderRadius: '20px', border: `1.5px solid ${selected.status === s.id ? s.color : 'var(--border)'}`, background: selected.status === s.id ? `${s.color}18` : 'transparent', color: selected.status === s.id ? s.color : 'var(--text-secondary)', fontSize: '12px', fontWeight: selected.status === s.id ? '700' : '400', cursor: 'pointer', transition: 'all 0.12s' }}>
+                    <button
+                      key={s.id} onClick={() => patch(selected._id, { status: s.id })}
+                      className={`px-3 py-1.5 rounded-full text-xs cursor-pointer transition-all duration-120 ${selected.status === s.id ? 'font-bold' : 'font-normal'}`}
+                      style={{
+                        border: `1.5px solid ${selected.status === s.id ? s.color : 'var(--border)'}`,
+                        background: selected.status === s.id ? `${s.color}18` : 'transparent',
+                        color: selected.status === s.id ? s.color : 'var(--text-secondary)',
+                      }}
+                    >
                       {s.label}
                     </button>
                   ))}
@@ -272,11 +282,18 @@ export default function TaskBoardPreview() {
 
               {/* Priority */}
               <div>
-                <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px' }}>Priority</label>
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">Priority</label>
+                <div className="flex gap-1.5">
                   {['low', 'medium', 'high'].map(p => (
-                    <button key={p} onClick={() => patch(selected._id, { priority: p })}
-                      style={{ padding: '5px 12px', borderRadius: '20px', border: `1.5px solid ${selected.priority === p ? PRIORITY_COLORS[p] : 'var(--border)'}`, background: selected.priority === p ? `${PRIORITY_COLORS[p]}18` : 'transparent', color: selected.priority === p ? PRIORITY_COLORS[p] : 'var(--text-secondary)', fontSize: '12px', fontWeight: selected.priority === p ? '700' : '400', cursor: 'pointer', textTransform: 'capitalize', transition: 'all 0.12s' }}>
+                    <button
+                      key={p} onClick={() => patch(selected._id, { priority: p })}
+                      className={`px-3 py-1.5 rounded-full text-xs capitalize cursor-pointer transition-all duration-120 ${selected.priority === p ? 'font-bold' : 'font-normal'}`}
+                      style={{
+                        border: `1.5px solid ${selected.priority === p ? PRIORITY_COLORS[p] : 'var(--border)'}`,
+                        background: selected.priority === p ? `${PRIORITY_COLORS[p]}18` : 'transparent',
+                        color: selected.priority === p ? PRIORITY_COLORS[p] : 'var(--text-secondary)',
+                      }}
+                    >
                       {p}
                     </button>
                   ))}
@@ -285,32 +302,32 @@ export default function TaskBoardPreview() {
 
               {/* Due date */}
               <div>
-                <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '6px' }}>Due Date</label>
-                <input type="date" value={selected.dueDate ? selected.dueDate.slice(0, 10) : ''}
+                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">Due Date</label>
+                <input
+                  type="date" value={selected.dueDate ? selected.dueDate.slice(0, 10) : ''}
                   onChange={e => patch(selected._id, { dueDate: e.target.value || null })}
-                  style={{ padding: '7px 10px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '13px', color: 'var(--text-primary)', outline: 'none', width: '100%' }} />
+                  className="px-2.5 py-[7px] rounded-lg border-[1.5px] border-border bg-input text-[13px] text-text-primary outline-none w-full"
+                />
               </div>
 
               {/* Checklist */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
                     Checklist {selected.checklist?.length > 0 && `(${selected.checklist.filter(i => i.completed).length}/${selected.checklist.length})`}
                   </label>
-                  <button onClick={addChecklistItem}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: '600' }}>
+                  <button onClick={addChecklistItem} className="bg-none border-none cursor-pointer text-accent flex items-center gap-[3px] text-xs font-semibold">
                     <Plus size={12} /> Add
                   </button>
                 </div>
                 {selected.checklist?.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div className="flex flex-col gap-1.5">
                     {selected.checklist.map((item, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button onClick={() => toggleChecklistItem(idx)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: item.completed ? '#16a34a' : 'var(--text-muted)', padding: 0, flexShrink: 0 }}>
+                      <div key={idx} className="flex items-center gap-2">
+                        <button onClick={() => toggleChecklistItem(idx)} className={`bg-none border-none cursor-pointer p-0 shrink-0 ${item.completed ? 'text-[#16a34a]' : 'text-text-muted'}`}>
                           {item.completed ? <CheckSquare size={16} /> : <Square size={16} />}
                         </button>
-                        <span style={{ fontSize: '13px', color: item.completed ? 'var(--text-muted)' : 'var(--text-primary)', textDecoration: item.completed ? 'line-through' : 'none', flex: 1 }}>
+                        <span className={`text-[13px] flex-1 ${item.completed ? 'text-text-muted line-through' : 'text-text-primary'}`}>
                           {item.text}
                         </span>
                       </div>
@@ -319,14 +336,17 @@ export default function TaskBoardPreview() {
                 )}
                 {/* Progress bar */}
                 {selected.checklist?.length > 0 && (
-                  <div style={{ marginTop: '8px', height: '4px', borderRadius: '2px', background: 'var(--surface-3)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', background: '#16a34a', borderRadius: '2px', width: `${(selected.checklist.filter(i => i.completed).length / selected.checklist.length) * 100}%`, transition: 'width 0.3s' }} />
+                  <div className="mt-2 h-1 rounded-sm bg-surface-3 overflow-hidden">
+                    <div
+                      className="h-full bg-[#16a34a] rounded-sm transition-[width] duration-300"
+                      style={{ width: `${(selected.checklist.filter(i => i.completed).length / selected.checklist.length) * 100}%` }}
+                    />
                   </div>
                 )}
               </div>
 
               {/* Delete */}
-              <div style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid var(--divider)' }}>
+              <div className="mt-auto pt-3 border-t border-divider">
                 <Button variant="danger" fullWidth onClick={() => deleteTask(selected._id)} style={{ fontSize: '13px', fontWeight: '500' }}>
                   <Trash2 size={13} /> Delete task
                 </Button>
@@ -335,7 +355,6 @@ export default function TaskBoardPreview() {
           )}
         </AnimatePresence>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }

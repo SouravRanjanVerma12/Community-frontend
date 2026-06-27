@@ -7,6 +7,8 @@ import Button from '../ui/Button';
 
 const COLLAB_COLOR = '#3a3d4a';
 
+const fieldClasses = 'w-full px-3.5 rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-primary outline-none transition-colors duration-150 box-border focus:border-[#3a3d4a]';
+
 export default function JoinProjectModal({ post, onClose }) {
   const [why,          setWhy]          = useState('');
   const [expertise,    setExpertise]    = useState('');
@@ -51,7 +53,7 @@ export default function JoinProjectModal({ post, onClose }) {
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onClick={onClose}
-      style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+      className="fixed inset-0 z-300 bg-black/45 backdrop-blur-[5px] flex items-center justify-center p-5"
     >
       <motion.div
         initial={{ opacity: 0, y: 28, scale: 0.97 }}
@@ -59,20 +61,21 @@ export default function JoinProjectModal({ post, onClose }) {
         exit={{ opacity: 0, y: 16, scale: 0.97 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: '520px', background: 'var(--card-bg)', borderRadius: '18px', border: `1px solid ${COLLAB_COLOR}35`, boxShadow: `0 24px 80px rgba(0,0,0,0.25), 0 0 0 1px ${COLLAB_COLOR}20`, overflow: 'hidden' }}
+        className="w-full max-w-[520px] bg-card rounded-[18px] overflow-hidden"
+        style={{ border: `1px solid ${COLLAB_COLOR}35`, boxShadow: `0 24px 80px rgba(0,0,0,0.25), 0 0 0 1px ${COLLAB_COLOR}20` }}
       >
         {/* Header */}
-        <div style={{ padding: '20px 22px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+        <div className="px-[22px] pt-5 flex items-start justify-between gap-3">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '4px' }}>
+            <div className="flex items-center gap-[7px] mb-1">
               <Users2 size={16} color={COLLAB_COLOR} />
-              <h2 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>Join this project</h2>
+              <h2 className="text-base font-bold text-text-primary">Join this project</h2>
             </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '380px' }}>
+            <p className="text-[13px] text-text-muted max-w-[380px]">
               {post.projectName || post.title}
             </p>
           </div>
-          <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0 }}>
+          <button onClick={onClose} className="w-7 h-7 rounded-full border-none bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary shrink-0">
             <X size={14} />
           </button>
         </div>
@@ -80,76 +83,82 @@ export default function JoinProjectModal({ post, onClose }) {
         {/* Success state */}
         {done ? (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            style={{ padding: '40px 22px', textAlign: 'center' }}>
-            <CheckCircle size={48} color="#22c55e" style={{ marginBottom: '16px' }} />
-            <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>Request sent!</h3>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
+            className="px-[22px] py-10 text-center">
+            <CheckCircle size={48} color="#22c55e" className="mb-4" />
+            <h3 className="text-lg font-bold text-text-primary mb-2">Request sent!</h3>
+            <p className="text-sm text-text-muted mb-6">
               The project owner will review your application and get back to you.
             </p>
-            <button onClick={onClose}
-              style={{ padding: '10px 28px', borderRadius: '10px', border: 'none', background: COLLAB_COLOR, color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+            <button
+              onClick={onClose}
+              className="px-7 py-2.5 rounded-[10px] border-none text-white text-sm font-semibold cursor-pointer"
+              style={{ background: COLLAB_COLOR }}
+            >
               Done
             </button>
           </motion.div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ padding: '16px 22px 22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <form onSubmit={handleSubmit} className="px-[22px] pt-4 pb-[22px] flex flex-col gap-3.5">
 
             {/* Why */}
             <div>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Why do you want to join? <span style={{ color: '#ef4444' }}>*</span>
+              <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
+                Why do you want to join? <span className="text-[#ef4444]">*</span>
               </label>
-              <textarea value={why} onChange={(e) => setWhy(e.target.value)} required rows={4}
+              <textarea
+                value={why} onChange={(e) => setWhy(e.target.value)} required rows={4}
                 placeholder="Tell the creator what excites you about this project and what you can contribute…"
-                style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
-                onFocus={(e) => (e.target.style.borderColor = COLLAB_COLOR)}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{why.length}/500</p>
+                className={`${fieldClasses} py-[11px] leading-[1.6] resize-y font-[inherit]`}
+              />
+              <p className="text-[11px] text-text-muted mt-1">{why.length}/500</p>
             </div>
 
             {/* Expertise */}
             <div>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+              <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
                 Relevant experience & expertise
               </label>
-              <textarea value={expertise} onChange={(e) => setExpertise(e.target.value)} rows={3}
+              <textarea
+                value={expertise} onChange={(e) => setExpertise(e.target.value)} rows={3}
                 placeholder="Share your skills, past projects, or anything relevant to this collab…"
-                style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
-                onFocus={(e) => (e.target.style.borderColor = COLLAB_COLOR)}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+                className={`${fieldClasses} py-[11px] leading-[1.6] resize-y font-[inherit]`}
+              />
             </div>
 
             {/* Portfolio URL */}
             <div>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                <Link2 size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                Portfolio / GitHub URL <span style={{ fontWeight: '400', color: 'var(--text-muted)' }}>(optional)</span>
+              <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
+                <Link2 size={13} className="align-middle mr-1" />
+                Portfolio / GitHub URL <span className="font-normal text-text-muted">(optional)</span>
               </label>
-              <input value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)}
+              <input
+                value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)}
                 placeholder="https://github.com/yourname or https://yoursite.com"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
-                onFocus={(e) => (e.target.style.borderColor = COLLAB_COLOR)}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+                className={`${fieldClasses} py-2.5`}
+              />
             </div>
 
             {/* Resume upload */}
             <div>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                <FileText size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                Resume / CV <span style={{ fontWeight: '400', color: 'var(--text-muted)' }}>(optional — PDF, max 5 MB)</span>
+              <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
+                <FileText size={13} className="align-middle mr-1" />
+                Resume / CV <span className="font-normal text-text-muted">(optional — PDF, max 5 MB)</span>
               </label>
-              <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,image/*" style={{ display: 'none' }} onChange={handleFile} />
+              <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,image/*" className="hidden" onChange={handleFile} />
               {resumeFile ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '10px', border: `1.5px solid ${COLLAB_COLOR}50`, background: `${COLLAB_COLOR}0a` }}>
+                <div
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px]"
+                  style={{ border: `1.5px solid ${COLLAB_COLOR}50`, background: `${COLLAB_COLOR}0a` }}
+                >
                   <FileText size={16} color={COLLAB_COLOR} />
-                  <span style={{ fontSize: '13px', color: COLLAB_COLOR, fontWeight: '500', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{resumeFile.name}</span>
-                  <button type="button" onClick={() => setResumeFile(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={14} /></button>
+                  <span className="text-[13px] font-medium flex-1 overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: COLLAB_COLOR }}>{resumeFile.name}</span>
+                  <button type="button" onClick={() => setResumeFile(null)} className="bg-none border-none cursor-pointer text-text-muted"><X size={14} /></button>
                 </div>
               ) : (
-                <button type="button" onClick={() => fileRef.current?.click()}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px dashed var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'border-color 0.15s, color 0.15s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLLAB_COLOR; e.currentTarget.style.color = COLLAB_COLOR; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+                <button
+                  type="button" onClick={() => fileRef.current?.click()}
+                  className="w-full px-3.5 py-2.5 rounded-[10px] border-[1.5px] border-dashed border-border bg-transparent text-text-muted text-[13px] cursor-pointer flex items-center justify-center gap-2 transition-colors duration-150 hover:text-[#3a3d4a] hover:border-[#3a3d4a]"
+                >
                   <Upload size={14} /> Click to upload resume
                 </button>
               )}
@@ -159,28 +168,30 @@ export default function JoinProjectModal({ post, onClose }) {
             <AnimatePresence>
               {error && (
                 <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  style={{ fontSize: '13px', color: '#dc2626', margin: 0 }}>{error}</motion.p>
+                  className="text-[13px] text-[#dc2626] m-0">{error}</motion.p>
               )}
             </AnimatePresence>
 
             {/* Divider */}
-            <div style={{ height: '1px', background: 'var(--divider)' }} />
+            <div className="h-px bg-divider" />
 
             {/* Actions */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" size="sm" onClick={onClose}>
                 Cancel
               </Button>
-              <motion.button type="submit" whileTap={{ scale: 0.97 }} disabled={!why.trim() || submitting}
-                style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 22px', borderRadius: '9px', border: 'none', background: !why.trim() ? `${COLLAB_COLOR}40` : COLLAB_COLOR, color: '#fff', fontSize: '14px', fontWeight: '600', cursor: why.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.15s' }}>
-                {submitting ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Users2 size={14} />}
+              <motion.button
+                type="submit" whileTap={{ scale: 0.97 }} disabled={!why.trim() || submitting}
+                className={`flex items-center gap-[7px] px-[22px] py-[9px] rounded-[9px] border-none text-white text-sm font-semibold transition-colors duration-150 ${why.trim() ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                style={{ background: !why.trim() ? `${COLLAB_COLOR}40` : COLLAB_COLOR }}
+              >
+                {submitting ? <Loader2 size={14} className="animate-spin" /> : <Users2 size={14} />}
                 {uploading ? 'Uploading…' : submitting ? 'Sending…' : 'Send Request'}
               </motion.button>
             </div>
           </form>
         )}
       </motion.div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </motion.div>,
     document.body
   );

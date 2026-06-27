@@ -13,9 +13,9 @@ const COLLAB_COLOR = '#3a3d4a';
 function Avatar({ name, src, size = 38 }) {
   const initials = name?.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) ?? '?';
   const hue = [...(name ?? '')].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-  if (src) return <img src={src} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />;
+  if (src) return <img src={src} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover shrink-0" />;
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: `hsl(${hue},55%,55%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.36, fontWeight: '600', flexShrink: 0 }}>
+    <div style={{ width: size, height: size, background: `hsl(${hue},55%,55%)`, fontSize: size * 0.36 }} className="rounded-full text-white flex items-center justify-center font-semibold shrink-0">
       {initials}
     </div>
   );
@@ -30,6 +30,8 @@ const POST_TYPES = [
 
 const PRESET_ROLES = ['Frontend Dev', 'Backend Dev', 'Full Stack', 'Designer', 'DevOps', 'ML Engineer', 'Mobile Dev', 'QA'];
 
+const fieldBase = 'rounded-[10px] border-[1.5px] border-border bg-input outline-none transition-colors duration-150';
+
 function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
   const [input, setInput] = useState('');
 
@@ -40,13 +42,16 @@ function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="flex flex-col gap-2">
       {/* Preset chips */}
       {presets && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+        <div className="flex flex-wrap gap-[5px]">
           {presets.filter((p) => !tags.includes(p)).map((p) => (
-            <button key={p} type="button" onClick={() => onAdd(p)}
-              style={{ padding: '3px 10px', borderRadius: '20px', border: `1px solid ${COLLAB_COLOR}40`, background: `${COLLAB_COLOR}0d`, color: COLLAB_COLOR, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <button
+              key={p} type="button" onClick={() => onAdd(p)}
+              className="px-2.5 py-[3px] rounded-full text-xs cursor-pointer flex items-center gap-[3px]"
+              style={{ border: `1px solid ${COLLAB_COLOR}40`, background: `${COLLAB_COLOR}0d`, color: COLLAB_COLOR }}
+            >
               <Plus size={10} /> {p}
             </button>
           ))}
@@ -54,23 +59,24 @@ function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
       )}
       {/* Added tags */}
       {tags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+        <div className="flex flex-wrap gap-[5px]">
           {tags.map((t) => (
-            <span key={t} style={{ padding: '3px 10px', borderRadius: '20px', background: COLLAB_COLOR, color: '#fff', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span key={t} className="px-2.5 py-[3px] rounded-full text-white text-xs font-medium flex items-center gap-1" style={{ background: COLLAB_COLOR }}>
               {t}
-              <button type="button" onClick={() => onRemove(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', lineHeight: 1, padding: 0, fontSize: '14px' }}>×</button>
+              <button type="button" onClick={() => onRemove(t)} className="bg-none border-none cursor-pointer text-white/80 leading-none p-0 text-sm">×</button>
             </span>
           ))}
         </div>
       )}
       {/* Free-form input (tech stack only, no presets) */}
       {!presets && (
-        <input value={input} onChange={(e) => setInput(e.target.value)}
+        <input
+          value={input} onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(input); } }}
+          onBlur={() => add(input)}
           placeholder={placeholder}
-          style={{ padding: '8px 12px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '13px', color: 'var(--text-primary)', outline: 'none' }}
-          onFocus={(e) => (e.target.style.borderColor = COLLAB_COLOR)}
-          onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; add(input); }} />
+          className="px-3 py-2 rounded-lg border-[1.5px] border-border bg-input text-[13px] text-text-primary outline-none focus:border-[#3a3d4a]"
+        />
       )}
     </div>
   );
@@ -129,37 +135,34 @@ export default function CreatePost() {
   const isCollab = type === 'collab';
 
   return (
-    <div style={{
-      background: 'var(--card-bg)', border: `1px solid ${isCollab && expanded ? COLLAB_COLOR + '40' : 'var(--card-border)'}`,
-      borderRadius: '14px', padding: '16px 20px', boxShadow: 'var(--shadow-sm)',
-      transition: 'background 0.25s, border-color 0.25s',
-    }}>
+    <div
+      className="bg-card rounded-[14px] px-5 py-4 shadow-sm transition-colors duration-250"
+      style={{ border: `1px solid ${isCollab && expanded ? COLLAB_COLOR + '40' : 'var(--card-border)'}` }}
+    >
       {/* Collapsed trigger */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div className="flex items-center gap-3">
         <Avatar name={user?.name ?? 'Guest'} src={user?.avatarUrl || null} />
-        <button onClick={() => setExpanded(true)}
-          style={{ flex: 1, textAlign: 'left', padding: '10px 16px', borderRadius: '24px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text-muted)', fontSize: '14px', cursor: 'text', transition: 'border-color 0.15s, background 0.15s' }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-border)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--input-bg)'; }}>
+        <button
+          onClick={() => setExpanded(true)}
+          className="flex-1 text-left px-4 py-2.5 rounded-3xl border-[1.5px] border-border bg-input text-text-muted text-sm cursor-text transition-colors duration-150 hover:border-accent-border hover:bg-card"
+        >
           {user ? `What's on your mind, ${user.name.split(' ')[0]}?` : 'Share something with the community…'}
         </button>
       </div>
 
       {/* Quick type buttons */}
       {!expanded && (
-        <div style={{ display: 'flex', gap: '4px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--divider)' }}>
+        <div className="flex gap-1 mt-3 pt-3 border-t border-divider">
           {POST_TYPES.map(({ value, label, icon: Icon }) => (
-            <button key={value} onClick={() => { setType(value); setExpanded(true); }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '7px 14px', borderRadius: '8px', border: 'none',
-                background: 'transparent',
-                color: value === 'collab' ? COLLAB_COLOR : 'var(--text-secondary)',
-                fontSize: '13px', fontWeight: value === 'collab' ? '600' : '500',
-                cursor: 'pointer', transition: 'background 0.12s, color 0.12s',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--hover-bg)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+            <button
+              key={value} onClick={() => { setType(value); setExpanded(true); }}
+              className={[
+                'flex items-center gap-1.5 px-3.5 py-[7px] rounded-lg border-none bg-transparent text-[13px] cursor-pointer',
+                'transition-colors duration-120 hover:bg-hover',
+                value === 'collab' ? 'font-semibold' : 'font-medium',
+              ].join(' ')}
+              style={{ color: value === 'collab' ? COLLAB_COLOR : 'var(--text-secondary)' }}
+            >
               <Icon size={15} /> {label}
             </button>
           ))}
@@ -169,32 +172,36 @@ export default function CreatePost() {
       {/* Expanded composer */}
       <AnimatePresence>
         {expanded && (
-          <motion.form onSubmit={handleSubmit}
+          <motion.form
+            onSubmit={handleSubmit}
             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }} style={{ overflow: 'hidden' }}>
-            <div style={{ paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }} className="overflow-hidden"
+          >
+            <div className="pt-4 flex flex-col gap-3">
 
               {/* Type + Domain row */}
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <div className="flex gap-2 flex-wrap items-center">
                 {POST_TYPES.map(({ value, label, icon: Icon }) => {
                   const active = type === value;
                   const color  = value === 'collab' ? COLLAB_COLOR : 'var(--accent)';
                   return (
-                    <button key={value} type="button" onClick={() => setType(value)}
+                    <button
+                      key={value} type="button" onClick={() => setType(value)}
+                      className={`flex items-center gap-[5px] px-3 py-1.5 rounded-lg text-[13px] cursor-pointer transition-all duration-120 ${active ? 'font-semibold' : 'font-normal'}`}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: '5px',
-                        padding: '6px 12px', borderRadius: '8px',
                         border: active ? `1.5px solid ${color}60` : '1.5px solid var(--border)',
                         background: active ? `${value === 'collab' ? COLLAB_COLOR : 'var(--accent-dim)'}` : 'transparent',
                         color: active ? (value === 'collab' ? '#fff' : 'var(--accent)') : 'var(--text-secondary)',
-                        fontSize: '13px', fontWeight: active ? '600' : '400', cursor: 'pointer', transition: 'all 0.12s',
-                      }}>
+                      }}
+                    >
                       <Icon size={13} /> {label}
                     </button>
                   );
                 })}
-                <select value={domain} onChange={(e) => setDomain(e.target.value)}
-                  style={{ marginLeft: 'auto', padding: '6px 10px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '13px', color: 'var(--text-secondary)', background: 'var(--card-bg)', cursor: 'pointer', outline: 'none' }}>
+                <select
+                  value={domain} onChange={(e) => setDomain(e.target.value)}
+                  className="ml-auto px-2.5 py-1.5 rounded-lg border-[1.5px] border-border text-[13px] text-text-secondary bg-card cursor-pointer outline-none"
+                >
                   {DOMAINS.filter((d) => d.value !== 'all').map((d) => (
                     <option key={d.value} value={d.value}>{d.label}</option>
                   ))}
@@ -204,74 +211,77 @@ export default function CreatePost() {
               {/* ── Collab-specific fields ── */}
               {isCollab && (
                 <>
-                  <div style={{ padding: '12px 14px', borderRadius: '10px', background: `${COLLAB_COLOR}0d`, border: `1px solid ${COLLAB_COLOR}30`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div
+                    className="px-3.5 py-3 rounded-[10px] flex items-center gap-2"
+                    style={{ background: `${COLLAB_COLOR}0d`, border: `1px solid ${COLLAB_COLOR}30` }}
+                  >
                     <Users2 size={15} color={COLLAB_COLOR} />
-                    <span style={{ fontSize: '13px', color: COLLAB_COLOR, fontWeight: '600' }}>Collab Post — looking for collaborators</span>
+                    <span className="text-[13px] font-semibold" style={{ color: COLLAB_COLOR }}>Collab Post — looking for collaborators</span>
                   </div>
 
-                  <input value={projectName} onChange={(e) => setProjectName(e.target.value)}
+                  <input
+                    value={projectName} onChange={(e) => setProjectName(e.target.value)}
                     placeholder="Project name (optional)"
-                    style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
-                    onFocus={(e) => (e.target.style.borderColor = COLLAB_COLOR)}
-                    onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+                    className={`${fieldBase} px-3.5 py-2.5 text-sm text-text-primary focus:border-[#3a3d4a]`}
+                  />
                 </>
               )}
 
               {/* Title */}
-              <input value={title} onChange={(e) => setTitle(e.target.value)}
+              <input
+                value={title} onChange={(e) => setTitle(e.target.value)}
                 placeholder={isCollab ? 'What are you building? What help do you need?' : 'Post title…'}
                 autoFocus required
-                style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
-                onFocus={(e) => (e.target.style.borderColor = isCollab ? COLLAB_COLOR : 'var(--accent-border)')}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+                className={`${fieldBase} px-3.5 py-2.5 text-[15px] font-medium text-text-primary ${isCollab ? 'focus:border-[#3a3d4a]' : 'focus:border-accent-border'}`}
+              />
 
               {/* Body */}
               {type !== 'video' && (
-                <textarea value={body} onChange={(e) => setBody(e.target.value)}
+                <textarea
+                  value={body} onChange={(e) => setBody(e.target.value)}
                   placeholder={isCollab ? 'Describe the project, what stage it\'s at, and what you\'re looking for…' : type === 'code' ? 'Brief description…' : 'Write your post…'}
                   rows={isCollab ? 4 : 3}
-                  style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s' }}
-                  onFocus={(e) => (e.target.style.borderColor = isCollab ? COLLAB_COLOR : 'var(--accent-border)')}
-                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+                  className={`${fieldBase} px-3.5 py-2.5 text-sm text-text-secondary leading-relaxed resize-y font-[inherit] ${isCollab ? 'focus:border-[#3a3d4a]' : 'focus:border-accent-border'}`}
+                />
               )}
 
               {/* Code */}
               {type === 'code' && (
-                <textarea value={code} onChange={(e) => setCode(e.target.value)}
+                <textarea
+                  value={code} onChange={(e) => setCode(e.target.value)}
                   placeholder="// Paste your code here…" rows={6}
-                  style={{ padding: '12px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--code-bg)', fontSize: '13px', color: 'var(--code-text)', lineHeight: '1.65', resize: 'vertical', outline: 'none', fontFamily: 'ui-monospace, Consolas, monospace', transition: 'border-color 0.15s' }}
-                  onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
-                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+                  className="px-3.5 py-3 rounded-[10px] border-[1.5px] border-border bg-code-bg text-[13px] text-code-text leading-[1.65] resize-y outline-none font-mono transition-colors duration-150 focus:border-accent-border"
+                />
               )}
 
               {/* Video */}
               {type === 'video' && (
-                <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)}
+                <input
+                  value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)}
                   placeholder="Paste YouTube or video URL…"
-                  style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-secondary)', outline: 'none', transition: 'border-color 0.15s' }}
-                  onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
-                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+                  className={`${fieldBase} px-3.5 py-2.5 text-sm text-text-secondary focus:border-accent-border`}
+                />
               )}
 
               {/* ── Collab: tech stack + roles ── */}
               {isCollab && (
                 <>
                   <div>
-                    <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Tech Stack</p>
+                    <p className="text-xs font-semibold text-text-muted uppercase tracking-[0.06em] mb-2">Tech Stack</p>
                     <TagInput tags={techStack} onAdd={(t) => setTechStack((s) => [...s, t])} onRemove={(t) => setTechStack((s) => s.filter((x) => x !== t))} placeholder="Type a tech and press Enter (e.g. React, Node.js)" />
                   </div>
                   <div>
-                    <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Roles Needed</p>
+                    <p className="text-xs font-semibold text-text-muted uppercase tracking-[0.06em] mb-2">Roles Needed</p>
                     <TagInput tags={rolesNeeded} onAdd={(r) => setRolesNeeded((s) => [...s, r])} onRemove={(r) => setRolesNeeded((s) => s.filter((x) => x !== r))} presets={PRESET_ROLES} />
                   </div>
                   <MembersSlider value={membersNeeded} onChange={setMembersNeeded} />
                 </>
               )}
 
-              {error && <p style={{ fontSize: '13px', color: 'var(--error-text)', margin: 0 }}>{error}</p>}
+              {error && <p className="text-[13px] text-error m-0">{error}</p>}
 
               {/* Actions */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <div className="flex justify-end gap-2">
                 <Button type="button" variant="ghost" size="sm" onClick={close}>
                   <X size={13} /> Cancel
                 </Button>
@@ -284,7 +294,6 @@ export default function CreatePost() {
           </motion.form>
         )}
       </AnimatePresence>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

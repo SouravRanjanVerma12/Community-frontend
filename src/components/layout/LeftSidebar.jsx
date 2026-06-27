@@ -5,8 +5,8 @@ import { DOMAINS } from '../../data/mockPosts';
 
 function Section({ title, children }) {
   return (
-    <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '14px 16px', transition: 'background 0.25s, border-color 0.25s' }}>
-      <p style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', marginBottom: '10px' }}>
+    <div className="bg-card border border-card-border rounded-xl px-4 py-3.5 transition-colors duration-250">
+      <p className="text-[11px] font-bold uppercase tracking-[0.07em] text-text-muted mb-2.5">
         {title}
       </p>
       {children}
@@ -15,7 +15,7 @@ function Section({ title, children }) {
 }
 
 function Spinner() {
-  return <div style={{ display: 'flex', justifyContent: 'center', padding: '12px' }}><Loader2 size={16} color="var(--text-muted)" style={{ animation: 'spin 1s linear infinite' }} /></div>;
+  return <div className="flex justify-center p-3"><Loader2 size={16} color="var(--text-muted)" className="animate-spin" /></div>;
 }
 
 export default function LeftSidebar() {
@@ -34,18 +34,12 @@ export default function LeftSidebar() {
   const total = slices.reduce((sum, s) => sum + s.value, 0);
 
   return (
-    <aside style={{
-      position: 'sticky', top: '112px',
-      height: 'calc(100svh - 112px)', overflowY: 'auto',
-      width: '240px', flexShrink: 0,
-      display: 'flex', flexDirection: 'column', gap: '14px',
-      paddingBottom: '24px', scrollbarWidth: 'none',
-    }}>
+    <aside className="hidden lg:flex sticky top-[112px] h-[calc(100svh-112px)] overflow-y-auto w-60 shrink-0 flex-col gap-3.5 pb-6 scrollbar-none">
       <Section title="📊 Domain Activity">
         {isLoading ? <Spinner /> : !slices.length ? (
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No data yet.</p>
+          <p className="text-[13px] text-text-muted">No data yet.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+          <div className="flex flex-col items-center gap-3.5">
             <PieChart
               series={[{
                 data: slices,
@@ -59,12 +53,12 @@ export default function LeftSidebar() {
               slotProps={{ legend: { hidden: true } }}
               tooltip={{ trigger: 'item' }}
             />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+            <div className="flex flex-col gap-1.5 w-full">
               {slices.map((s) => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', flex: 1 }}>{s.label}</span>
-                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                <div key={s.id} className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: s.color }} />
+                  <span className="text-xs text-text-secondary flex-1">{s.label}</span>
+                  <span className="text-xs font-semibold text-text-primary">
                     {total > 0 ? Math.round((s.value / total) * 100) : 0}%
                   </span>
                 </div>

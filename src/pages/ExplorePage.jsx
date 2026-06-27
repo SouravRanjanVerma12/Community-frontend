@@ -19,13 +19,7 @@ function SearchBar({ value, onChange }) {
   return (
     <motion.div
       animate={{ boxShadow: focused ? '0 0 0 3px var(--accent-dim)' : '0 0 0 0px transparent' }}
-      style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        background: 'var(--card-bg)',
-        border: `1.5px solid ${focused ? 'var(--accent-border)' : 'var(--border)'}`,
-        borderRadius: '10px', padding: '0 14px',
-        transition: 'border-color 0.15s, background 0.25s',
-      }}
+      className={`flex items-center gap-2 bg-card rounded-[10px] px-3.5 border-[1.5px] transition-colors duration-150 ${focused ? 'border-accent-border' : 'border-border'}`}
     >
       <Search size={14} color="var(--text-muted)" />
       <input
@@ -34,11 +28,7 @@ function SearchBar({ value, onChange }) {
         placeholder="Search posts, topics, people…"
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        style={{
-          flex: 1, padding: '9px 0',
-          background: 'transparent', border: 'none', outline: 'none',
-          fontSize: '14px', color: 'var(--text-primary)',
-        }}
+        className="flex-1 py-2.5 bg-transparent border-none outline-none text-sm text-text-primary"
       />
     </motion.div>
   );
@@ -58,37 +48,39 @@ function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
   const [input, setInput] = useState('');
   const add = (val) => { const v = val.trim(); if (v && !tags.includes(v)) onAdd(v); setInput(''); };
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="flex flex-col gap-2">
       {presets && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+        <div className="flex flex-wrap gap-[5px]">
           {presets.filter((p) => !tags.includes(p)).map((p) => (
-            <button key={p} type="button" onClick={() => onAdd(p)}
-              className="explore-focusable"
-              style={{ minHeight: '28px', padding: '3px 10px', borderRadius: '20px', border: `1px solid ${COLLAB_COLOR}40`, background: `${COLLAB_COLOR}0d`, color: COLLAB_COLOR, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <button
+              key={p} type="button" onClick={() => onAdd(p)}
+              className="min-h-7 px-2.5 py-[3px] rounded-full text-xs cursor-pointer flex items-center gap-[3px]"
+              style={{ border: `1px solid ${COLLAB_COLOR}40`, background: `${COLLAB_COLOR}0d`, color: COLLAB_COLOR }}
+            >
               <Plus size={10} /> {p}
             </button>
           ))}
         </div>
       )}
       {tags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+        <div className="flex flex-wrap gap-[5px]">
           {tags.map((t) => (
-            <span key={t} style={{ padding: '3px 10px', borderRadius: '20px', background: COLLAB_COLOR, color: '#fff', fontSize: '12px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span key={t} className="px-2.5 py-[3px] rounded-full text-white text-xs font-medium flex items-center gap-1" style={{ background: COLLAB_COLOR }}>
               {t}
               <button type="button" onClick={() => onRemove(t)} aria-label={`Remove ${t}`}
-                className="explore-focusable"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', lineHeight: 1, padding: 0, fontSize: '14px' }}>×</button>
+                className="flex items-center justify-center w-5 h-5 rounded-full bg-none border-none cursor-pointer text-white/80 leading-none p-0 text-sm">×</button>
             </span>
           ))}
         </div>
       )}
       {!presets && (
-        <input value={input} onChange={(e) => setInput(e.target.value)}
+        <input
+          value={input} onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(input); } }}
+          onBlur={() => add(input)}
           placeholder={placeholder}
-          style={{ padding: '8px 12px', borderRadius: '8px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '13px', color: 'var(--text-primary)', outline: 'none' }}
-          onFocus={(e) => (e.target.style.borderColor = COLLAB_COLOR)}
-          onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; add(input); }} />
+          className="px-3 py-2 rounded-lg border-[1.5px] border-border bg-input text-[13px] text-text-primary outline-none focus:border-[#3a3d4a]"
+        />
       )}
     </div>
   );
@@ -148,13 +140,7 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.35)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '20px',
-      }}
+      className="fixed inset-0 z-200 bg-black/35 backdrop-blur-xs flex items-center justify-center p-5"
     >
       {/* Modal card */}
       <motion.div
@@ -163,35 +149,16 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
         exit={{ opacity: 0, y: 16, scale: 0.97 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: '580px',
-          background: 'var(--card-bg)',
-          borderRadius: '16px',
-          border: '1px solid var(--card-border)',
-          boxShadow: 'var(--shadow-popup)',
-          overflow: 'hidden',
-        }}
+        className="w-full max-w-[580px] bg-card rounded-2xl border border-card-border shadow-popup overflow-hidden"
       >
         {/* Modal header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '18px 22px 0',
-        }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
+        <div className="flex items-center justify-between pt-4.5 px-5.5">
+          <h2 className="text-base font-bold text-text-primary tracking-[-0.2px]">
             Create a post
           </h2>
           <button
             onClick={onClose}
-            className="explore-focusable"
-            style={{
-              width: '44px', height: '44px', borderRadius: '50%',
-              border: 'none', background: 'var(--surface-2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: 'var(--text-secondary)',
-              transition: 'background-color 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-3)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
+            className="w-11 h-11 rounded-full border-none bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary transition-colors duration-150 hover:bg-surface-3"
           >
             <X size={15} />
           </button>
@@ -199,47 +166,45 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
 
         {/* Author row */}
         {user && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 22px 0' }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
-              background: `hsl(${[...user.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)`,
-              color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '14px', fontWeight: '700',
-            }}>
+          <div className="flex items-center gap-2.5 px-5.5 pt-3.5">
+            <div
+              className="w-9.5 h-9.5 rounded-full shrink-0 text-white flex items-center justify-center text-sm font-bold"
+              style={{ background: `hsl(${[...user.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)` }}
+            >
               {user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
             </div>
             <div>
-              <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{user.name}</p>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Posting to the community</p>
+              <p className="text-sm font-semibold text-text-primary">{user.name}</p>
+              <p className="text-xs text-text-muted">Posting to the community</p>
             </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ padding: '16px 22px 22px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '70vh', overflowY: 'auto' }}>
+        <form onSubmit={handleSubmit} className="px-5.5 pt-4 pb-5.5 flex flex-col gap-3 max-h-[70vh] overflow-y-auto">
 
           {/* Type tabs + domain */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="flex gap-1.5 flex-wrap items-center">
             {POST_TYPES.map(({ value, label, icon: Icon }) => {
               const active = type === value;
               const color  = value === 'collab' ? COLLAB_COLOR : 'var(--accent)';
               return (
-                <button key={value} type="button" onClick={() => setType(value)}
-                  className="explore-focusable"
+                <button
+                  key={value} type="button" onClick={() => setType(value)}
+                  className={`flex items-center gap-[5px] min-h-8 px-3.5 py-1.5 rounded-lg text-[13px] cursor-pointer transition-colors duration-150 ${active ? 'font-semibold' : 'font-normal'}`}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '5px',
-                    minHeight: '32px',
-                    padding: '6px 14px', borderRadius: '8px',
                     border: active ? `1.5px solid ${color}60` : '1.5px solid var(--border)',
                     background: active ? (value === 'collab' ? COLLAB_COLOR : 'var(--accent-bg)') : 'transparent',
                     color: active ? (value === 'collab' ? '#fff' : 'var(--accent)') : 'var(--text-secondary)',
-                    fontSize: '13px', fontWeight: active ? '600' : '400', cursor: 'pointer', transition: 'background-color 0.15s, border-color 0.15s, color 0.15s',
-                  }}>
+                  }}
+                >
                   <Icon size={13} /> {label}
                 </button>
               );
             })}
-            <select value={domain} onChange={(e) => setDomain(e.target.value)}
-              style={{ marginLeft: 'auto', padding: '6px 10px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '13px', color: 'var(--text-secondary)', background: 'var(--card-bg)', cursor: 'pointer', outline: 'none' }}>
+            <select
+              value={domain} onChange={(e) => setDomain(e.target.value)}
+              className="ml-auto px-2.5 py-1.5 rounded-lg border-[1.5px] border-border text-[13px] text-text-secondary bg-card cursor-pointer outline-none"
+            >
               {DOMAINS.filter((d) => d.value !== 'all').map((d) => (
                 <option key={d.value} value={d.value}>{d.label}</option>
               ))}
@@ -249,89 +214,86 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
           {/* Collab banner */}
           {isCollab && (
             <>
-              <div style={{ padding: '10px 14px', borderRadius: '10px', background: `${COLLAB_COLOR}0d`, border: `1px solid ${COLLAB_COLOR}30`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="px-3.5 py-2.5 rounded-[10px] flex items-center gap-2" style={{ background: `${COLLAB_COLOR}0d`, border: `1px solid ${COLLAB_COLOR}30` }}>
                 <Users2 size={14} color={COLLAB_COLOR} />
-                <span style={{ fontSize: '13px', color: COLLAB_COLOR, fontWeight: '600' }}>Collab Post — looking for collaborators</span>
+                <span className="text-[13px] font-semibold" style={{ color: COLLAB_COLOR }}>Collab Post — looking for collaborators</span>
               </div>
-              <input value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="Project name (optional)"
-                style={{ padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
-                onFocus={(e) => (e.target.style.borderColor = COLLAB_COLOR)}
-                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+              <input
+                value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="Project name (optional)"
+                className="px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-primary outline-none transition-colors duration-150 focus:border-[#3a3d4a]"
+              />
             </>
           )}
 
           {/* Title */}
-          <input value={title} onChange={(e) => setTitle(e.target.value)} autoFocus required
+          <input
+            value={title} onChange={(e) => setTitle(e.target.value)} autoFocus required
             placeholder={isCollab ? 'What are you building? What help do you need?' : 'Post title…'}
-            style={{ padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', outline: 'none', transition: 'border-color 0.15s' }}
-            onFocus={(e) => (e.target.style.borderColor = isCollab ? COLLAB_COLOR : 'var(--accent-border)')}
-            onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+            className={`px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-[15px] font-medium text-text-primary outline-none transition-colors duration-150 ${isCollab ? 'focus:border-[#3a3d4a]' : 'focus:border-accent-border'}`}
+          />
 
           {/* Body */}
           {type !== 'video' && (
-            <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={isCollab ? 4 : 4}
+            <textarea
+              value={body} onChange={(e) => setBody(e.target.value)} rows={4}
               placeholder={isCollab ? "Describe the project, what stage it's at, and what you're looking for…" : type === 'code' ? 'Brief description…' : 'Write your post…'}
-              style={{ padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', resize: 'vertical', outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.15s' }}
-              onFocus={(e) => (e.target.style.borderColor = isCollab ? COLLAB_COLOR : 'var(--accent-border)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+              className={`px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-secondary leading-relaxed resize-y font-[inherit] outline-none transition-colors duration-150 ${isCollab ? 'focus:border-[#3a3d4a]' : 'focus:border-accent-border'}`}
+            />
           )}
 
           {/* Code */}
           {type === 'code' && (
-            <textarea value={code} onChange={(e) => setCode(e.target.value)} placeholder="// Paste your code here…" rows={7}
-              style={{ padding: '12px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--code-bg)', fontSize: '13px', color: 'var(--code-text)', lineHeight: '1.65', resize: 'vertical', outline: 'none', fontFamily: 'ui-monospace, Consolas, monospace', transition: 'border-color 0.15s' }}
-              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+            <textarea
+              value={code} onChange={(e) => setCode(e.target.value)} placeholder="// Paste your code here…" rows={7}
+              className="px-3.5 py-3 rounded-[10px] border-[1.5px] border-border bg-code-bg text-[13px] text-code-text leading-[1.65] resize-y font-mono outline-none transition-colors duration-150 focus:border-accent-border"
+            />
           )}
 
           {/* Video */}
           {type === 'video' && (
-            <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="Paste YouTube or video URL…"
-              style={{ padding: '11px 14px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', fontSize: '14px', color: 'var(--text-secondary)', outline: 'none', transition: 'border-color 0.15s' }}
-              onFocus={(e) => (e.target.style.borderColor = 'var(--accent-border)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')} />
+            <input
+              value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="Paste YouTube or video URL…"
+              className="px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-secondary outline-none transition-colors duration-150 focus:border-accent-border"
+            />
           )}
 
           {/* Collab: tech stack + roles */}
           {isCollab && (
             <>
               <div>
-                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Tech Stack</p>
+                <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Tech Stack</p>
                 <TagInput tags={techStack} onAdd={(t) => setTechStack((s) => [...s, t])} onRemove={(t) => setTechStack((s) => s.filter((x) => x !== t))} placeholder="Type a tech and press Enter (e.g. React, Node.js)" />
               </div>
               <div>
-                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Roles Needed</p>
+                <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Roles Needed</p>
                 <TagInput tags={rolesNeeded} onAdd={(r) => setRolesNeeded((s) => [...s, r])} onRemove={(r) => setRolesNeeded((s) => s.filter((x) => x !== r))} presets={PRESET_ROLES} />
               </div>
               <MembersSlider value={membersNeeded} onChange={setMembersNeeded} />
             </>
           )}
 
-          {error && <p style={{ fontSize: '13px', color: 'var(--error-text)', margin: 0 }}>{error}</p>}
+          {error && <p className="text-[13px] text-error m-0">{error}</p>}
 
-          <div style={{ height: '1px', background: 'var(--divider)' }} />
+          <div className="h-px bg-divider" />
 
           {/* Actions */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button type="button" onClick={onClose}
-              className="explore-focusable"
-              style={{ minHeight: '44px', padding: '9px 18px', borderRadius: '9px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button" onClick={onClose}
+              className="min-h-11 px-4.5 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-text-secondary text-sm font-medium cursor-pointer"
+            >
               Cancel
             </button>
-            <motion.button type="submit" whileTap={{ scale: 0.97 }} disabled={!title.trim() || submitting}
-              className="explore-focusable"
-              style={{
-                display: 'flex', alignItems: 'center', gap: '7px', minHeight: '44px', padding: '9px 22px', borderRadius: '9px', border: 'none',
-                background: !title.trim() ? 'var(--accent-dim)' : isCollab ? COLLAB_COLOR : 'var(--accent)',
-                color: '#fff', fontSize: '14px', fontWeight: '600',
-                cursor: title.trim() && !submitting ? 'pointer' : 'not-allowed', transition: 'background-color 0.2s',
-              }}>
-              {submitting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : isCollab ? <Users2 size={14} /> : <Send size={14} />}
+            <motion.button
+              type="submit" whileTap={{ scale: 0.97 }} disabled={!title.trim() || submitting}
+              className={`flex items-center gap-[7px] min-h-11 px-5.5 py-2 rounded-[9px] border-none text-white text-sm font-semibold transition-colors duration-200 ${title.trim() && !submitting ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+              style={{ background: !title.trim() ? 'var(--accent-dim)' : isCollab ? COLLAB_COLOR : 'var(--accent)' }}
+            >
+              {submitting ? <Loader2 size={14} className="animate-spin" /> : isCollab ? <Users2 size={14} /> : <Send size={14} />}
               {submitting ? 'Posting…' : isCollab ? 'Post Collab' : 'Publish post'}
             </motion.button>
           </div>
         </form>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </motion.div>
     </motion.div>
   );
@@ -364,7 +326,7 @@ export default function ExplorePage() {
   }, []);
 
   return (
-    <div style={{ minHeight: '100svh', background: 'var(--surface-0)', transition: 'background 0.25s' }}>
+    <div className="min-h-svh bg-surface-0 transition-colors duration-250">
       <Navbar />
       {filtersOpen && (
         <TopicTabBar
@@ -374,27 +336,17 @@ export default function ExplorePage() {
         />
       )}
 
-      <div style={{
-        maxWidth: '1400px', margin: '0 auto',
-        padding: '20px 20px',
-        display: 'grid',
-        gridTemplateColumns: '240px 1fr 280px',
-        gap: '24px',
-        alignItems: 'start',
-      }}>
+      <div className="max-w-[1400px] mx-auto p-5 grid grid-cols-1 lg:grid-cols-[240px_1fr] xl:grid-cols-[240px_1fr_280px] gap-6 items-start">
         {/* Left sidebar */}
-        <div className="explore-left">
+        <div className="hidden lg:block">
           <LeftSidebar />
         </div>
 
         {/* Main feed column */}
-        <main style={{ minWidth: 0 }}>
+        <main className="min-w-0">
           {/* Heading row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <h1 style={{
-              fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)',
-              letterSpacing: '-0.3px', flex: 1,
-            }}>
+          <div className="flex items-center gap-2.5 mb-3">
+            <h1 className="text-lg font-bold text-text-primary tracking-[-0.3px] flex-1">
               {DOMAIN_LABELS[activeDomain] ?? 'Explore'}
             </h1>
 
@@ -406,14 +358,7 @@ export default function ExplorePage() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setFiltersOpen(true)}
                 title="Show filters"
-                className="explore-focusable"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '5px',
-                  minHeight: '44px', padding: '6px 12px', borderRadius: '20px',
-                  border: '1.5px solid var(--border)', background: 'var(--card-bg)',
-                  color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '500',
-                  cursor: 'pointer', flexShrink: 0,
-                }}
+                className="flex items-center gap-[5px] min-h-11 px-3 py-1.5 rounded-full border-[1.5px] border-border bg-card text-text-secondary text-[13px] font-medium cursor-pointer shrink-0"
               >
                 <ChevronDown size={13} /> Filters
               </motion.button>
@@ -424,15 +369,7 @@ export default function ExplorePage() {
               whileHover={{ boxShadow: 'var(--btn-grad-shadow-hover)' }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setModalOpen(true)}
-              className="explore-focusable"
-              style={{
-                display: 'flex', alignItems: 'center', gap: '7px',
-                minHeight: '44px', padding: '8px 16px', borderRadius: '9px',
-                border: 'none', background: 'var(--btn-grad)', color: '#fff',
-                fontSize: '13px', fontWeight: '600', cursor: 'pointer',
-                flexShrink: 0, transition: 'box-shadow 200ms ease',
-                boxShadow: 'var(--btn-grad-shadow)',
-              }}
+              className="flex items-center gap-[7px] min-h-11 px-4 py-2 rounded-[9px] border-none bg-(image:--btn-grad) text-white text-[13px] font-semibold cursor-pointer shrink-0 transition-shadow duration-200 shadow-btn"
             >
               <PenSquare size={14} />
               Create post
@@ -440,12 +377,12 @@ export default function ExplorePage() {
           </div>
 
           {/* Search */}
-          <div style={{ marginBottom: '16px' }}>
+          <div className="mb-4">
             <SearchBar value={search} onChange={setSearch} />
           </div>
 
           {/* Quick composer */}
-          <div style={{ marginBottom: '16px' }}>
+          <div className="mb-4">
             <CreatePost />
           </div>
 
@@ -454,7 +391,7 @@ export default function ExplorePage() {
         </main>
 
         {/* Right sidebar */}
-        <div className="explore-right">
+        <div className="hidden xl:block">
           <RightSidebar />
         </div>
       </div>
@@ -463,22 +400,6 @@ export default function ExplorePage() {
       <AnimatePresence>
         {modalOpen && <CreatePostModal onClose={() => setModalOpen(false)} initialType={createType} />}
       </AnimatePresence>
-
-      <style>{`
-        .explore-right { display: block; }
-        .explore-left { display: block; }
-        @media (max-width: 1200px) { .explore-left { display: none; } }
-        @media (max-width: 960px) { .explore-right { display: none; } }
-        @media (max-width: 960px) {
-          div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
-        }
-        .explore-focusable:focus-visible,
-        button:focus-visible,
-        a:focus-visible {
-          outline: 2px solid var(--accent);
-          outline-offset: 2px;
-        }
-      `}</style>
     </div>
   );
 }

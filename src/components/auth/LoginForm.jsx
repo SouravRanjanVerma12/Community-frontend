@@ -21,24 +21,14 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const socialBtnStyle = {
-  flex: 1,
-  minHeight: '44px',
-  padding: '10px 14px',
-  borderRadius: '10px',
-  background: 'var(--input-bg)',
-  border: '1.5px solid var(--input-border)',
-  color: 'var(--text-secondary)',
-  fontSize: '13px',
-  fontWeight: '500',
-  cursor: 'not-allowed',
-  opacity: 0.65,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '8px',
-  transition: 'opacity 150ms, transform 150ms',
-};
+const socialBtnClasses = [
+  'flex-1 min-h-11 px-3.5 py-2.5 rounded-[10px] bg-input border-[1.5px] border-input-border',
+  'text-text-secondary text-[13px] font-medium cursor-not-allowed opacity-65',
+  'flex items-center justify-center gap-2 transition-[opacity,transform] duration-150',
+  'focus-visible:shadow-[0_0_0_3px_var(--accent-border)] outline-none',
+].join(' ');
+
+const authLinkClasses = 'cursor-pointer rounded-md outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:shadow-[0_0_0_3px_var(--accent-border)]';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -54,7 +44,7 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <AnimatePresence>
         {error && (
           <motion.div
@@ -62,20 +52,9 @@ export default function LoginForm() {
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -8, height: 0 }}
             role="alert"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '12px 14px',
-              borderRadius: '10px',
-              background: 'var(--error-bg)',
-              border: '1px solid var(--error-border)',
-              color: 'var(--error-text)',
-              fontSize: '14px',
-              lineHeight: '1.5',
-            }}
+            className="flex items-center gap-2.5 px-3.5 py-3 rounded-[10px] bg-error-bg border border-error-border text-error text-sm leading-normal"
           >
-            <AlertCircle size={15} style={{ flexShrink: 0 }} />
+            <AlertCircle size={15} className="shrink-0" />
             {error}
           </motion.div>
         )}
@@ -91,7 +70,7 @@ export default function LoginForm() {
         required
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div className="flex flex-col gap-1.5">
         <InputField
           label="Password"
           type="password"
@@ -101,21 +80,10 @@ export default function LoginForm() {
           autoComplete="current-password"
           required
         />
-        <div style={{ textAlign: 'right' }}>
+        <div className="text-right">
           <a
             href="#"
-            className="auth-link"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              minHeight: '44px',
-              fontSize: '13px',
-              color: 'var(--accent)',
-              opacity: 0.85,
-              cursor: 'pointer',
-              borderRadius: '6px',
-              transition: 'opacity 150ms',
-            }}
+            className={`${authLinkClasses} inline-flex items-center min-h-11 text-[13px] text-accent opacity-85`}
             onClick={(e) => e.preventDefault()}
           >
             Forgot password?
@@ -128,43 +96,28 @@ export default function LoginForm() {
       </Button>
 
       {/* Divider */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          color: 'var(--text-muted)',
-          fontSize: '12px',
-        }}
-      >
-        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+      <div className="flex items-center gap-3 text-text-muted text-xs">
+        <div className="flex-1 h-px bg-border" />
         or continue with
-        <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+        <div className="flex-1 h-px bg-border" />
       </div>
 
       {/* Social buttons */}
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button type="button" disabled aria-disabled="true" title="Coming soon" style={socialBtnStyle}>
+      <div className="flex gap-2.5">
+        <button type="button" disabled aria-disabled="true" title="Coming soon" className={socialBtnClasses}>
           <GithubIcon /> GitHub
         </button>
-        <button type="button" disabled aria-disabled="true" title="Coming soon" style={socialBtnStyle}>
+        <button type="button" disabled aria-disabled="true" title="Coming soon" className={socialBtnClasses}>
           <GoogleIcon /> Google
         </button>
       </div>
 
-      <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.6' }}>
+      <p className="text-center text-sm text-text-muted m-0 leading-relaxed">
         New here?{' '}
-        <Link to="/register" className="auth-link" style={{ color: 'var(--accent)', fontWeight: '500' }}>
+        <Link to="/register" className={`${authLinkClasses} text-accent font-medium`}>
           Create an account
         </Link>
       </p>
-
-      <style>{`
-        .auth-link { cursor: pointer; border-radius: 6px; outline: none; }
-        .auth-link:hover { opacity: 0.8; }
-        .auth-link:focus-visible { box-shadow: 0 0 0 3px var(--accent-border); }
-        button:focus-visible { box-shadow: 0 0 0 3px var(--accent-border); }
-      `}</style>
     </form>
   );
 }

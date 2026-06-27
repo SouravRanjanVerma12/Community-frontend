@@ -5,6 +5,26 @@ import { useAuthStore } from '../stores/authStore';
 import AuthBrandPanel from '../components/auth/AuthBrandPanel';
 import LoginForm from '../components/auth/LoginForm';
 
+const cardThemeVars = {
+  '--input-bg': 'rgba(255, 255, 255, 0.05)',
+  '--input-bg-focus': 'rgba(255, 255, 255, 0.08)',
+  '--input-border': 'rgba(255, 255, 255, 0.10)',
+  '--border': 'rgba(255, 255, 255, 0.10)',
+  '--text-primary': '#ffffff',
+  '--text-secondary': 'rgba(255, 255, 255, 0.70)',
+  '--text-muted': 'rgba(255, 255, 255, 0.42)',
+  '--hover-bg': 'rgba(255, 255, 255, 0.06)',
+  '--surface-2': 'rgba(255, 255, 255, 0.06)',
+  '--accent': '#e8eaf0',
+  '--accent-border': 'rgba(232, 234, 240, 0.35)',
+  '--error-text': '#ff6b6b',
+  '--error-bg': 'rgba(255, 107, 107, 0.12)',
+  '--error-border': 'rgba(255, 107, 107, 0.32)',
+  '--btn-grad': 'linear-gradient(135deg, #2c2f3a 0%, #3a3d4a 100%)',
+  '--btn-grad-shadow': '0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) inset',
+  '--btn-grad-shadow-hover': '0 6px 28px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.18) inset',
+};
+
 export default function LoginPage() {
   const { user, accessToken } = useAuthStore();
   const navigate = useNavigate();
@@ -25,196 +45,46 @@ export default function LoginPage() {
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
-
-        .auth-root {
-          position: relative;
-          min-height: 100svh;
-          display: flex;
-          align-items: stretch;
-          overflow-x: hidden;
-        }
-
-        /* Form side column positioned absolutely on right to allow translation sliding */
-        .auth-form-side {
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: 50%;
-          height: 100%;
-          z-index: 2;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 48px 40px;
-          box-sizing: border-box;
-          transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* Transition layout by sliding form side column leftward */
-        .mode-split .auth-form-side {
-          transform: translateX(0);
-        }
-
-        .mode-focus .auth-form-side {
-          transform: translateX(-100%); /* Moves column to the left half */
-        }
-
-        .auth-card {
-          width: 100%;
-          max-width: 420px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.10);
-          border-radius: 20px;
-          padding: 40px 36px;
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          box-shadow:
-            0 0 0 1px rgba(255,255,255,0.03) inset,
-            0 32px 80px rgba(0,0,0,0.6);
-
-          /* override token vars for dark glass */
-          --input-bg: rgba(255, 255, 255, 0.05);
-          --input-bg-focus: rgba(255, 255, 255, 0.08);
-          --input-border: rgba(255, 255, 255, 0.10);
-          --border: rgba(255, 255, 255, 0.10);
-          --text-primary: #ffffff;
-          --text-secondary: rgba(255, 255, 255, 0.70);
-          --text-muted: rgba(255, 255, 255, 0.42);
-          --hover-bg: rgba(255, 255, 255, 0.06);
-          --surface-2: rgba(255, 255, 255, 0.06);
-          --accent: #e8eaf0;
-          --accent-border: rgba(232, 234, 240, 0.35);
-          --error-text: #ff6b6b;
-          --error-bg: rgba(255, 107, 107, 0.12);
-          --error-border: rgba(255, 107, 107, 0.32);
-          --btn-grad: linear-gradient(135deg, #2c2f3a 0%, #3a3d4a 100%);
-          --btn-grad-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
-          --btn-grad-shadow-hover: 0 6px 28px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.18) inset;
-        }
-
-        .auth-card * {
-          font-family: 'DM Sans', system-ui, sans-serif;
-        }
-
-        .auth-logo-text {
-          font-family: 'Outfit', system-ui, sans-serif;
-          font-weight: 700;
-          font-size: 18px;
-          color: #fff;
-          letter-spacing: -0.3px;
-        }
-
-        .auth-heading {
-          font-family: 'Outfit', system-ui, sans-serif;
-          font-weight: 700;
-          font-size: 26px;
-          color: #fff;
-          letter-spacing: -0.5px;
-          margin: 0 0 8px 0;
-        }
-
-        .auth-display-font {
-          font-family: 'Outfit', system-ui, sans-serif;
-        }
-
-        .auth-sub {
-          font-size: 14px;
-          color: rgba(255,255,255,0.45);
-          line-height: 1.6;
-          margin: 0;
-        }
-
-        .auth-layout-toggle:hover {
-          background: rgba(255, 255, 255, 0.09) !important;
-          border-color: rgba(255, 255, 255, 0.2) !important;
-        }
-
-        /* Responsive styling */
-        @media (max-width: 1024px) {
-          .auth-root {
-            justify-content: center;
-          }
-          .auth-form-side {
-            position: relative;
-            width: 100%;
-            height: auto;
-            transform: none !important;
-            padding: 40px 20px;
-          }
-          .auth-layout-toggle {
-            display: none !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .auth-card { padding: 32px 22px !important; }
-        }
-      `}</style>
-
       {/* Toggle Layout Button */}
       <button
         onClick={toggleLayout}
-        className="auth-layout-toggle"
-        style={{
-          position: 'fixed',
-          top: '24px',
-          right: '24px',
-          zIndex: 10,
-          background: 'rgba(255, 255, 255, 0.04)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '12px',
-          padding: '8px 16px',
-          color: '#fff',
-          fontFamily: 'DM Sans, system-ui, sans-serif',
-          fontSize: '12.5px',
-          fontWeight: '600',
-          cursor: 'pointer',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          transition: 'all 0.2s ease',
-        }}
+        className="hidden lg:flex fixed top-6 right-6 z-10 bg-white/4 border border-white/10 rounded-xl px-4 py-2 text-white font-[DM_Sans,system-ui,sans-serif] text-[12.5px] font-semibold cursor-pointer backdrop-blur-[10px] items-center gap-2 shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-200 hover:bg-white/9 hover:border-white/20"
       >
-        <span style={{ 
-          display: 'inline-flex', 
-          transform: layoutMode === 'focus' ? 'rotate(180deg)' : 'none', 
-          transition: 'transform 0.4s ease',
-          fontSize: '14px'
-        }}>
+        <span className={`inline-flex text-sm transition-transform duration-400 ${layoutMode === 'focus' ? 'rotate-180' : ''}`}>
           ⇄
         </span>
         {layoutMode === 'split' ? 'Focus Mode' : 'Split View'}
       </button>
 
-      <div className={`auth-root mode-${layoutMode}`}>
+      <div className="relative min-h-svh flex items-stretch overflow-x-hidden lg:[&]:justify-start justify-center">
         <AuthBrandPanel mode="login" showCopy={layoutMode === 'split'} />
 
         {/* ── Sliding Form Column ── */}
-        <div className="auth-form-side">
+        <div
+          className={[
+            'relative lg:absolute lg:top-0 lg:right-0 w-full lg:w-1/2 h-auto lg:h-full z-2',
+            'flex items-center justify-center px-5 py-10 lg:px-10 lg:py-12 box-border',
+            'transition-transform duration-600 ease-[cubic-bezier(0.16,1,0.3,1)]',
+            layoutMode === 'focus' ? 'lg:-translate-x-full' : 'lg:translate-x-0',
+          ].join(' ')}
+        >
           <motion.div
-            className="auth-card"
+            className="w-full max-w-[420px] bg-white/4 border border-white/10 rounded-[20px] p-9 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.03)_inset,0_32px_80px_rgba(0,0,0,0.6)] **:font-[DM_Sans,system-ui,sans-serif]"
+            style={cardThemeVars}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px' }}>
-              <div style={{
-                width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
-                background: 'radial-gradient(circle at 35% 35%, #fff 0%, #a5b4fc 42%, #4338ca 100%)',
-                boxShadow: '0 0 16px rgba(165,180,252,0.45)',
-              }} />
-              <span className="auth-logo-text">Prograstic</span>
+            <div className="flex items-center gap-2.5 mb-[30px]">
+              <div className="w-[34px] h-[34px] rounded-full shrink-0 bg-[radial-gradient(circle_at_35%_35%,#fff_0%,#a5b4fc_42%,#4338ca_100%)] shadow-[0_0_16px_rgba(165,180,252,0.45)]" />
+              <span className="font-[Outfit,system-ui,sans-serif]! font-bold text-lg text-white tracking-[-0.3px]">Prograstic</span>
             </div>
 
             {/* Heading */}
-            <div style={{ marginBottom: '28px' }}>
-              <h1 className="auth-heading">Welcome back</h1>
-              <p className="auth-sub">Sign in to continue to Prograstic</p>
+            <div className="mb-7">
+              <h1 className="font-[Outfit,system-ui,sans-serif]! font-bold text-[26px] text-white tracking-[-0.5px] mb-2">Welcome back</h1>
+              <p className="text-sm text-white/45 leading-[1.6] m-0">Sign in to continue to Prograstic</p>
             </div>
 
             <LoginForm />

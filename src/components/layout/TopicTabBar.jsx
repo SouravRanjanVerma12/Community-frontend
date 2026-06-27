@@ -32,30 +32,18 @@ export default function TopicTabBar({ activeDomain, onSelect, onHide }) {
   }, [activeDomain]);
 
   return (
-    <div style={{
-      position: 'sticky',
-      top: '60px',
-      zIndex: 90,
-      background: 'var(--nav-bg)',
-      borderBottom: '1px solid var(--nav-border)',
-      transition: 'background 0.25s, border-color 0.25s',
-    }}>
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+    <div className="sticky top-[60px] z-90 bg-nav border-b border-nav-border transition-colors duration-250">
+      <div className="relative flex items-center">
 
         {/* Left fade */}
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '32px', background: 'linear-gradient(to right, var(--nav-bg), transparent)', zIndex: 1, pointerEvents: 'none' }} />
+        <div className="absolute left-0 top-0 bottom-0 w-8 z-1 pointer-events-none bg-[linear-gradient(to_right,var(--nav-bg),transparent)]" />
         {/* Right fade — leaves room for the hide button */}
-        <div style={{ position: 'absolute', right: '44px', top: 0, bottom: 0, width: '32px', background: 'linear-gradient(to left, var(--nav-bg), transparent)', zIndex: 1, pointerEvents: 'none' }} />
+        <div className="absolute right-11 top-0 bottom-0 w-8 z-1 pointer-events-none bg-[linear-gradient(to_left,var(--nav-bg),transparent)]" />
 
         {/* Pill strip */}
         <div
           ref={scrollRef}
-          style={{
-            display: 'flex', gap: '6px',
-            padding: '10px 20px',
-            overflowX: 'auto', scrollbarWidth: 'none',
-            flex: 1,
-          }}
+          className="flex gap-1.5 px-5 py-2.5 overflow-x-auto flex-1 scrollbar-none"
         >
           <MotionConfig transition={{ type: 'spring', stiffness: 400, damping: 30 }}>
             {DOMAINS.map((domain) => {
@@ -67,15 +55,13 @@ export default function TopicTabBar({ activeDomain, onSelect, onHide }) {
                   ref={active ? activeRef : null}
                   onClick={() => onSelect(domain.value)}
                   whileTap={{ scale: 0.95 }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full cursor-pointer whitespace-nowrap shrink-0 transition-[border-color,background-color,color] duration-150"
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    padding: '6px 14px', borderRadius: '20px',
                     border: `1.5px solid ${active ? domain.color : 'var(--border)'}`,
                     background: active ? `${domain.color}14` : 'transparent',
                     color: active ? domain.color : 'var(--text-secondary)',
-                    fontSize: '13px', fontWeight: active ? '600' : '500',
-                    cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
-                    transition: 'border-color 0.15s, background 0.15s, color 0.15s',
+                    fontSize: '13px',
+                    fontWeight: active ? '600' : '500',
                   }}
                   onMouseEnter={(e) => {
                     if (!active) {
@@ -97,7 +83,8 @@ export default function TopicTabBar({ activeDomain, onSelect, onHide }) {
                   {active && (
                     <motion.span
                       layoutId="active-dot"
-                      style={{ width: '5px', height: '5px', borderRadius: '50%', background: domain.color, flexShrink: 0 }}
+                      className="w-[5px] h-[5px] rounded-full shrink-0"
+                      style={{ background: domain.color }}
                     />
                   )}
                 </motion.button>
@@ -111,22 +98,11 @@ export default function TopicTabBar({ activeDomain, onSelect, onHide }) {
           onClick={onHide}
           whileTap={{ scale: 0.9 }}
           title="Hide filters"
-          style={{
-            flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: '28px', height: '28px', borderRadius: '50%',
-            border: '1.5px solid var(--border)', background: 'var(--surface-2)',
-            color: 'var(--text-muted)', cursor: 'pointer', margin: '0 12px',
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-3)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
+          className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full border-[1.5px] border-border bg-surface-2 text-text-muted cursor-pointer mx-3 transition-colors duration-150 hover:bg-surface-3"
         >
           <ChevronUp size={13} />
         </motion.button>
       </div>
-
-      <style>{`div::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );
 }

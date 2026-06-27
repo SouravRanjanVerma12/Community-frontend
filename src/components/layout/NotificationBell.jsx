@@ -45,26 +45,15 @@ export default function NotificationBell() {
   };
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
         title="Notifications"
-        style={{
-          position: 'relative', display: 'flex', alignItems: 'center',
-          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-          color: open ? 'var(--accent)' : 'var(--text-muted)', transition: 'color 0.15s',
-        }}
+        className={`relative flex items-center bg-none border-none cursor-pointer p-0 transition-colors duration-150 ${open ? 'text-accent' : 'text-text-muted'}`}
       >
         <BellRing size={18} />
         {unreadCount > 0 && (
-          <span style={{
-            position: 'absolute', top: -6, right: -6,
-            minWidth: 15, height: 15, padding: '0 3px', borderRadius: '50%',
-            background: 'var(--btn-grad)', color: '#fff',
-            fontSize: '9px', fontWeight: '700',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '2px solid var(--nav-bg)',
-          }}>
+          <span className="absolute -top-1.5 -right-1.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-(image:--btn-grad) text-white text-[9px] font-bold flex items-center justify-center border-2 border-nav">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -77,23 +66,15 @@ export default function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            style={{
-              position: 'absolute', top: 'calc(100% + 12px)', right: '-8px', zIndex: 500,
-              background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-              borderRadius: '14px', boxShadow: 'var(--shadow-popup)',
-              width: '320px', overflow: 'hidden',
-            }}
+            className="absolute top-[calc(100%+12px)] -right-2 z-500 bg-card border border-card-border rounded-2xl shadow-popup w-[min(320px,90vw)] overflow-hidden"
           >
             {/* Header */}
-            <div style={{
-              padding: '13px 16px 11px', borderBottom: '1px solid var(--divider)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-              <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>Notifications</span>
+            <div className="px-4 pt-[13px] pb-[11px] border-b border-divider flex items-center justify-between">
+              <span className="text-sm font-bold text-text-primary">Notifications</span>
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '12px', fontWeight: '600', padding: 0 }}
+                  className="flex items-center gap-1 bg-none border-none cursor-pointer text-accent text-xs font-semibold p-0"
                 >
                   <CheckCheck size={13} /> Mark all read
                 </button>
@@ -102,32 +83,26 @@ export default function NotificationBell() {
 
             {/* Body */}
             {notifications.length === 0 ? (
-              <div style={{ padding: '28px 16px', textAlign: 'center' }}>
-                <BellRing size={28} color="var(--text-muted)" style={{ marginBottom: '10px' }} />
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>No notifications yet</p>
+              <div className="px-4 py-7 text-center">
+                <BellRing size={28} color="var(--text-muted)" className="mb-2.5" />
+                <p className="text-[13px] text-text-muted m-0">No notifications yet</p>
               </div>
             ) : (
-              <div style={{ maxHeight: '380px', overflowY: 'auto' }}>
+              <div className="max-h-[380px] overflow-y-auto">
                 {notifications.map((n) => (
                   <button
                     key={n._id}
                     onClick={() => handleItemClick(n)}
-                    style={{
-                      display: 'flex', alignItems: 'flex-start', gap: '10px', width: '100%',
-                      padding: '11px 16px', background: n.read ? 'transparent' : 'var(--accent-dim)',
-                      border: 'none', borderBottom: '1px solid var(--divider)',
-                      cursor: 'pointer', textAlign: 'left', transition: 'background 0.12s',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--hover-bg)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = n.read ? 'transparent' : 'var(--accent-dim)'; }}
+                    className={[
+                      'flex items-start gap-2.5 w-full px-4 py-[11px] border-none border-b border-divider',
+                      'cursor-pointer text-left transition-colors duration-150 hover:bg-hover',
+                      n.read ? 'bg-transparent' : 'bg-accent-dim',
+                    ].join(' ')}
                   >
-                    <span style={{
-                      width: 6, height: 6, borderRadius: '50%', flexShrink: 0, marginTop: '6px',
-                      background: n.read ? 'transparent' : 'var(--accent)',
-                    }} />
-                    <span style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: '13px', color: 'var(--text-primary)', margin: 0, lineHeight: '1.4' }}>{n.text}</p>
-                      <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '3px 0 0' }}>{timeAgo(n.createdAt)} ago</p>
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${n.read ? 'bg-transparent' : 'bg-accent'}`} />
+                    <span className="flex-1 min-w-0">
+                      <p className="text-[13px] text-text-primary m-0 leading-snug">{n.text}</p>
+                      <p className="text-[11px] text-text-muted mt-[3px] mb-0">{timeAgo(n.createdAt)} ago</p>
                     </span>
                   </button>
                 ))}

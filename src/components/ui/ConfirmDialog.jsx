@@ -41,13 +41,7 @@ export default function ConfirmDialogHost() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={() => close(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 300,
-            background: 'rgba(0,0,0,0.4)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px',
-          }}
+          className="fixed inset-0 z-300 bg-black/40 backdrop-blur-xs flex items-center justify-center p-5"
         >
           <motion.div
             initial={{ opacity: 0, y: 16, scale: 0.97 }}
@@ -58,61 +52,45 @@ export default function ConfirmDialogHost() {
             role="alertdialog"
             aria-modal="true"
             aria-label={title || 'Confirm action'}
-            style={{
-              width: '100%', maxWidth: '380px',
-              background: 'var(--card-bg)',
-              borderRadius: '16px',
-              border: '1px solid var(--card-border)',
-              boxShadow: 'var(--shadow-popup)',
-              padding: '24px',
-            }}
+            className="w-full max-w-[380px] bg-card rounded-2xl border border-card-border shadow-popup p-6"
           >
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: '10px', flexShrink: 0,
-                background: danger ? 'var(--error-bg)' : 'var(--accent-bg)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+            <div className="flex gap-3 mb-5">
+              <div
+                className={[
+                  'w-9 h-9 rounded-[10px] shrink-0 flex items-center justify-center',
+                  danger ? 'bg-error-bg' : 'bg-accent-bg',
+                ].join(' ')}
+              >
                 <AlertTriangle size={18} color={danger ? 'var(--error-text)' : 'var(--accent)'} />
               </div>
               <div>
                 {title && (
-                  <p style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                  <p className="text-[15px] font-bold text-text-primary mb-1">
                     {title}
                   </p>
                 )}
-                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                <p className="text-sm text-text-secondary leading-normal">
                   {message}
                 </p>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <div className="flex gap-2.5 justify-end">
               <button
                 onClick={() => close(false)}
                 autoFocus
-                style={{
-                  minHeight: '40px', padding: '8px 18px', borderRadius: '9px',
-                  border: '1.5px solid var(--border)', background: 'transparent',
-                  color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '600',
-                  cursor: 'pointer', transition: 'background-color 150ms ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-2)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                className="min-h-10 px-[18px] py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-text-secondary text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-surface-2"
               >
                 {cancelLabel}
               </button>
               <button
                 onClick={() => close(true)}
-                style={{
-                  minHeight: '40px', padding: '8px 18px', borderRadius: '9px',
-                  border: danger ? '1.5px solid var(--error-border)' : 'none',
-                  background: danger ? 'var(--error-bg)' : 'var(--btn-grad)',
-                  color: danger ? 'var(--error-text)' : '#fff', fontSize: '13px', fontWeight: '700',
-                  cursor: 'pointer', transition: 'opacity 150ms ease',
-                  boxShadow: danger ? 'none' : 'var(--btn-grad-shadow)',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                className={[
+                  'min-h-10 px-[18px] py-2 rounded-[9px] text-[13px] font-bold cursor-pointer',
+                  'transition-opacity duration-150 hover:opacity-90',
+                  danger
+                    ? 'border-[1.5px] border-error-border bg-error-bg text-error'
+                    : 'border-none bg-(image:--btn-grad) text-white shadow-btn',
+                ].join(' ')}
               >
                 {confirmLabel}
               </button>

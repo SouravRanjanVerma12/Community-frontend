@@ -10,6 +10,8 @@ import { API_URL } from '../../config';
 
 const BASE = `${API_URL}/api`;
 
+const authLinkClasses = 'cursor-pointer rounded-md outline-none transition-opacity duration-150 hover:opacity-85 focus-visible:shadow-[0_0_0_3px_var(--accent-border)]';
+
 /* generate 3 unique username suggestions from a name */
 function generateSuggestions(name) {
   if (!name.trim()) return [];
@@ -103,14 +105,14 @@ export default function RegisterForm() {
   const canSubmit  = !isLoading && usernameOk && password === confirm && password.length >= 6;
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-[18px]">
 
       {/* API error */}
       <AnimatePresence>
         {error && (
           <motion.div role="alert" initial={{ opacity: 0, y: -8, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }} exit={{ opacity: 0, y: -8, height: 0 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '10px', background: 'var(--error-bg)', border: '1px solid var(--error-border)', color: 'var(--error-text)', fontSize: '14px', lineHeight: '1.5' }}>
-            <AlertCircle size={15} style={{ flexShrink: 0 }} /> {error}
+            className="flex items-center gap-2.5 px-3.5 py-3 rounded-[10px] bg-error-bg border border-error-border text-error text-sm leading-normal">
+            <AlertCircle size={15} className="shrink-0" /> {error}
           </motion.div>
         )}
       </AnimatePresence>
@@ -119,17 +121,21 @@ export default function RegisterForm() {
       <InputField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" required />
 
       {/* Username field */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <label htmlFor={usernameId} style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>Username</label>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '1px 7px', borderRadius: '10px' }}>optional</span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-1.5">
+          <label htmlFor={usernameId} className="text-[13px] font-medium text-text-secondary">Username</label>
+          <span className="text-[11px] text-text-muted bg-surface-2 px-[7px] py-px rounded-[10px]">optional</span>
         </div>
 
         {/* Input with @ prefix */}
         <motion.div
           animate={{ boxShadow: usernameStatus === 'available' ? '0 0 0 3px var(--success-border)' : usernameStatus === 'taken' ? '0 0 0 3px var(--error-border)' : '0 0 0 0px transparent' }}
-          style={{ display: 'flex', alignItems: 'center', borderRadius: '10px', background: 'var(--input-bg)', border: `1.5px solid ${usernameStatus === 'available' ? 'var(--success-text)' : usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'var(--error-text)' : 'var(--input-border)'}`, overflow: 'hidden', transition: 'border-color 150ms' }}>
-          <span style={{ padding: '0 0 0 14px', color: 'var(--text-muted)', fontSize: '15px', userSelect: 'none', display: 'flex', alignItems: 'center' }}>
+          className={[
+            'flex items-center rounded-[10px] bg-input border-[1.5px] overflow-hidden transition-colors duration-150',
+            usernameStatus === 'available' ? 'border-success' : usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'border-error' : 'border-input-border',
+          ].join(' ')}
+        >
+          <span className="pl-3.5 text-text-muted text-[15px] select-none flex items-center">
             <AtSign size={15} />
           </span>
           <input
@@ -140,10 +146,10 @@ export default function RegisterForm() {
             autoComplete="username"
             maxLength={20}
             aria-describedby={usernameMsg ? `${usernameId}-status` : undefined}
-            style={{ flex: 1, minHeight: '44px', padding: '11px 10px', background: 'transparent', border: 'none', outline: 'none', fontSize: '16px', color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}
+            className="flex-1 min-h-11 py-[11px] px-2.5 bg-transparent border-none outline-none text-base text-text-primary font-mono"
           />
-          <span style={{ padding: '0 12px', display: 'flex', alignItems: 'center' }}>
-            {usernameStatus === 'checking' && <Loader2 size={15} color="var(--text-muted)" style={{ animation: 'spin 0.8s linear infinite' }} />}
+          <span className="px-3 flex items-center">
+            {usernameStatus === 'checking' && <Loader2 size={15} color="var(--text-muted)" className="animate-spin" />}
             {usernameStatus === 'available' && <CheckCircle size={15} color="var(--success-text)" />}
             {(usernameStatus === 'taken' || usernameStatus === 'invalid') && <X size={15} color="var(--error-text)" />}
           </span>
@@ -151,7 +157,7 @@ export default function RegisterForm() {
 
         {/* Auto-generate hint when blank */}
         {!username && (
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.5' }}>
+          <p className="text-xs text-text-muted m-0 leading-normal">
             We'll auto-generate one from your name if you skip this.
           </p>
         )}
@@ -160,7 +166,7 @@ export default function RegisterForm() {
         <AnimatePresence>
           {usernameMsg && (
             <motion.p id={`${usernameId}-status`} role="status" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ fontSize: '13px', color: statusColor, margin: 0, lineHeight: '1.5' }}>
+              className="text-[13px] m-0 leading-normal" style={{ color: statusColor }}>
               {usernameMsg}
             </motion.p>
           )}
@@ -168,25 +174,20 @@ export default function RegisterForm() {
 
         {/* Suggestions */}
         {suggestions.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>Suggestions:</p>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-xs text-text-muted m-0">Suggestions:</p>
+            <div className="flex gap-2 flex-wrap">
               {suggestions.map((s) => (
                 <motion.button
                   key={s}
                   type="button"
-                  className="auth-link"
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setUsername(s)}
-                  style={{
-                    minHeight: '36px', padding: '6px 14px', borderRadius: '20px', border: '1.5px solid',
-                    borderColor: username === s ? 'var(--accent)' : 'var(--border)',
-                    background: username === s ? 'var(--accent-bg)' : 'var(--input-bg)',
-                    color: username === s ? 'var(--accent)' : 'var(--text-secondary)',
-                    fontSize: '13px', fontWeight: '500', cursor: 'pointer',
-                    fontFamily: 'var(--mono)',
-                    transition: 'background 150ms, border-color 150ms, transform 150ms',
-                  }}
+                  className={[
+                    'min-h-9 px-3.5 py-1.5 rounded-full border-[1.5px] text-[13px] font-medium cursor-pointer font-mono',
+                    'transition-[background-color,border-color,transform] duration-150',
+                    username === s ? 'border-accent bg-accent-bg text-accent' : 'border-border bg-input text-text-secondary',
+                  ].join(' ')}
                 >
                   @{s}
                 </motion.button>
@@ -197,16 +198,16 @@ export default function RegisterForm() {
       </div>
 
       {/* Password */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="flex flex-col gap-2">
         <InputField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 characters" autoComplete="new-password" required />
         {password.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} aria-live="polite">
-            <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
+          <div className="flex items-center gap-2" aria-live="polite">
+            <div className="flex gap-1 flex-1">
               {[1, 2, 3].map((level) => (
-                <motion.div key={level} animate={{ background: pwStrength >= level ? strengthColors[pwStrength] : 'var(--border)' }} transition={{ duration: 0.25 }} style={{ height: '3px', flex: 1, borderRadius: '2px' }} />
+                <motion.div key={level} animate={{ background: pwStrength >= level ? strengthColors[pwStrength] : 'var(--border)' }} transition={{ duration: 0.25 }} className="h-[3px] flex-1 rounded-[2px]" />
               ))}
             </div>
-            <span style={{ fontSize: '12px', color: strengthColors[pwStrength], minWidth: '44px' }}>{strengthLabels[pwStrength]}</span>
+            <span className="text-xs min-w-11" style={{ color: strengthColors[pwStrength] }}>{strengthLabels[pwStrength]}</span>
           </div>
         )}
       </div>
@@ -214,7 +215,7 @@ export default function RegisterForm() {
       <InputField label="Confirm password" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Repeat your password" autoComplete="new-password" error={confirmError} required />
 
       {confirm && password && confirm === password && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} role="status" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success-text)', fontSize: '13px', marginTop: '-10px', lineHeight: '1.5' }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} role="status" className="flex items-center gap-1.5 text-success text-[13px] -mt-2.5 leading-normal">
           <CheckCircle size={14} /> Passwords match
         </motion.div>
       )}
@@ -223,23 +224,16 @@ export default function RegisterForm() {
         Create account
       </Button>
 
-      <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.6' }}>
+      <p className="text-center text-sm text-text-muted m-0 leading-relaxed">
         Already a member?{' '}
-        <Link to="/" className="auth-link" style={{ color: 'var(--accent)', fontWeight: '500' }}>Sign in</Link>
+        <Link to="/" className={`${authLinkClasses} text-accent font-medium`}>Sign in</Link>
       </p>
 
-      <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.6', maxWidth: '60ch', marginInline: 'auto' }}>
+      <p className="text-center text-xs text-text-muted m-0 leading-relaxed max-w-[60ch] mx-auto">
         By creating an account you agree to our{' '}
-        <a href="#" className="auth-link" style={{ color: 'var(--text-secondary)' }}>Terms</a> and{' '}
-        <a href="#" className="auth-link" style={{ color: 'var(--text-secondary)' }}>Privacy Policy</a>.
+        <a href="#" className={`${authLinkClasses} text-text-secondary`}>Terms</a> and{' '}
+        <a href="#" className={`${authLinkClasses} text-text-secondary`}>Privacy Policy</a>.
       </p>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .auth-link { cursor: pointer; border-radius: 6px; outline: none; }
-        .auth-link:hover { opacity: 0.85; }
-        .auth-link:focus-visible { box-shadow: 0 0 0 3px var(--accent-border); }
-      `}</style>
     </form>
   );
 }

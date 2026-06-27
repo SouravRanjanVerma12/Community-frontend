@@ -4,9 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Edit3, Trash2,  GitBranch, Users,
   X, Loader2, FolderGit2, Link2,  Briefcase, Search,
-  Filter, ChevronDown, Star, Clock, CheckCircle, PauseCircle,
-  AlertCircle, Eye, Globe,  Tag, ArrowUpRight, MoreHorizontal,
-  Calendar, TrendingUp, Layers,
+  Clock, CheckCircle, PauseCircle,
+  AlertCircle, Globe, ArrowUpRight, MoreHorizontal,
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import api from "../../api/axiosInstance";
@@ -33,30 +32,20 @@ const FILTERS = [
   { value: "seeking",   label: "Seeking Collaborators" },
 ];
 
-/* inline style primitives */
-const inputStyle = {
-  width: "100%", padding: "10px 14px", borderRadius: "10px",
-  border: "1.5px solid var(--border)", background: "var(--input-bg)",
-  fontSize: "14px", color: "var(--text-primary)", outline: "none",
-  boxSizing: "border-box",
-};
-const labelStyle = {
-  fontSize: "12px", fontWeight: "600", color: "var(--text-secondary)",
-  display: "block", marginBottom: "5px", letterSpacing: ".3px",
-};
-const tagStyle = (color) => ({
-  display: "inline-flex", alignItems: "center", gap: "4px",
-  padding: "3px 10px", borderRadius: "16px", fontSize: "11px",
-  background: `${color}18`, color: color, border: `1px solid ${color}30`,
-  fontWeight: "600",
+const fieldClasses = "w-full px-3.5 py-2.5 rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-primary outline-none box-border";
+const labelClasses = "text-xs font-semibold text-text-secondary block mb-1.5 tracking-[0.3px]";
+const tagClasses = (color) => ({
+  className: "inline-flex items-center gap-1 px-2.5 py-[3px] rounded-2xl text-[11px] font-semibold",
+  style: { background: `${color}18`, color, border: `1px solid ${color}30` },
 });
 
 /* ─────────────────────────── SUB: STATUS BADGE ─────────────────────────── */
 function StatusBadge({ status }) {
   const s = STATUS[status] || STATUS.ongoing;
   const Icon = s.icon;
+  const tag = tagClasses(s.color);
   return (
-    <span style={{ ...tagStyle(s.color), background: s.bg }}>
+    <span className={tag.className} style={{ ...tag.style, background: s.bg }}>
       <Icon size={10} /> {s.label}
     </span>
   );
@@ -74,6 +63,8 @@ function ProjectCard({ project, isOwner, onEdit, onDelete, onView }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const tag = tagClasses(dc);
+
   return (
     <motion.div
       layout
@@ -81,35 +72,30 @@ function ProjectCard({ project, isOwner, onEdit, onDelete, onView }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: .96 }}
       onClick={() => onView(project)}
-      style={{
-        background: "var(--card-bg)", border: "1px solid var(--card-border)",
-        borderRadius: "14px", padding: "20px", display: "flex",
-        flexDirection: "column", gap: "12px", cursor: "pointer",
-        position: "relative", transition: "border-color .15s, box-shadow .15s",
-      }}
+      className="bg-card border border-card-border rounded-[14px] p-5 flex flex-col gap-3 cursor-pointer relative transition-[border-color,box-shadow] duration-150"
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = dc; e.currentTarget.style.boxShadow = `0 0 0 1px ${dc}30, 0 8px 24px rgba(0,0,0,.18)`; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--card-border)"; e.currentTarget.style.boxShadow = "none"; }}
     >
       {/* Domain accent strip */}
-      <div style={{ position: "absolute", top: 0, left: "20px", right: "20px", height: "2px", background: `linear-gradient(90deg, ${dc}, transparent)`, borderRadius: "0 0 4px 4px" }} />
+      <div className="absolute top-0 left-5 right-5 h-0.5 rounded-b-[4px]" style={{ background: `linear-gradient(90deg, ${dc}, transparent)` }} />
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h4 style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+      <div className="flex justify-between items-start gap-2">
+        <div className="flex-1 min-w-0">
+          <h4 className="text-[15px] font-bold text-text-primary mb-1.5 whitespace-nowrap overflow-hidden text-ellipsis">
             {project.projectName || project.title}
           </h4>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-            <span style={tagStyle(dc)}>{domainLabel(project.domain)}</span>
+          <div className="flex flex-wrap gap-1.5">
+            <span className={tag.className} style={tag.style}>{domainLabel(project.domain)}</span>
             <StatusBadge status={project.status} />
           </div>
         </div>
 
         {isOwner && (
-          <div ref={menuRef} style={{ position: "relative", flexShrink: 0 }}>
+          <div ref={menuRef} className="relative shrink-0">
             <button
               onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
-              style={{ padding: "6px", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}
+              className="p-1.5 rounded-lg border border-border bg-transparent text-text-muted cursor-pointer flex items-center"
             >
               <MoreHorizontal size={15} />
             </button>
@@ -119,17 +105,17 @@ function ProjectCard({ project, isOwner, onEdit, onDelete, onView }) {
                   initial={{ opacity: 0, scale: .92, y: -4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: .92 }}
-                  style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "10px", padding: "6px", zIndex: 50, minWidth: "130px", boxShadow: "0 8px 24px rgba(0,0,0,.3)" }}
+                  className="absolute right-0 top-[calc(100%+6px)] bg-card border border-card-border rounded-[10px] p-1.5 z-50 min-w-[130px] shadow-[0_8px_24px_rgba(0,0,0,.3)]"
                 >
-                  <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(project); }} style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 10px", borderRadius: "7px", border: "none", background: "transparent", color: "var(--text-secondary)", cursor: "pointer", fontSize: "13px" }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-2)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(project); }}
+                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-md border-none bg-transparent text-text-secondary cursor-pointer text-[13px] transition-colors duration-150 hover:bg-surface-2"
                   >
                     <Edit3 size={13} /> Edit
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(project._id); }} style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 10px", borderRadius: "7px", border: "none", background: "transparent", color: "var(--error-text)", cursor: "pointer", fontSize: "13px" }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(239,68,68,.08)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(project._id); }}
+                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-md border-none bg-transparent text-error cursor-pointer text-[13px] transition-colors duration-150 hover:bg-[rgba(239,68,68,.08)]"
                   >
                     <Trash2 size={13} /> Delete
                   </button>
@@ -142,61 +128,61 @@ function ProjectCard({ project, isOwner, onEdit, onDelete, onView }) {
 
       {/* Tagline */}
       {project.title && project.projectName && project.title !== project.projectName && (
-        <p style={{ fontSize: "12px", color: "var(--text-muted)", fontStyle: "italic", marginTop: "-6px" }}>{project.title}</p>
+        <p className="text-xs text-text-muted italic -mt-1.5">{project.title}</p>
       )}
 
       {/* Description */}
-      <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: "1.55" }}>
+      <p className="text-[13px] text-text-secondary leading-[1.55]">
         {project.description?.slice(0, 130)}{project.description?.length > 130 ? "…" : ""}
       </p>
 
       {/* Tech Stack */}
       {project.techStack?.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+        <div className="flex flex-wrap gap-1">
           {project.techStack.slice(0, 5).map((t) => (
-            <span key={t} style={{ padding: "2px 8px", borderRadius: "5px", fontSize: "10px", background: "var(--surface-2)", color: "var(--text-muted)", border: "1px solid var(--border)", fontFamily: "var(--mono, monospace)", fontWeight: "600" }}>{t}</span>
+            <span key={t} className="px-2 py-0.5 rounded text-[10px] bg-surface-2 text-text-muted border border-border font-mono font-semibold">{t}</span>
           ))}
           {project.techStack.length > 5 && (
-            <span style={{ padding: "2px 8px", borderRadius: "5px", fontSize: "10px", color: "var(--text-muted)" }}>+{project.techStack.length - 5}</span>
+            <span className="px-2 py-0.5 rounded text-[10px] text-text-muted">+{project.techStack.length - 5}</span>
           )}
         </div>
       )}
 
       {/* Roles Needed */}
       {project.rolesNeeded?.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", alignItems: "center" }}>
-          <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", letterSpacing: ".5px" }}>Need:</span>
+        <div className="flex flex-wrap gap-1 items-center">
+          <span className="text-[10px] text-text-muted font-semibold uppercase tracking-wide">Need:</span>
           {project.rolesNeeded.slice(0, 3).map((r) => (
-            <span key={r} style={{ ...tagStyle("#0891b2"), background: "rgba(8,145,178,.1)", fontSize: "10px" }}>{r}</span>
+            <span key={r} className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-2xl text-[10px] font-semibold bg-[rgba(8,145,178,.1)] text-[#0891b2] border border-[#0891b230]">{r}</span>
           ))}
         </div>
       )}
 
       {/* Footer */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginTop: "2px", paddingTop: "10px", borderTop: "1px solid var(--card-border)" }}>
+      <div className="flex items-center gap-3 flex-wrap mt-0.5 pt-2.5 border-t border-card-border">
         {project.myRole && (
-          <span style={{ fontSize: "11px", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+          <span className="text-[11px] text-text-muted flex items-center gap-1">
             <Briefcase size={11} /> {project.myRole}
           </span>
         )}
         {project.teamMembers?.length > 0 && (
-          <span style={{ fontSize: "11px", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+          <span className="text-[11px] text-text-muted flex items-center gap-1">
             <Users size={11} /> {project.teamMembers.length} member{project.teamMembers.length > 1 ? "s" : ""}
           </span>
         )}
-        <div style={{ marginLeft: "auto", display: "flex", gap: "8px", alignItems: "center" }}>
+        <div className="ml-auto flex gap-2 items-center">
           {project.githubRepoURL && (
-            <a href={project.githubRepoURL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
-              style={{ color: "var(--text-muted)", fontSize: "11px", display: "flex", alignItems: "center", gap: "3px", textDecoration: "none", padding: "3px 7px", borderRadius: "6px", border: "1px solid var(--border)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--text-primary)"; e.currentTarget.style.color = "var(--text-primary)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
+            <a
+              href={project.githubRepoURL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+              className="text-text-muted text-[11px] flex items-center gap-1 no-underline px-1.5 py-1 rounded-md border border-border transition-colors duration-150 hover:border-text-primary hover:text-text-primary"
             >
               <GitBranch size={11} /> Repo
             </a>
           )}
           {project.liveDemoURL && (
-            <a href={project.liveDemoURL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
-              style={{ color: "var(--text-muted)", fontSize: "11px", display: "flex", alignItems: "center", gap: "3px", textDecoration: "none", padding: "3px 7px", borderRadius: "6px", border: "1px solid var(--border)" }}
+            <a
+              href={project.liveDemoURL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+              className="text-text-muted text-[11px] flex items-center gap-1 no-underline px-1.5 py-1 rounded-md border border-border transition-colors duration-150"
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = dc; e.currentTarget.style.color = dc; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
             >
@@ -210,29 +196,29 @@ function ProjectCard({ project, isOwner, onEdit, onDelete, onView }) {
 }
 
 /* ─────────────────────────── SUB: FILTER BAR ─────────────────────────── */
-function FilterBar({ filter, setFilter, search, setSearch, count }) {
+function FilterBar({ filter, setFilter, search, setSearch }) {
   return (
-    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+    <div className="flex gap-2.5 flex-wrap items-center">
       {/* Search */}
-      <div style={{ position: "relative", flex: "1", minWidth: "180px" }}>
-        <Search size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
+      <div className="relative flex-1 min-w-[180px]">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
         <input
           type="text" value={search} onChange={(e) => setSearch(e.target.value)}
           placeholder="Search projects…"
-          style={{ ...inputStyle, paddingLeft: "34px", fontSize: "13px", padding: "8px 14px 8px 34px" }}
+          className={`${fieldClasses} pl-8.5 text-[13px] py-2`}
         />
       </div>
 
       {/* Filter tabs */}
-      <div style={{ display: "flex", gap: "4px", background: "var(--surface-2)", borderRadius: "10px", padding: "4px", flexWrap: "wrap" }}>
+      <div className="flex gap-1 bg-surface-2 rounded-[10px] p-1 flex-wrap">
         {FILTERS.map((f) => (
-          <button key={f.value} onClick={() => setFilter(f.value)}
+          <button
+            key={f.value} onClick={() => setFilter(f.value)}
+            className="px-3 py-1.5 rounded-[7px] border-none cursor-pointer text-xs font-semibold transition-all duration-150"
             style={{
-              padding: "5px 12px", borderRadius: "7px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: "600",
               background: filter === f.value ? "var(--card-bg)" : "transparent",
               color: filter === f.value ? "var(--text-primary)" : "var(--text-muted)",
               boxShadow: filter === f.value ? "0 1px 4px rgba(0,0,0,.15)" : "none",
-              transition: "all .15s",
             }}
           >
             {f.label}
@@ -247,14 +233,14 @@ function FilterBar({ filter, setFilter, search, setSearch, count }) {
 function EmptyState({ filter, isOwner, onAdd }) {
   const isFiltered = filter !== "all";
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: "center", padding: "60px 20px" }}>
-      <div style={{ width: "64px", height: "64px", borderRadius: "16px", background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center px-5 py-15">
+      <div className="w-16 h-16 rounded-2xl bg-surface-2 flex items-center justify-center mx-auto mb-4">
         <FolderGit2 size={28} color="var(--text-muted)" />
       </div>
-      <p style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "6px" }}>
+      <p className="text-base font-bold text-text-primary mb-1.5">
         {isFiltered ? `No ${filter} projects` : "No projects yet"}
       </p>
-      <p style={{ fontSize: "13px", color: "var(--text-muted)", maxWidth: "340px", margin: "0 auto 20px", lineHeight: "1.5" }}>
+      <p className="text-[13px] text-text-muted max-w-[340px] mx-auto mb-5 leading-snug">
         {isFiltered
           ? "Try a different filter or add a new project."
           : isOwner
@@ -276,21 +262,23 @@ function TagInput({ label, values, onAdd, onRemove, placeholder, color = "var(--
   const add = () => { if (val.trim()) { onAdd(val.trim()); setVal(""); } };
   return (
     <div>
-      <label style={labelStyle}>{label}</label>
+      <label className={labelClasses}>{label}</label>
       {values.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "7px" }}>
+        <div className="flex flex-wrap gap-1.5 mb-2">
           {values.map((v) => (
-            <span key={v} style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "16px", fontSize: "11px", background: colorBg, color: color, border: `1px solid ${color}30` }}>
+            <span key={v} className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-2xl text-[11px]" style={{ background: colorBg, color, border: `1px solid ${color}30` }}>
               {v}
-              <button onClick={() => onRemove(v)} style={{ background: "none", border: "none", cursor: "pointer", color: color, padding: "0", fontSize: "13px", lineHeight: 1, display: "flex" }}>×</button>
+              <button onClick={() => onRemove(v)} className="bg-none border-none cursor-pointer p-0 text-[13px] leading-none flex" style={{ color }}>×</button>
             </span>
           ))}
         </div>
       )}
-      <div style={{ display: "flex", gap: "6px" }}>
-        <input value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} placeholder={placeholder}
-          style={{ ...inputStyle, fontSize: "13px", padding: "8px 12px" }} />
-        <button onClick={add} style={{ padding: "8px 14px", borderRadius: "8px", border: "none", background: color, color: "#fff", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center" }}>
+      <div className="flex gap-1.5">
+        <input
+          value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} placeholder={placeholder}
+          className={`${fieldClasses} text-[13px] py-2`}
+        />
+        <button onClick={add} className="px-3.5 py-2 rounded-lg border-none text-white cursor-pointer shrink-0 flex items-center" style={{ background: color }}>
           <Plus size={14} />
         </button>
       </div>
@@ -362,61 +350,64 @@ function ProjectForm({ project, onSave, onCancel, isEditing }) {
   ];
 
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "18px", width: "min(620px, 95vw)", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 30px 60px rgba(0,0,0,.5)" }}>
+    <div className="bg-card border border-card-border rounded-[18px] w-[min(620px,95vw)] max-h-[90vh] flex flex-col shadow-[0_30px_60px_rgba(0,0,0,.5)]">
       {/* Header */}
-      <div style={{ padding: "20px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="px-6 pt-5 flex justify-between items-center">
         <div>
-          <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>{isEditing ? "Edit Project" : "Add New Project"}</h2>
-          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>Showcase your work on DevEcosystem</p>
+          <h2 className="text-lg font-bold text-text-primary m-0">{isEditing ? "Edit Project" : "Add New Project"}</h2>
+          <p className="text-xs text-text-muted mt-0.5">Showcase your work on DevEcosystem</p>
         </div>
-        <button onClick={onCancel} style={{ background: "var(--surface-2)", border: "none", borderRadius: "8px", padding: "7px", color: "var(--text-muted)", cursor: "pointer", display: "flex" }}>
+        <button onClick={onCancel} className="bg-surface-2 border-none rounded-lg p-1.5 text-text-muted cursor-pointer flex">
           <X size={16} />
         </button>
       </div>
 
       {/* Form Tabs */}
-      <div style={{ display: "flex", gap: 0, padding: "14px 24px 0", borderBottom: "1px solid var(--card-border)" }}>
+      <div className="flex gap-0 pt-3.5 px-6 border-b border-card-border">
         {TABS.map((t) => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
-            padding: "7px 14px", border: "none", background: "transparent", cursor: "pointer",
-            fontSize: "12px", fontWeight: "600",
-            color: activeTab === t.id ? "var(--accent)" : "var(--text-muted)",
-            borderBottom: activeTab === t.id ? "2px solid var(--accent)" : "2px solid transparent",
-            marginBottom: "-1px", transition: "all .15s",
-          }}>
+          <button
+            key={t.id} onClick={() => setActiveTab(t.id)}
+            className="px-3.5 py-1.5 border-none bg-transparent cursor-pointer text-xs font-semibold -mb-px transition-all duration-150"
+            style={{
+              color: activeTab === t.id ? "var(--accent)" : "var(--text-muted)",
+              borderBottom: activeTab === t.id ? "2px solid var(--accent)" : "2px solid transparent",
+            }}
+          >
             {t.label}
           </button>
         ))}
       </div>
 
       {/* Body */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+      <div className="flex-1 overflow-y-auto px-6 py-5">
         <AnimatePresence mode="wait">
           {activeTab === "basics" && (
-            <motion.div key="basics" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <motion.div key="basics" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col gap-3.5">
               <div>
-                <label style={labelStyle}>Project Name <span style={{ color: "var(--error-text)" }}>*</span></label>
-                <input value={form.projectName} onChange={(e) => set("projectName", e.target.value)} placeholder="e.g., DevEcosystem Frontend" style={inputStyle} />
+                <label className={labelClasses}>Project Name <span className="text-error">*</span></label>
+                <input value={form.projectName} onChange={(e) => set("projectName", e.target.value)} placeholder="e.g., DevEcosystem Frontend" className={fieldClasses} />
               </div>
               <div>
-                <label style={labelStyle}>Tagline / Subtitle</label>
-                <input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="A one-liner about the project" style={inputStyle} />
+                <label className={labelClasses}>Tagline / Subtitle</label>
+                <input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="A one-liner about the project" className={fieldClasses} />
               </div>
               <div>
-                <label style={labelStyle}>Description</label>
-                <textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="What does this project do? What problem does it solve?" rows={5}
-                  style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }} />
+                <label className={labelClasses}>Description</label>
+                <textarea
+                  value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="What does this project do? What problem does it solve?" rows={5}
+                  className={`${fieldClasses} resize-y font-[inherit] leading-relaxed`}
+                />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label style={labelStyle}>Domain</label>
-                  <select value={form.domain} onChange={(e) => set("domain", e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
+                  <label className={labelClasses}>Domain</label>
+                  <select value={form.domain} onChange={(e) => set("domain", e.target.value)} className={`${fieldClasses} cursor-pointer`}>
                     {DOMAINS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={labelStyle}>Status</label>
-                  <select value={form.status} onChange={(e) => set("status", e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
+                  <label className={labelClasses}>Status</label>
+                  <select value={form.status} onChange={(e) => set("status", e.target.value)} className={`${fieldClasses} cursor-pointer`}>
                     <option value="ongoing">Ongoing</option>
                     <option value="completed">Completed</option>
                     <option value="paused">Paused</option>
@@ -428,7 +419,7 @@ function ProjectForm({ project, onSave, onCancel, isEditing }) {
           )}
 
           {activeTab === "tech" && (
-            <motion.div key="tech" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+            <motion.div key="tech" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col gap-4.5">
               <TagInput
                 label="Tech Stack"
                 values={form.techStack}
@@ -448,39 +439,41 @@ function ProjectForm({ project, onSave, onCancel, isEditing }) {
                 colorBg="rgba(8,145,178,.1)"
               />
               <div>
-                <label style={labelStyle}>Your Role in this Project</label>
-                <input value={form.myRole} onChange={(e) => set("myRole", e.target.value)} placeholder="e.g., Lead Frontend Developer" style={inputStyle} />
+                <label className={labelClasses}>Your Role in this Project</label>
+                <input value={form.myRole} onChange={(e) => set("myRole", e.target.value)} placeholder="e.g., Lead Frontend Developer" className={fieldClasses} />
               </div>
             </motion.div>
           )}
 
           {activeTab === "contrib" && (
-            <motion.div key="contrib" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              <div style={{ padding: "12px 14px", borderRadius: "10px", background: "rgba(8,145,178,.08)", border: "1px solid rgba(8,145,178,.2)", fontSize: "12px", color: "#0891b2", lineHeight: "1.5" }}>
+            <motion.div key="contrib" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col gap-3.5">
+              <div className="px-3.5 py-3 rounded-[10px] bg-[rgba(8,145,178,.08)] border border-[rgba(8,145,178,.2)] text-xs text-[#0891b2] leading-snug">
                 <strong>Tip:</strong> Detailed contributions feed your Contribution Score and prove real skills to collaborators and recruiters.
               </div>
               <div>
-                <label style={labelStyle}>My Contributions</label>
-                <textarea value={form.myContributions} onChange={(e) => set("myContributions", e.target.value)}
+                <label className={labelClasses}>My Contributions</label>
+                <textarea
+                  value={form.myContributions} onChange={(e) => set("myContributions", e.target.value)}
                   placeholder="Describe what you built, features you implemented, decisions you made, challenges you solved…"
-                  rows={7} style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.55" }} />
+                  rows={7} className={`${fieldClasses} resize-y font-[inherit] leading-[1.55]`}
+                />
               </div>
             </motion.div>
           )}
 
           {activeTab === "links" && (
-            <motion.div key="links" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <motion.div key="links" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex flex-col gap-3.5">
               <div>
-                <label style={labelStyle}><GitBranch size={11} style={{ display: "inline", marginRight: "4px" }} />GitHub Repo URL</label>
-                <input type="url" value={form.githubRepoURL} onChange={(e) => set("githubRepoURL", e.target.value)} placeholder="https://github.com/username/repo" style={inputStyle} />
+                <label className={labelClasses}><GitBranch size={11} className="inline mr-1" />GitHub Repo URL</label>
+                <input type="url" value={form.githubRepoURL} onChange={(e) => set("githubRepoURL", e.target.value)} placeholder="https://github.com/username/repo" className={fieldClasses} />
               </div>
               <div>
-                <label style={labelStyle}><Globe size={11} style={{ display: "inline", marginRight: "4px" }} />Live Demo URL</label>
-                <input type="url" value={form.liveDemoURL} onChange={(e) => set("liveDemoURL", e.target.value)} placeholder="https://yourproject.com" style={inputStyle} />
+                <label className={labelClasses}><Globe size={11} className="inline mr-1" />Live Demo URL</label>
+                <input type="url" value={form.liveDemoURL} onChange={(e) => set("liveDemoURL", e.target.value)} placeholder="https://yourproject.com" className={fieldClasses} />
               </div>
               <div>
-                <label style={labelStyle}><Link2 size={11} style={{ display: "inline", marginRight: "4px" }} />Design Files URL (Figma, etc.)</label>
-                <input type="url" value={form.designFilesURL} onChange={(e) => set("designFilesURL", e.target.value)} placeholder="https://figma.com/file/..." style={inputStyle} />
+                <label className={labelClasses}><Link2 size={11} className="inline mr-1" />Design Files URL (Figma, etc.)</label>
+                <input type="url" value={form.designFilesURL} onChange={(e) => set("designFilesURL", e.target.value)} placeholder="https://figma.com/file/..." className={fieldClasses} />
               </div>
               <TagInput
                 label="Team Members (usernames)"
@@ -497,20 +490,20 @@ function ProjectForm({ project, onSave, onCancel, isEditing }) {
       </div>
 
       {/* Footer */}
-      <div style={{ padding: "16px 24px", borderTop: "1px solid var(--card-border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-        <div style={{ flex: 1 }}>
+      <div className="px-6 py-4 border-t border-card-border flex justify-between items-center gap-3">
+        <div className="flex-1">
           {error && (
-            <div style={{ padding: "8px 12px", borderRadius: "8px", background: "var(--error-bg)", border: "1px solid var(--error-border)", color: "var(--error-text)", fontSize: "12px" }}>
+            <div className="px-3 py-2 rounded-lg bg-error-bg border border-error-border text-error text-xs">
               {error}
             </div>
           )}
         </div>
-        <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
+        <div className="flex gap-2.5 shrink-0">
           <Button variant="ghost" onClick={onCancel}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={saving}>
-            {saving ? <Loader2 size={14} style={{ animation: "spin .8s linear infinite" }} /> : null}
+            {saving ? <Loader2 size={14} className="animate-spin" /> : null}
             {saving ? "Saving…" : isEditing ? "Update Project" : "Create Project"}
           </Button>
         </div>
@@ -523,13 +516,14 @@ function ProjectForm({ project, onSave, onCancel, isEditing }) {
 function ProjectDetail({ project, onClose, isOwner, onEdit }) {
   if (!project) return null;
   const dc = domainColor(project.domain);
+  const tag = tagClasses(dc);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", backdropFilter: "blur(6px)", zIndex: 9999, display: "flex", justifyContent: "flex-end" }}
+      className="fixed inset-0 bg-black/70 backdrop-blur-md z-9999 flex justify-end"
       onClick={onClose}
     >
       <motion.div
@@ -538,59 +532,62 @@ function ProjectDetail({ project, onClose, isOwner, onEdit }) {
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 28, stiffness: 260 }}
         onClick={(e) => e.stopPropagation()}
-        style={{ width: "min(520px, 100vw)", height: "100%", background: "var(--card-bg)", borderLeft: "1px solid var(--card-border)", overflowY: "auto", display: "flex", flexDirection: "column" }}
+        className="w-[min(520px,100vw)] h-full bg-card border-l border-card-border overflow-y-auto flex flex-col"
       >
         {/* Accent */}
-        <div style={{ height: "3px", background: `linear-gradient(90deg, ${dc}, ${dc}44)` }} />
+        <div className="h-[3px]" style={{ background: `linear-gradient(90deg, ${dc}, ${dc}44)` }} />
 
         {/* Header */}
-        <div style={{ padding: "24px", borderBottom: "1px solid var(--card-border)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-              <span style={tagStyle(dc)}>{domainLabel(project.domain)}</span>
+        <div className="p-6 border-b border-card-border">
+          <div className="flex justify-between items-start mb-2.5">
+            <div className="flex gap-1.5 flex-wrap">
+              <span className={tag.className} style={tag.style}>{domainLabel(project.domain)}</span>
               <StatusBadge status={project.status} />
             </div>
-            <div style={{ display: "flex", gap: "8px" }}>
+            <div className="flex gap-2">
               {isOwner && (
-                <button onClick={() => onEdit(project)} style={{ padding: "7px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", fontSize: "12px", fontWeight: "600", display: "flex", alignItems: "center", gap: "5px" }}>
+                <button
+                  onClick={() => onEdit(project)}
+                  className="px-3.5 py-1.5 rounded-lg border border-border bg-transparent text-text-muted cursor-pointer text-xs font-semibold flex items-center gap-1"
+                >
                   <Edit3 size={12} /> Edit
                 </button>
               )}
-              <button onClick={onClose} style={{ padding: "7px", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex" }}>
+              <button onClick={onClose} className="p-1.5 rounded-lg border border-border bg-transparent text-text-muted cursor-pointer flex">
                 <X size={15} />
               </button>
             </div>
           </div>
-          <h2 style={{ fontSize: "22px", fontWeight: "800", color: "var(--text-primary)", marginBottom: "4px" }}>{project.projectName || project.title}</h2>
+          <h2 className="text-[22px] font-extrabold text-text-primary mb-1">{project.projectName || project.title}</h2>
           {project.title && project.projectName && project.title !== project.projectName && (
-            <p style={{ fontSize: "13px", color: "var(--text-muted)", fontStyle: "italic" }}>{project.title}</p>
+            <p className="text-[13px] text-text-muted italic">{project.title}</p>
           )}
         </div>
 
-        <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "22px" }}>
+        <div className="px-6 py-5 flex flex-col gap-5.5">
           {/* Description */}
           {project.description && (
             <section>
-              <h4 style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: "8px" }}>About</h4>
-              <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.65" }}>{project.description}</p>
+              <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-[0.8px] mb-2">About</h4>
+              <p className="text-sm text-text-secondary leading-[1.65]">{project.description}</p>
             </section>
           )}
 
           {/* My Contribution */}
           {project.myContributions && (
             <section>
-              <h4 style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: "8px" }}>My Contribution</h4>
-              <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.65" }}>{project.myContributions}</p>
+              <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-[0.8px] mb-2">My Contribution</h4>
+              <p className="text-sm text-text-secondary leading-[1.65]">{project.myContributions}</p>
             </section>
           )}
 
           {/* Tech Stack */}
           {project.techStack?.length > 0 && (
             <section>
-              <h4 style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: "8px" }}>Tech Stack</h4>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-[0.8px] mb-2">Tech Stack</h4>
+              <div className="flex flex-wrap gap-1.5">
                 {project.techStack.map((t) => (
-                  <span key={t} style={{ padding: "4px 10px", borderRadius: "6px", fontSize: "12px", background: "var(--surface-2)", color: "var(--text-secondary)", border: "1px solid var(--border)", fontFamily: "var(--mono, monospace)", fontWeight: "600" }}>{t}</span>
+                  <span key={t} className="px-2.5 py-1 rounded-md text-xs bg-surface-2 text-text-secondary border border-border font-mono font-semibold">{t}</span>
                 ))}
               </div>
             </section>
@@ -599,10 +596,10 @@ function ProjectDetail({ project, onClose, isOwner, onEdit }) {
           {/* Roles */}
           {project.rolesNeeded?.length > 0 && (
             <section>
-              <h4 style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: "8px" }}>Roles Needed</h4>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-[0.8px] mb-2">Roles Needed</h4>
+              <div className="flex flex-wrap gap-1.5">
                 {project.rolesNeeded.map((r) => (
-                  <span key={r} style={{ ...tagStyle("#0891b2"), background: "rgba(8,145,178,.1)" }}>{r}</span>
+                  <span key={r} className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-2xl text-[11px] font-semibold bg-[rgba(8,145,178,.1)] text-[#0891b2] border border-[#0891b230]">{r}</span>
                 ))}
               </div>
             </section>
@@ -611,8 +608,8 @@ function ProjectDetail({ project, onClose, isOwner, onEdit }) {
           {/* My Role */}
           {project.myRole && (
             <section>
-              <h4 style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: "8px" }}>My Role</h4>
-              <span style={{ fontSize: "13px", color: "var(--text-primary)", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+              <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-[0.8px] mb-2">My Role</h4>
+              <span className="text-[13px] text-text-primary font-semibold flex items-center gap-1.5">
                 <Briefcase size={13} color={dc} /> {project.myRole}
               </span>
             </section>
@@ -621,10 +618,10 @@ function ProjectDetail({ project, onClose, isOwner, onEdit }) {
           {/* Team */}
           {project.teamMembers?.length > 0 && (
             <section>
-              <h4 style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: "8px" }}>Team Members</h4>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-[0.8px] mb-2">Team Members</h4>
+              <div className="flex flex-wrap gap-1.5">
                 {project.teamMembers.map((m) => (
-                  <span key={m} style={{ padding: "4px 10px", borderRadius: "20px", background: "var(--surface-2)", color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600" }}>@{m}</span>
+                  <span key={m} className="px-2.5 py-1 rounded-full bg-surface-2 text-text-secondary text-xs font-semibold">@{m}</span>
                 ))}
               </div>
             </section>
@@ -633,24 +630,31 @@ function ProjectDetail({ project, onClose, isOwner, onEdit }) {
           {/* Links */}
           {(project.githubRepoURL || project.liveDemoURL || project.designFilesURL) && (
             <section>
-              <h4 style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: "8px" }}>Links</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-[0.8px] mb-2">Links</h4>
+              <div className="flex flex-col gap-2">
                 {project.githubRepoURL && (
-                  <a href={project.githubRepoURL} target="_blank" rel="noopener noreferrer"
-                    style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "10px", background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-primary)", textDecoration: "none", fontSize: "13px", fontWeight: "600" }}>
-                    <GitBranch size={14} color="var(--text-muted)" /> GitHub Repository <ArrowUpRight size={13} style={{ marginLeft: "auto", color: "var(--text-muted)" }} />
+                  <a
+                    href={project.githubRepoURL} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3.5 py-2.5 rounded-[10px] bg-surface-2 border border-border text-text-primary no-underline text-[13px] font-semibold"
+                  >
+                    <GitBranch size={14} color="var(--text-muted)" /> GitHub Repository <ArrowUpRight size={13} className="ml-auto text-text-muted" />
                   </a>
                 )}
                 {project.liveDemoURL && (
-                  <a href={project.liveDemoURL} target="_blank" rel="noopener noreferrer"
-                    style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "10px", background: `${dc}10`, border: `1px solid ${dc}30`, color: dc, textDecoration: "none", fontSize: "13px", fontWeight: "600" }}>
-                    <Globe size={14} /> Live Demo <ArrowUpRight size={13} style={{ marginLeft: "auto" }} />
+                  <a
+                    href={project.liveDemoURL} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3.5 py-2.5 rounded-[10px] no-underline text-[13px] font-semibold"
+                    style={{ background: `${dc}10`, border: `1px solid ${dc}30`, color: dc }}
+                  >
+                    <Globe size={14} /> Live Demo <ArrowUpRight size={13} className="ml-auto" />
                   </a>
                 )}
                 {project.designFilesURL && (
-                  <a href={project.designFilesURL} target="_blank" rel="noopener noreferrer"
-                    style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "10px", background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-primary)", textDecoration: "none", fontSize: "13px", fontWeight: "600" }}>
-                    <Link2 size={14} color="var(--text-muted)" /> Design Files <ArrowUpRight size={13} style={{ marginLeft: "auto", color: "var(--text-muted)" }} />
+                  <a
+                    href={project.designFilesURL} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3.5 py-2.5 rounded-[10px] bg-surface-2 border border-border text-text-primary no-underline text-[13px] font-semibold"
+                  >
+                    <Link2 size={14} color="var(--text-muted)" /> Design Files <ArrowUpRight size={13} className="ml-auto text-text-muted" />
                   </a>
                 )}
               </div>
@@ -679,11 +683,11 @@ function StatsBar({ projects }) {
   if (total === 0) return null;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+    <div className="grid grid-cols-4 gap-2.5">
       {stats.map((s) => (
-        <div key={s.label} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "12px", padding: "14px", textAlign: "center" }}>
-          <div style={{ fontSize: "22px", fontWeight: "800", color: s.color, lineHeight: 1 }}>{s.value}</div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "3px", fontWeight: "600" }}>{s.label}</div>
+        <div key={s.label} className="bg-card border border-card-border rounded-xl p-3.5 text-center">
+          <div className="text-[22px] font-extrabold leading-none" style={{ color: s.color }}>{s.value}</div>
+          <div className="text-[11px] text-text-muted mt-1 font-semibold">{s.label}</div>
         </div>
       ))}
     </div>
@@ -770,29 +774,29 @@ export default function Project({ userId, isOwnProfile }) {
 
   /* ── Render states ── */
   if (loading) return (
-    <div style={{ display: "flex", justifyContent: "center", padding: "60px 0" }}>
-      <Loader2 size={24} color="var(--text-muted)" style={{ animation: "spin .8s linear infinite" }} />
+    <div className="flex justify-center py-15">
+      <Loader2 size={24} color="var(--text-muted)" className="animate-spin" />
     </div>
   );
 
   if (error) return (
-    <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--error-text)" }}>
-      <AlertCircle size={32} style={{ marginBottom: "12px" }} />
-      <p style={{ fontSize: "15px", fontWeight: "600" }}>{error}</p>
+    <div className="text-center px-5 py-10 text-error">
+      <AlertCircle size={32} className="mb-3" />
+      <p className="text-[15px] font-semibold">{error}</p>
     </div>
   );
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .2 }}
-      style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "16px" }}>
+      className="mt-3.5 flex flex-col gap-4">
 
       {/* ── Header ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+      <div className="flex justify-between items-center flex-wrap gap-2.5">
         <div>
-          <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+          <h3 className="text-[17px] font-extrabold text-text-primary m-0">
             Projects
           </h3>
-          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>
+          <p className="text-xs text-text-muted mt-0.5">
             {projects.length > 0 ? `${projects.length} project${projects.length > 1 ? "s" : ""}` : "No projects added yet"}
           </p>
         </div>
@@ -808,12 +812,12 @@ export default function Project({ userId, isOwnProfile }) {
 
       {/* ── Filter Bar (only when projects exist) ── */}
       {projects.length > 0 && (
-        <FilterBar filter={filter} setFilter={setFilter} search={search} setSearch={setSearch} count={filtered.length} />
+        <FilterBar filter={filter} setFilter={setFilter} search={search} setSearch={setSearch} />
       )}
 
       {/* ── Project Grid ── */}
       {filtered.length > 0 ? (
-        <motion.div layout style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "14px" }}>
+        <motion.div layout className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
           <AnimatePresence>
             {filtered.map((project) => (
               <ProjectCard
@@ -836,7 +840,7 @@ export default function Project({ userId, isOwnProfile }) {
         {showModal && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", backdropFilter: "blur(5px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: "16px" }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-9999 p-4"
             onClick={closeModal}
           >
             <motion.div

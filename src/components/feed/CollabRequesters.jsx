@@ -10,9 +10,9 @@ const COLLAB_COLOR = '#3a3d4a';
 function Avatar({ name, src, size = 32 }) {
   const initials = (name ?? 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const hue = [...(name ?? 'U')].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-  if (src) return <img src={src} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid var(--card-bg)' }} />;
+  if (src) return <img src={src} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover shrink-0 border-2 border-card" />;
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: `hsl(${hue},55%,55%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.36, fontWeight: '700', flexShrink: 0, border: '2px solid var(--card-bg)', userSelect: 'none' }}>
+    <div style={{ width: size, height: size, background: `hsl(${hue},55%,55%)`, fontSize: size * 0.36 }} className="rounded-full text-white flex items-center justify-center font-bold shrink-0 border-2 border-card select-none">
       {initials}
     </div>
   );
@@ -42,40 +42,40 @@ function CreatorRow({ req, onRespond }) {
   };
 
   return (
-    <div style={{ padding: '12px 0', borderBottom: '1px solid var(--divider)' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-        <Link to={`/profile/${req.requester._id}`} style={{ flexShrink: 0 }}>
+    <div className="py-3 border-b border-divider">
+      <div className="flex items-start gap-2.5">
+        <Link to={`/profile/${req.requester._id}`} className="shrink-0">
           <Avatar name={req.requester.name} src={req.requester.avatarUrl} size={36} />
         </Link>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-            <Link to={`/profile/${req.requester._id}`} style={{ textDecoration: 'none' }}>
-              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{req.requester.name}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <Link to={`/profile/${req.requester._id}`} className="no-underline">
+              <span className="text-[13px] font-bold text-text-primary">{req.requester.name}</span>
             </Link>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{req.requester.username}</span>
-            <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: '600', background: s.bg, color: s.color }}>{s.label}</span>
+            <span className="text-[11px] text-text-muted">@{req.requester.username}</span>
+            <span className="px-2 py-0.5 rounded-[10px] text-[11px] font-semibold" style={{ background: s.bg, color: s.color }}>{s.label}</span>
             {req.portfolioUrl && (
               <a href={req.portfolioUrl} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '11px', color: COLLAB_COLOR, textDecoration: 'none' }}>
+                className="flex items-center gap-0.5 text-[11px] no-underline" style={{ color: COLLAB_COLOR }}>
                 <ExternalLink size={10} /> Portfolio
               </a>
             )}
             {req.resumeUrl && (
               <a href={req.resumeUrl} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '11px', color: COLLAB_COLOR, textDecoration: 'none' }}>
+                className="flex items-center gap-0.5 text-[11px] no-underline" style={{ color: COLLAB_COLOR }}>
                 <ExternalLink size={10} /> Resume
               </a>
             )}
           </div>
 
           {/* Why */}
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.55', marginBottom: req.expertise ? '6px' : '0' }}>
+          <p className={`text-[13px] text-text-secondary leading-[1.55] ${req.expertise ? 'mb-1.5' : 'mb-0'}`}>
             "{req.why}"
           </p>
 
           {/* Expertise */}
           {req.expertise && (
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5', fontStyle: 'italic' }}>
+            <p className="text-xs text-text-muted leading-normal italic">
               {req.expertise}
             </p>
           )}
@@ -83,22 +83,18 @@ function CreatorRow({ req, onRespond }) {
 
         {/* Accept / Reject */}
         {status === 'pending' && (
-          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-            <Button size="sm" onClick={() => respond('accepted')} disabled={acting}
-              className="collab-requesters-action"
-              style={{ padding: '5px 12px', minHeight: '36px', fontSize: '12px' }}>
-              {acting ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Check size={12} />}
+          <div className="flex gap-1.5 shrink-0">
+            <Button size="sm" onClick={() => respond('accepted')} disabled={acting} style={{ padding: '5px 12px', minHeight: '36px', fontSize: '12px' }}>
+              {acting ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
               Accept
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => respond('rejected')} disabled={acting}
-              className="collab-requesters-action"
-              style={{ padding: '5px 10px', minHeight: '36px', fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)' }}>
+            <Button variant="ghost" size="sm" onClick={() => respond('rejected')} disabled={acting} style={{ padding: '5px 10px', minHeight: '36px', fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)' }}>
               <X size={12} /> Reject
             </Button>
           </div>
         )}
         {status !== 'pending' && (
-          <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+          <span className="shrink-0 flex items-center">
             {status === 'accepted'
               ? <CheckCircle2 size={20} color="#16a34a" />
               : <XCircle size={20} color="#dc2626" />}
@@ -112,18 +108,18 @@ function CreatorRow({ req, onRespond }) {
 /* Public row — avatar + name only */
 function PublicRow({ person }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '8px 0', borderBottom: '1px solid var(--divider)' }}>
+    <div className="flex items-center gap-[9px] py-2 border-b border-divider">
       <Link to={`/profile/${person._id}`}>
         <Avatar name={person.name} src={person.avatarUrl} size={30} />
       </Link>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <Link to={`/profile/${person._id}`} style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{person.name}</span>
+      <div className="flex-1 min-w-0">
+        <Link to={`/profile/${person._id}`} className="no-underline">
+          <span className="text-[13px] font-semibold text-text-primary">{person.name}</span>
         </Link>
-        <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '6px' }}>@{person.username}</span>
+        <span className="text-xs text-text-muted ml-1.5">@{person.username}</span>
       </div>
       {person.status === 'accepted' && (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '11px', fontWeight: '600', color: '#16a34a', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#16a34a] bg-[rgba(34,197,94,0.1)] px-2 py-0.5 rounded-[10px]">
           <Check size={11} /> Joined
         </span>
       )}
@@ -156,18 +152,19 @@ export default function CollabRequesters({ postId, requestCount, isCreator }) {
   if (!requestCount) return null;
 
   return (
-    <div style={{ marginTop: '8px' }}>
+    <div className="mt-2">
       {/* Toggle button */}
-      <button onClick={toggle}
-        className="collab-requesters-toggle"
-        style={{
-          display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
-          minHeight: '44px', padding: '10px 14px', borderRadius: '8px', border: `1px solid ${COLLAB_COLOR}25`,
-          background: open ? `${COLLAB_COLOR}0a` : 'transparent',
-          color: COLLAB_COLOR, fontSize: '13px', fontWeight: '600',
-          cursor: 'pointer', transition: 'background 150ms ease, transform 150ms ease', justifyContent: 'space-between',
-        }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <button
+        onClick={toggle}
+        className={[
+          'flex items-center gap-2 w-full min-h-11 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold cursor-pointer',
+          'transition-[background-color,transform] duration-150 justify-between',
+          'focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2',
+          open ? '' : 'hover:bg-[#3a3d4a12]',
+        ].join(' ')}
+        style={{ border: `1px solid ${COLLAB_COLOR}25`, background: open ? `${COLLAB_COLOR}0a` : 'transparent', color: COLLAB_COLOR }}
+      >
+        <span className="flex items-center gap-1.5">
           {isCreator
             ? <ClipboardList size={14} />
             : <Users2 size={14} />}
@@ -182,16 +179,17 @@ export default function CollabRequesters({ postId, requestCount, isCreator }) {
           <motion.div
             initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            style={{ overflow: 'hidden' }}>
-            <div style={{ paddingTop: '4px' }}>
+            className="overflow-hidden"
+          >
+            <div className="pt-1">
               {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '16px' }}>
-                  <Loader2 size={18} color={COLLAB_COLOR} style={{ animation: 'spin 0.8s linear infinite' }} />
+                <div className="flex justify-center p-4">
+                  <Loader2 size={18} color={COLLAB_COLOR} className="animate-spin" />
                 </div>
               ) : !data?.length ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '20px 0', color: 'var(--text-muted)', textAlign: 'center' }}>
+                <div className="flex flex-col items-center gap-1.5 py-5 text-text-muted text-center">
                   <Users2 size={22} color="var(--text-faint)" />
-                  <p style={{ fontSize: '13px', lineHeight: 1.6 }}>No requests yet.</p>
+                  <p className="text-[13px] leading-[1.6]">No requests yet.</p>
                 </div>
               ) : isCreator ? (
                 data.map((req) => <CreatorRow key={req._id} req={req} onRespond={() => setData(null)} />)
@@ -202,13 +200,6 @@ export default function CollabRequesters({ postId, requestCount, isCreator }) {
           </motion.div>
         )}
       </AnimatePresence>
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .collab-requesters-toggle:hover { background: ${COLLAB_COLOR}12; }
-        .collab-requesters-toggle:focus-visible,
-        .collab-requesters-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-        .collab-requesters-action:hover:not(:disabled) { opacity: 0.88; }
-      `}</style>
     </div>
   );
 }

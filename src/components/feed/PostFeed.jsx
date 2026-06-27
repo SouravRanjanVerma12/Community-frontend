@@ -8,17 +8,16 @@ export default function PostFeed({ domain, search }) {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0', color: 'var(--text-muted)' }}>
-        <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="flex justify-center py-12 text-text-muted">
+        <Loader2 size={24} className="animate-spin" />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted)' }}>
-        <p style={{ fontSize: '15px' }}>Failed to load posts. Make sure the backend is running.</p>
+      <div className="text-center px-5 py-12 text-text-muted">
+        <p className="text-[15px]">Failed to load posts. Make sure the backend is running.</p>
       </div>
     );
   }
@@ -27,7 +26,7 @@ export default function PostFeed({ domain, search }) {
     return (
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)', fontSize: '15px' }}
+        className="text-center px-5 py-15 text-text-muted text-[15px]"
       >
         No posts yet. Be the first to share something!
       </motion.div>
@@ -40,7 +39,7 @@ export default function PostFeed({ domain, search }) {
         key={`${domain}-${search}`}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+        className="flex flex-col gap-3.5"
       >
         {posts.map((post, i) => (
           <PostCard key={post._id} post={post} index={i} />

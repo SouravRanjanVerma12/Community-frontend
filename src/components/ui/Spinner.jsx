@@ -12,7 +12,7 @@ export default function Spinner({ size = 'md', color = 'currentColor' }) {
       fill="none"
       animate={{ rotate: 360 }}
       transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
-      style={{ display: 'inline-block', flexShrink: 0 }}
+      className="inline-block shrink-0"
     >
       <circle cx="12" cy="12" r="10" stroke={color} strokeWidth="2.5" strokeOpacity="0.2" />
       <path

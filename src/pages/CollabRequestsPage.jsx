@@ -21,9 +21,9 @@ const TABS = ['all', 'pending', 'accepted', 'rejected'];
 function Avatar({ name, src, size = 44 }) {
   const initials = (name ?? 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const hue = [...(name ?? 'U')].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-  if (src) return <img src={src} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '3px solid var(--border)' }} />;
+  if (src) return <img src={src} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover shrink-0 border-[3px] border-border" />;
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: `hsl(${hue},55%,55%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.36, fontWeight: '700', flexShrink: 0, border: '3px solid var(--border)', userSelect: 'none' }}>
+    <div style={{ width: size, height: size, background: `hsl(${hue},55%,55%)`, fontSize: size * 0.36 }} className="rounded-full text-white flex items-center justify-center font-bold shrink-0 border-[3px] border-border select-none">
       {initials}
     </div>
   );
@@ -52,42 +52,35 @@ function ApplicantCard({ req, onUpdate }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.25 }}
-      style={{
-        background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-        borderRadius: '14px', padding: '20px 22px',
-        boxShadow: 'var(--shadow-sm)',
-      }}
+      className="bg-card border border-card-border rounded-2xl px-[22px] py-5 shadow-sm"
     >
       {/* Header: avatar + name + status */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '16px' }}>
-        <Link to={`/profile/${req.requester._id}`} style={{ flexShrink: 0 }}>
+      <div className="flex items-start gap-3.5 mb-4">
+        <Link to={`/profile/${req.requester._id}`} className="shrink-0">
           <Avatar name={req.requester.name} src={req.requester.avatarUrl} />
         </Link>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-            <Link to={`/profile/${req.requester._id}`} style={{ textDecoration: 'none' }}>
-              <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>{req.requester.name}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <Link to={`/profile/${req.requester._id}`} className="no-underline">
+              <span className="text-[15px] font-bold text-text-primary">{req.requester.name}</span>
             </Link>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>@{req.requester.username}</span>
-            <span style={{
-              padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600',
-              background: s.bg, color: s.color, border: `1px solid ${s.border}`,
-            }}>
+            <span className="text-[13px] text-text-muted">@{req.requester.username}</span>
+            <span className="px-2.5 py-[3px] rounded-full text-xs font-semibold" style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>
               {s.label}
             </span>
           </div>
 
           {/* Links */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div className="flex gap-2.5 flex-wrap">
             {req.portfolioUrl && (
               <a href={req.portfolioUrl} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: COLLAB_COLOR, textDecoration: 'none', fontWeight: '500' }}>
+                className="flex items-center gap-1 text-xs no-underline font-medium" style={{ color: COLLAB_COLOR }}>
                 <Globe size={12} /> Portfolio
               </a>
             )}
             {req.resumeUrl && (
               <a href={req.resumeUrl} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: COLLAB_COLOR, textDecoration: 'none', fontWeight: '500' }}>
+                className="flex items-center gap-1 text-xs no-underline font-medium" style={{ color: COLLAB_COLOR }}>
                 <FileText size={12} /> Resume / CV
               </a>
             )}
@@ -96,36 +89,39 @@ function ApplicantCard({ req, onUpdate }) {
 
         {/* Actions */}
         {status === 'pending' && (
-          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-            <motion.button whileTap={{ scale: 0.96 }} onClick={() => respond('accepted')} disabled={!!acting}
-              className="collab-req-btn"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', minHeight: '44px', padding: '8px 16px', borderRadius: '9px', border: 'none', background: 'var(--btn-grad)', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: acting ? 'default' : 'pointer', boxShadow: 'var(--btn-grad-shadow)', transition: 'transform 200ms ease, opacity 200ms ease' }}>
-              {acting === 'accepted' ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Check size={13} />}
+          <div className="flex gap-2 shrink-0">
+            <motion.button
+              whileTap={{ scale: 0.96 }} onClick={() => respond('accepted')} disabled={!!acting}
+              className={`flex items-center justify-center gap-[5px] min-h-11 px-4 rounded-[9px] border-none bg-(image:--btn-grad) text-white text-[13px] font-semibold shadow-btn transition-[transform,opacity] duration-200 hover:opacity-90 hover:-translate-y-px ${acting ? 'cursor-default' : 'cursor-pointer'}`}
+            >
+              {acting === 'accepted' ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
               Accept
             </motion.button>
-            <motion.button whileTap={{ scale: 0.96 }} onClick={() => respond('rejected')} disabled={!!acting}
-              className="collab-req-btn"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', minHeight: '44px', padding: '8px 14px', borderRadius: '9px', border: '1.5px solid var(--border)', background: 'var(--card-bg)', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '500', cursor: acting ? 'default' : 'pointer', transition: 'transform 200ms ease, opacity 200ms ease' }}>
-              {acting === 'rejected' ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} /> : <X size={13} />}
+            <motion.button
+              whileTap={{ scale: 0.96 }} onClick={() => respond('rejected')} disabled={!!acting}
+              className={`flex items-center justify-center gap-[5px] min-h-11 px-3.5 rounded-[9px] border-[1.5px] border-border bg-card text-text-secondary text-[13px] font-medium transition-[transform,opacity] duration-200 hover:opacity-90 hover:-translate-y-px ${acting ? 'cursor-default' : 'cursor-pointer'}`}
+            >
+              {acting === 'rejected' ? <Loader2 size={13} className="animate-spin" /> : <X size={13} />}
               Reject
             </motion.button>
           </div>
         )}
         {status === 'accepted' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '9px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}>
+          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] bg-[rgba(34,197,94,0.1)] border border-[rgba(34,197,94,0.25)]">
             <Check size={14} color="#16a34a" />
-            <span style={{ fontSize: '13px', fontWeight: '600', color: '#16a34a' }}>Accepted</span>
+            <span className="text-[13px] font-semibold text-[#16a34a]">Accepted</span>
           </div>
         )}
         {status === 'rejected' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '9px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+          <div className="flex flex-col gap-1 items-end">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)]">
               <X size={13} color="#dc2626" />
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#dc2626' }}>Rejected</span>
+              <span className="text-xs font-semibold text-[#dc2626]">Rejected</span>
             </div>
-            <button onClick={() => respond('accepted')}
-              className="collab-req-undo"
-              style={{ fontSize: '13px', minHeight: '32px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+            <button
+              onClick={() => respond('accepted')}
+              className="text-[13px] min-h-8 text-text-muted bg-none border-none cursor-pointer underline hover:text-text-primary focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+            >
               Undo
             </button>
           </div>
@@ -133,25 +129,25 @@ function ApplicantCard({ req, onUpdate }) {
       </div>
 
       {/* Divider */}
-      <div style={{ height: '1px', background: 'var(--divider)', marginBottom: '14px' }} />
+      <div className="h-px bg-divider mb-3.5" />
 
       {/* Why */}
-      <div style={{ marginBottom: req.expertise ? '12px' : '0' }}>
-        <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+      <div className={req.expertise ? 'mb-3' : 'mb-0'}>
+        <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
           Why they want to join
         </p>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.65' }}>
+        <p className="text-sm text-text-secondary leading-[1.65]">
           "{req.why}"
         </p>
       </div>
 
       {/* Expertise */}
       {req.expertise && (
-        <div style={{ marginTop: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--surface-2)' }}>
-          <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+        <div className="mt-3 px-3.5 py-3 rounded-[10px] bg-surface-2">
+          <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
             Experience & expertise
           </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+          <p className="text-[13px] text-text-secondary leading-[1.6]">
             {req.expertise}
           </p>
         </div>
@@ -195,66 +191,70 @@ export default function CollabRequestsPage() {
   };
 
   return (
-    <div style={{ minHeight: '100svh', background: 'var(--surface-0)' }}>
+    <div className="min-h-svh bg-surface-0">
       <Navbar />
 
-      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 16px 48px' }}>
+      <div className="max-w-[760px] mx-auto px-4 pt-6 pb-12">
 
         {/* Back */}
-        <Link to="/explore" className="cr-back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: '20px', minHeight: '44px', padding: '6px 4px', borderRadius: '8px', transition: 'color 0.15s, background-color 0.15s' }}>
+        <Link
+          to="/explore"
+          className="inline-flex items-center gap-1.5 text-[13px] text-text-muted no-underline mb-5 min-h-11 px-1 rounded-lg transition-colors duration-150 hover:text-text-primary hover:bg-surface-2"
+        >
           <ArrowLeft size={14} /> Back to Explore
         </Link>
 
         {/* Page header */}
-        <div style={{ background: 'var(--card-bg)', border: `1px solid ${COLLAB_COLOR}35`, borderRadius: '14px', padding: '20px 22px', marginBottom: '20px', boxShadow: `0 2px 12px ${COLLAB_COLOR}12` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <div
+          className="bg-card rounded-2xl px-[22px] py-5 mb-5"
+          style={{ border: `1px solid ${COLLAB_COLOR}35`, boxShadow: `0 2px 12px ${COLLAB_COLOR}12` }}
+        >
+          <div className="flex items-center gap-2 mb-2">
             <ClipboardList size={18} color={COLLAB_COLOR} />
-            <h1 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+            <h1 className="text-lg font-extrabold text-text-primary tracking-[-0.3px]">
               Applications
             </h1>
           </div>
           {post && (
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-              for <span style={{ color: COLLAB_COLOR, fontWeight: '600' }}>{post.projectName || post.title}</span>
+            <p className="text-sm text-text-muted">
+              for <span className="font-semibold" style={{ color: COLLAB_COLOR }}>{post.projectName || post.title}</span>
             </p>
           )}
 
           {/* Stats row */}
-          <div style={{ display: 'flex', gap: '16px', marginTop: '14px', flexWrap: 'wrap' }}>
+          <div className="flex gap-4 mt-3.5 flex-wrap">
             {[
               { label: 'Total',    val: counts.all,      color: COLLAB_COLOR      },
               { label: 'Pending',  val: counts.pending,  color: '#d97706'         },
               { label: 'Accepted', val: counts.accepted, color: '#16a34a'         },
               { label: 'Rejected', val: counts.rejected, color: 'var(--text-muted)' },
             ].map(({ label, val, color }) => (
-              <div key={label} style={{ textAlign: 'center', minWidth: '52px' }}>
-                <p style={{ fontSize: '22px', fontWeight: '800', color, margin: 0 }}>{val}</p>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>{label}</p>
+              <div key={label} className="text-center min-w-[52px]">
+                <p className="text-[22px] font-extrabold m-0" style={{ color }}>{val}</p>
+                <p className="text-[11px] text-text-muted m-0">{label}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Tab bar */}
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '16px', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '4px', overflow: 'hidden' }}>
+        <div className="flex gap-1 mb-4 bg-card border border-border rounded-xl p-1 overflow-hidden">
           {TABS.map((t) => (
-            <button key={t} onClick={() => setTab(t)}
-              className="cr-tab-btn"
-              style={{
-                flex: 1, minHeight: '44px', padding: '8px', borderRadius: '9px', border: 'none',
-                background: tab === t ? COLLAB_COLOR : 'transparent',
-                color: tab === t ? '#fff' : 'var(--text-secondary)',
-                fontSize: '13px', fontWeight: tab === t ? '700' : '500',
-                cursor: 'pointer', transition: 'background-color 0.15s, color 0.15s', textTransform: 'capitalize',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-              }}>
+            <button
+              key={t} onClick={() => setTab(t)}
+              className={[
+                'flex-1 min-h-11 p-2 rounded-[9px] border-none cursor-pointer capitalize',
+                'flex items-center justify-center gap-[5px] transition-colors duration-150',
+                tab === t ? 'text-white font-bold' : 'bg-transparent text-text-secondary font-medium',
+              ].join(' ')}
+              style={{ background: tab === t ? COLLAB_COLOR : 'transparent' }}
+            >
               {t}
               {counts[t] > 0 && (
-                <span style={{
-                  padding: '1px 6px', borderRadius: '10px', fontSize: '11px', fontWeight: '700',
-                  background: tab === t ? 'rgba(255,255,255,0.25)' : 'var(--surface-2)',
-                  color: tab === t ? '#fff' : 'var(--text-muted)',
-                }}>
+                <span
+                  className="px-1.5 py-px rounded-[10px] text-[11px] font-bold"
+                  style={{ background: tab === t ? 'rgba(255,255,255,0.25)' : 'var(--surface-2)', color: tab === t ? '#fff' : 'var(--text-muted)' }}
+                >
                   {counts[t]}
                 </span>
               )}
@@ -264,27 +264,27 @@ export default function CollabRequestsPage() {
 
         {/* Content */}
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '60px', color: 'var(--text-muted)' }}>
-            <Loader2 size={28} color={COLLAB_COLOR} style={{ animation: 'spin 0.8s linear infinite' }} />
+          <div className="flex justify-center p-15 text-text-muted">
+            <Loader2 size={28} color={COLLAB_COLOR} className="animate-spin" />
           </div>
         ) : error ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--error-text)', fontSize: '14px' }}>
-            <AlertTriangle size={32} style={{ marginBottom: '8px' }} />
-            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6 }}>{error}</p>
+          <div className="text-center p-15 text-error text-sm">
+            <AlertTriangle size={32} className="mb-2" />
+            <p className="m-0 text-sm leading-relaxed">{error}</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>
-            <Users2 size={40} color="var(--text-faint)" style={{ marginBottom: '12px' }} />
-            <p style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>
+          <div className="text-center p-15 text-text-muted">
+            <Users2 size={40} color="var(--text-faint)" className="mb-3" />
+            <p className="text-[15px] font-semibold text-text-primary mb-1.5">
               {tab === 'all' ? 'No applications yet' : `No ${tab} applications`}
             </p>
-            <p style={{ fontSize: '13px' }}>
+            <p className="text-[13px]">
               {tab === 'all' ? 'Share your collab post to attract collaborators.' : `Switch tabs to see other applications.`}
             </p>
           </div>
         ) : (
           <AnimatePresence mode="popLayout">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="flex flex-col gap-3">
               {filtered.map((req) => (
                 <ApplicantCard key={req._id} req={req} onUpdate={load} />
               ))}
@@ -292,24 +292,6 @@ export default function CollabRequestsPage() {
           </AnimatePresence>
         )}
       </div>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .cr-tab-btn:focus-visible,
-        .cr-back-link:focus-visible,
-        button:focus-visible,
-        a:focus-visible {
-          outline: 2px solid var(--accent);
-          outline-offset: 2px;
-        }
-        .cr-back-link:hover {
-          color: var(--text-primary);
-          background: var(--surface-2);
-        }
-        .collab-req-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-        .collab-req-undo:hover { color: var(--text-primary); }
-        .collab-req-undo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      `}</style>
     </div>
   );
 }

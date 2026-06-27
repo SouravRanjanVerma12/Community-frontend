@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,7 +28,6 @@ import { useAuthStore } from "../stores/authStore";
 import { useUserProfile, useUserPosts } from "../hooks/useProfile";
 import { useThemeStore } from "../stores/themeStore";
 import api from "../api/axiosInstance";
-import { useSocketStore } from "../stores/socketStore";
 
 /* ── helpers ── */
 const avatarColor = (name) =>
@@ -43,7 +42,6 @@ const initials = (name) =>
 const domainColor = (key) =>
   DOMAINS.find((d) => d.value === key)?.color ?? "#ff5c35";
 const domainLabel = (key) => DOMAINS.find((d) => d.value === key)?.label ?? key;
-const fmtNum = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
 
 /* ── upload blob then persist URL to user profile ── */
 async function uploadBlob(blob, endpoint) {
@@ -62,25 +60,11 @@ async function uploadBlob(blob, endpoint) {
 /* ── sub-components ── */
 function StatPill({ value, label }) {
   return (
-    <div style={{ textAlign: "center", padding: "0 16px", cursor: "pointer" }}>
-      <span
-        style={{
-          display: "block",
-          fontSize: "18px",
-          fontWeight: "700",
-          color: "var(--text-primary)",
-        }}
-      >
+    <div className="text-center px-4 cursor-pointer">
+      <span className="block text-lg font-bold text-text-primary">
         {value}
       </span>
-      <span
-        style={{
-          display: "block",
-          fontSize: "12px",
-          color: "var(--text-muted)",
-          marginTop: "1px",
-        }}
-      >
+      <span className="block text-xs text-text-muted mt-0.5">
         {label}
       </span>
     </div>
@@ -89,17 +73,7 @@ function StatPill({ value, label }) {
 
 function SkillBadge({ label }) {
   return (
-    <span
-      style={{
-        padding: "4px 12px",
-        borderRadius: "20px",
-        fontSize: "12px",
-        fontWeight: "500",
-        background: "var(--accent-bg)",
-        color: "var(--accent)",
-        border: "1px solid var(--accent-border)",
-      }}
-    >
+    <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border">
       {label}
     </span>
   );
@@ -146,7 +120,7 @@ function SettingsPanel({ profile }) {
     {
       value: "light",
       label: "Light",
-      desc: "Warm &amp; clean",
+      desc: "Warm & clean",
       preview: { bg: "#f6f3ee", surface: "#fff", accent: "#ff5c35" },
     },
     {
@@ -170,15 +144,8 @@ function SettingsPanel({ profile }) {
   const field = (label, value, onChange, opts = {}) => {
     const inputId = `profile-field-${label.toLowerCase().replace(/\s+/g, "-")}`;
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        <label
-          htmlFor={inputId}
-          style={{
-            fontSize: "14px",
-            fontWeight: "500",
-            color: "var(--text-secondary)",
-          }}
-        >
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={inputId} className="text-sm font-medium text-text-secondary">
           {label}
         </label>
         {opts.textarea ? (
@@ -188,21 +155,7 @@ function SettingsPanel({ profile }) {
             onChange={(e) => onChange(e.target.value)}
             rows={3}
             placeholder={opts.placeholder}
-            style={{
-              padding: "10px 14px",
-              borderRadius: "10px",
-              border: "1.5px solid var(--border)",
-              background: "var(--input-bg)",
-              fontSize: "16px",
-              color: "var(--text-primary)",
-              lineHeight: "1.6",
-              resize: "vertical",
-              outline: "none",
-              fontFamily: "inherit",
-              transition: "border-color 0.15s, box-shadow 0.15s",
-            }}
-            onFocus={(e) => { e.target.style.borderColor = "var(--accent-border)"; e.target.style.boxShadow = "0 0 0 3px var(--accent-dim)"; }}
-            onBlur={(e) => { e.target.style.borderColor = "var(--border)"; e.target.style.boxShadow = "none"; }}
+            className="px-3.5 py-2.5 rounded-[10px] border-[1.5px] border-border bg-input text-base text-text-primary leading-relaxed resize-y outline-none font-[inherit] transition-[border-color,box-shadow] duration-150 focus:border-accent-border focus:shadow-[0_0_0_3px_var(--accent-dim)]"
           />
         ) : (
           <input
@@ -210,20 +163,7 @@ function SettingsPanel({ profile }) {
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={opts.placeholder}
-            style={{
-              padding: "10px 14px",
-              minHeight: "44px",
-              boxSizing: "border-box",
-              borderRadius: "10px",
-              border: "1.5px solid var(--border)",
-              background: "var(--input-bg)",
-              fontSize: "16px",
-              color: "var(--text-primary)",
-              outline: "none",
-              transition: "border-color 0.15s, box-shadow 0.15s",
-            }}
-            onFocus={(e) => { e.target.style.borderColor = "var(--accent-border)"; e.target.style.boxShadow = "0 0 0 3px var(--accent-dim)"; }}
-            onBlur={(e) => { e.target.style.borderColor = "var(--border)"; e.target.style.boxShadow = "none"; }}
+            className="px-3.5 py-2.5 min-h-11 box-border rounded-[10px] border-[1.5px] border-border bg-input text-base text-text-primary outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent-border focus:shadow-[0_0_0_3px_var(--accent-dim)]"
           />
         )}
       </div>
@@ -235,36 +175,14 @@ function SettingsPanel({ profile }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-        marginTop: "14px",
-      }}
+      className="flex flex-col gap-4 mt-3.5"
     >
       {/* Basic info */}
-      <div
-        style={{
-          background: "var(--surface-1)",
-          border: "1px solid var(--border)",
-          borderRadius: "14px",
-          padding: "22px 24px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "15px",
-            fontWeight: "700",
-            color: "var(--text-primary)",
-            marginBottom: "18px",
-          }}
-        >
+      <div className="bg-surface-1 border border-border rounded-2xl px-6 py-5.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-4.5">
           Basic info
         </h3>
-        <form
-          onSubmit={handleSave}
-          style={{ display: "flex", flexDirection: "column", gap: "14px" }}
-        >
+        <form onSubmit={handleSave} className="flex flex-col gap-3.5">
           {field("Display name", name, setName, { placeholder: "Your name" })}
           {field("Bio", bio, setBio, {
             placeholder: "Tell the community about yourself…",
@@ -278,37 +196,23 @@ function SettingsPanel({ profile }) {
           })}
 
           {error && (
-            <p style={{ fontSize: "13px", color: "var(--error-text)" }}>{error}</p>
+            <p className="text-[13px] text-error">{error}</p>
           )}
 
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div className="flex items-center gap-2.5">
             <motion.button
               type="submit"
               whileTap={{ scale: 0.97 }}
               disabled={saving}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px",
-                padding: "10px 22px",
-                minHeight: "44px",
-                boxSizing: "border-box",
-                borderRadius: "9px",
-                border: "none",
-                background: saved ? "var(--success-bg)" : "var(--btn-grad)",
-                color: saved ? "var(--success-text)" : "#fff",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: saving ? "not-allowed" : "pointer",
-                opacity: saving ? 0.8 : 1,
-                boxShadow: saved ? "none" : "var(--btn-grad-shadow)",
-                transition: "background 0.2s, opacity 0.2s",
-              }}
+              className={[
+                'flex items-center justify-center gap-1.5 px-5.5 py-2.5 min-h-11 box-border rounded-[9px] border-none text-sm font-semibold transition-[background-color,opacity] duration-200',
+                saved ? 'bg-success-bg text-success' : 'bg-(image:--btn-grad) text-white shadow-btn',
+                saving ? 'cursor-not-allowed opacity-80' : 'cursor-pointer',
+              ].join(' ')}
             >
               {saving ? (
                 <>
-                  <Loader2 size={14} className="spin" /> Saving…
+                  <Loader2 size={14} className="animate-spin" /> Saving…
                 </>
               ) : saved ? (
                 <>
@@ -323,42 +227,15 @@ function SettingsPanel({ profile }) {
       </div>
 
       {/* Appearance */}
-      <div
-        style={{
-          background: "var(--surface-1)",
-          border: "1px solid var(--border)",
-          borderRadius: "14px",
-          padding: "22px 24px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "15px",
-            fontWeight: "700",
-            color: "var(--text-primary)",
-            marginBottom: "6px",
-          }}
-        >
+      <div className="bg-surface-1 border border-border rounded-2xl px-6 py-5.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-1.5">
           Appearance
         </h3>
-        <p
-          style={{
-            fontSize: "13px",
-            color: "var(--text-muted)",
-            marginBottom: "18px",
-          }}
-        >
+        <p className="text-[13px] text-text-muted mb-4.5">
           Choose how Prograstic looks to you.
         </p>
 
-        <div
-          className="theme-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "12px",
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {THEMES.map((t) => {
             const active = theme === t.value;
             return (
@@ -366,91 +243,32 @@ function SettingsPanel({ profile }) {
                 key={t.value}
                 onClick={() => setTheme(t.value)}
                 whileTap={{ scale: 0.97 }}
+                className="p-0 rounded-xl cursor-pointer bg-transparent overflow-hidden transition-colors duration-150"
                 style={{
-                  padding: "0",
-                  borderRadius: "12px",
-                  cursor: "pointer",
                   border: `2px solid ${active ? "var(--accent)" : "var(--border)"}`,
-                  background: "transparent",
-                  overflow: "hidden",
-                  transition: "border-color 0.15s",
                   boxShadow: active ? "0 0 0 3px var(--accent-dim)" : "none",
                 }}
               >
                 {/* Preview */}
-                <div
-                  style={{
-                    height: "70px",
-                    background: t.preview.bg,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px",
-                    padding: "10px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "32px",
-                      height: "48px",
-                      borderRadius: "6px",
-                      background: t.preview.surface,
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                    }}
-                  >
+                <div className="h-[70px] flex items-center justify-center gap-1.5 p-2.5" style={{ background: t.preview.bg }}>
+                  <div className="w-8 h-12 rounded-md shadow-[0_2px_6px_rgba(0,0,0,0.15)]" style={{ background: t.preview.surface }}>
+                    <div className="h-2 rounded-t-md opacity-80" style={{ background: t.preview.accent }} />
                     <div
-                      style={{
-                        height: "8px",
-                        background: t.preview.accent,
-                        borderRadius: "6px 6px 0 0",
-                        opacity: 0.8,
-                      }}
+                      className="mx-1 mt-1 mb-0.5 h-[3px] rounded-sm opacity-50"
+                      style={{ background: t.value === "dark" ? "#f0f2fc" : "#111827" }}
                     />
                     <div
-                      style={{
-                        margin: "4px 4px 2px",
-                        height: "3px",
-                        background: t.value === "dark" ? "#f0f2fc" : "#111827",
-                        borderRadius: "2px",
-                        opacity: 0.5,
-                      }}
-                    />
-                    <div
-                      style={{
-                        margin: "0 4px",
-                        height: "2px",
-                        background: t.value === "dark" ? "#8b90b0" : "#4b5563",
-                        borderRadius: "2px",
-                        opacity: 0.4,
-                      }}
+                      className="mx-1 h-0.5 rounded-sm opacity-40"
+                      style={{ background: t.value === "dark" ? "#8b90b0" : "#4b5563" }}
                     />
                   </div>
                 </div>
                 {/* Label */}
-                <div
-                  style={{
-                    padding: "8px 10px",
-                    background: "var(--surface-2)",
-                    textAlign: "left",
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: active ? "700" : "500",
-                      color: active ? "var(--accent)" : "var(--text-primary)",
-                      margin: 0,
-                    }}
-                  >
+                <div className="px-2.5 py-2 bg-surface-2 text-left">
+                  <p className={`text-[13px] m-0 ${active ? 'font-bold text-accent' : 'font-medium text-text-primary'}`}>
                     {t.label}
                   </p>
-                  <p
-                    style={{
-                      fontSize: "11px",
-                      color: "var(--text-muted)",
-                      margin: 0,
-                    }}
-                  >
+                  <p className="text-[11px] text-text-muted m-0">
                     {t.desc}
                   </p>
                 </div>
@@ -468,7 +286,7 @@ function SettingsPanel({ profile }) {
 ───────────────────────────────────────── */
 export default function ProfilePage() {
   const { userId } = useParams();
-  const { user: me, accessToken, updateFollowing } = useAuthStore();
+  const { user: me, updateFollowing } = useAuthStore();
 
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
@@ -572,26 +390,10 @@ export default function ProfilePage() {
 
   if (isLoading && !profile) {
     return (
-      <div style={{ minHeight: "100svh", background: "var(--surface-0)" }}>
+      <div className="min-h-svh bg-surface-0">
         <Navbar />
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            padding: "80px 20px",
-          }}
-        >
-          <div
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: "50%",
-              border: "3px solid var(--border)",
-              borderTopColor: "var(--accent)",
-              animation: "spin 0.8s linear infinite",
-            }}
-          />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <div className="flex justify-center px-5 py-20">
+          <div className="w-7 h-7 rounded-full border-[3px] border-border border-t-accent animate-spin" />
         </div>
       </div>
     );
@@ -599,24 +401,13 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div style={{ minHeight: "100svh", background: "var(--surface-0)" }}>
+      <div className="min-h-svh bg-surface-0">
         <Navbar />
-        <div
-          style={{
-            textAlign: "center",
-            padding: "80px 20px",
-            color: "var(--text-muted)",
-          }}
-        >
-          <p
-            style={{ fontSize: "18px", fontWeight: "600", marginBottom: "8px" }}
-          >
+        <div className="text-center px-5 py-20 text-text-muted">
+          <p className="text-lg font-semibold mb-2">
             User not found
           </p>
-          <Link
-            to="/explore"
-            style={{ color: "var(--accent)", fontSize: "14px" }}
-          >
+          <Link to="/explore" className="text-accent text-sm">
             ← Back to Explore
           </Link>
         </div>
@@ -674,7 +465,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div style={{ minHeight: "100svh", background: "var(--surface-0)" }}>
+    <div className="min-h-svh bg-surface-0">
       <Navbar />
 
       {/* hidden file inputs */}
@@ -682,7 +473,7 @@ export default function ProfilePage() {
         ref={avatarInputRef}
         type="file"
         accept="image/*"
-        style={{ display: "none" }}
+        className="hidden"
         onChange={(e) =>
           onFileChosen(e, {
             aspect: 1,
@@ -696,7 +487,7 @@ export default function ProfilePage() {
         ref={bannerInputRef}
         type="file"
         accept="image/*"
-        style={{ display: "none" }}
+        className="hidden"
         onChange={(e) =>
           onFileChosen(e, {
             aspect: 1280 / 190,
@@ -707,45 +498,26 @@ export default function ProfilePage() {
         }
       />
 
-      <div
-        style={{ maxWidth: "780px", margin: "0 auto", padding: "0 16px 48px" }}
-      >
+      <div className="max-w-[780px] mx-auto px-4 pb-12">
         {/* ── Banner ── */}
         <div
           onClick={() => isOwnProfile && bannerInputRef.current?.click()}
+          className={`group h-[190px] rounded-b-[20px] relative overflow-hidden ${isOwnProfile ? 'cursor-pointer' : 'cursor-default'}`}
           style={{
-            height: "190px",
-            borderRadius: "0 0 20px 20px",
-            position: "relative",
-            overflow: "hidden",
             background: bannerUrl
               ? `url(${bannerUrl}) center/cover no-repeat`
               : `linear-gradient(135deg, ${dc}22 0%, ${dc}14 40%, var(--surface-0) 100%)`,
-            cursor: isOwnProfile ? "pointer" : "default",
           }}
         >
           {!bannerUrl && (
             <>
               <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  backgroundImage: `radial-gradient(circle, ${dc}22 1px, transparent 1px)`,
-                  backgroundSize: "24px 24px",
-                  pointerEvents: "none",
-                }}
+                className="absolute inset-0 pointer-events-none"
+                style={{ backgroundImage: `radial-gradient(circle, ${dc}22 1px, transparent 1px)`, backgroundSize: '24px 24px' }}
               />
               <div
-                style={{
-                  position: "absolute",
-                  bottom: "16px",
-                  right: "20px",
-                  fontSize: "11px",
-                  fontWeight: "700",
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: `${dc}60`,
-                }}
+                className="absolute bottom-4 right-5 text-[11px] font-bold tracking-[0.1em] uppercase"
+                style={{ color: `${dc}60` }}
               >
                 {domainLabel(profile.domain)}
               </div>
@@ -754,33 +526,18 @@ export default function ProfilePage() {
 
           {/* banner upload hint (own profile) */}
           {isOwnProfile && (
-            <div
-              className="banner-overlay"
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                color: "#fff",
-                opacity: 0,
-                transition: "opacity 0.2s, background 0.2s",
-                background: "rgba(0,0,0,0)",
-                pointerEvents: "none",
-              }}
-            >
+            <div className="absolute inset-0 flex items-center justify-center gap-2 text-white opacity-0 bg-black/0 transition-[opacity,background-color] duration-200 pointer-events-none group-hover:opacity-100 group-hover:bg-black/38">
               {uploadingBanner ? (
                 <>
-                  <Loader2 size={20} className="spin" />{" "}
-                  <span style={{ fontSize: "13px", fontWeight: "600" }}>
+                  <Loader2 size={20} className="animate-spin" />
+                  <span className="text-[13px] font-semibold">
                     Uploading…
                   </span>
                 </>
               ) : (
                 <>
-                  <Camera size={18} />{" "}
-                  <span style={{ fontSize: "13px", fontWeight: "600" }}>
+                  <Camera size={18} />
+                  <span className="text-[13px] font-semibold">
                     Change banner
                   </span>
                 </>
@@ -796,30 +553,12 @@ export default function ProfilePage() {
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              style={{
-                margin: "8px 0 0",
-                padding: "10px 14px",
-                borderRadius: "8px",
-                background: "var(--error-bg)",
-                border: "1px solid var(--error-border)",
-                color: "var(--error-text)",
-                fontSize: "13px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
+              className="mt-2 px-3.5 py-2.5 rounded-lg bg-error-bg border border-error-border text-error text-[13px] flex items-center justify-between"
             >
               {uploadError}
               <button
                 onClick={() => setUploadError("")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "var(--error-text)",
-                  fontSize: "16px",
-                  lineHeight: 1,
-                }}
+                className="bg-none border-none cursor-pointer text-error text-base leading-none"
               >
                 ×
               </button>
@@ -832,68 +571,25 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            background: "var(--card-bg)",
-            border: "1px solid var(--card-border)",
-            borderRadius: "16px",
-            padding: "0 24px 24px",
-            marginTop: "-48px",
-            position: "relative",
-            boxShadow: "var(--shadow-card)",
-          }}
+          className="bg-card border border-card-border rounded-2xl px-6 pb-6 -mt-12 relative shadow-card"
         >
           {/* Avatar row */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "space-between",
-              paddingTop: "12px",
-              marginBottom: "14px",
-            }}
-          >
+          <div className="flex items-end justify-between pt-3 mb-3.5">
             {/* Avatar */}
             <div
               onClick={() => isOwnProfile && avatarInputRef.current?.click()}
-              style={{
-                position: "relative",
-                flexShrink: 0,
-                width: "88px",
-                height: "88px",
-                marginTop: "-44px",
-                cursor: isOwnProfile ? "pointer" : "default",
-              }}
+              className={`group relative shrink-0 w-22 h-22 -mt-11 ${isOwnProfile ? 'cursor-pointer' : 'cursor-default'}`}
             >
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt={profile.name}
-                  style={{
-                    width: "88px",
-                    height: "88px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: "4px solid var(--avatar-border)",
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
-                  }}
+                  className="w-22 h-22 rounded-full object-cover border-4 border-avatar-border shadow-[0_2px_12px_rgba(0,0,0,0.12)]"
                 />
               ) : (
                 <div
-                  style={{
-                    width: "88px",
-                    height: "88px",
-                    borderRadius: "50%",
-                    background: avatarColor(profile.name),
-                    color: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "32px",
-                    fontWeight: "700",
-                    border: "4px solid var(--avatar-border)",
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
-                    userSelect: "none",
-                  }}
+                  className="w-22 h-22 rounded-full text-white flex items-center justify-center text-[32px] font-bold border-4 border-avatar-border shadow-[0_2px_12px_rgba(0,0,0,0.12)] select-none"
+                  style={{ background: avatarColor(profile.name) }}
                 >
                   {initials(profile.name)}
                 </div>
@@ -901,30 +597,13 @@ export default function ProfilePage() {
 
               {/* camera overlay */}
               {isOwnProfile && (
-                <div
-                  className="avatar-overlay"
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    borderRadius: "50%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "3px",
-                    background: "rgba(0,0,0,0)",
-                    color: "#fff",
-                    opacity: 0,
-                    transition: "opacity 0.18s, background 0.18s",
-                    pointerEvents: "none",
-                  }}
-                >
+                <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center gap-[3px] bg-black/0 text-white opacity-0 transition-[opacity,background-color] duration-[180ms] pointer-events-none group-hover:opacity-100 group-hover:bg-black/48">
                   {uploadingAvatar ? (
-                    <Loader2 size={20} className="spin" />
+                    <Loader2 size={20} className="animate-spin" />
                   ) : (
                     <>
                       <Camera size={16} />
-                      <span style={{ fontSize: "10px", fontWeight: "700" }}>
+                      <span className="text-[10px] font-bold">
                         Change
                       </span>
                     </>
@@ -934,28 +613,11 @@ export default function ProfilePage() {
             </div>
 
             {/* Action buttons */}
-            <div style={{ display: "flex", gap: "8px" }}>
+            <div className="flex gap-2">
               {isOwnProfile ? (
                 <button
                   onClick={() => setActiveTab("settings")}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    padding: "10px 16px",
-                    minHeight: "44px",
-                    boxSizing: "border-box",
-                    borderRadius: "9px",
-                    border: "1.5px solid var(--border)",
-                    background: "transparent",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    color: "var(--text-secondary)",
-                    cursor: "pointer",
-                    transition: "border-color 0.15s, color 0.15s",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.color = "var(--accent)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+                  className="flex items-center gap-1.5 px-4 py-2.5 min-h-11 box-border rounded-[9px] border-[1.5px] border-border bg-transparent text-sm font-semibold text-text-secondary cursor-pointer transition-colors duration-150 hover:border-accent hover:text-accent"
                 >
                   <Edit3 size={14} /> Edit profile
                 </button>
@@ -963,41 +625,17 @@ export default function ProfilePage() {
                 <>
                   {/* Message and Unfriend buttons */}
                   {friendStatus.status === "accepted" && (
-                    <div style={{ display: "flex", gap: "8px" }}>
+                    <div className="flex gap-2">
                       <button
                         onClick={() => navigate("/messages")}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "8px 14px",
-                          borderRadius: "9px",
-                          border: "1.5px solid var(--border)",
-                          background: "transparent",
-                          fontSize: "13px",
-                          fontWeight: "500",
-                          color: "var(--text-secondary)",
-                          cursor: "pointer",
-                        }}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-[13px] font-medium text-text-secondary cursor-pointer"
                       >
                         <MessageSquare size={14} /> Message
                       </button>
                       <button
                         onClick={cancelRequest}
                         disabled={fsLoading}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "8px 14px",
-                          borderRadius: "9px",
-                          border: "1.5px solid var(--error-border)",
-                          background: "transparent",
-                          fontSize: "13px",
-                          fontWeight: "500",
-                          color: "var(--error-text)",
-                          cursor: "pointer",
-                        }}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] border-[1.5px] border-error-border bg-transparent text-[13px] font-medium text-error cursor-pointer"
                       >
                         <UserMinus size={14} /> Unfriend
                       </button>
@@ -1006,57 +644,28 @@ export default function ProfilePage() {
 
                   {/* Friend request button */}
                   {friendStatus.status === "none" && (
-                    <div style={{ display: "flex", gap: "8px" }}>
+                    <div className="flex gap-2">
                       <motion.button
                         whileTap={{ scale: 0.97 }}
                         onClick={sendFriendRequest}
                         disabled={fsLoading}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "8px 16px",
-                          borderRadius: "9px",
-                          border: "none",
-                          background: "var(--btn-grad)",
-                          boxShadow: "var(--btn-grad-shadow)",
-                          color: "#fff",
-                          fontSize: "13px",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                          transition: "all 0.15s",
-                          opacity: fsLoading ? 0.7 : 1,
-                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-[9px] border-none bg-(image:--btn-grad) shadow-btn text-white text-[13px] font-semibold cursor-pointer transition-opacity duration-150"
+                        style={{ opacity: fsLoading ? 0.7 : 1 }}
                       >
                         <UserPlus size={14} /> Add Friend
                       </motion.button>
                       <button
                         onClick={toggleFollowProfile}
                         disabled={followLoading}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] text-[13px] font-medium cursor-pointer"
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "8px 14px",
-                          borderRadius: "9px",
-                          border: isFollowing
-                            ? "1.5px solid var(--border)"
-                            : "1.5px solid var(--accent)",
-                          background: isFollowing
-                            ? "transparent"
-                            : "var(--btn-grad)",
+                          border: isFollowing ? "1.5px solid var(--border)" : "1.5px solid var(--accent)",
+                          background: isFollowing ? "transparent" : "var(--btn-grad)",
                           boxShadow: isFollowing ? "none" : "var(--btn-grad-shadow)",
-                          fontSize: "13px",
-                          fontWeight: "500",
                           color: isFollowing ? "var(--text-secondary)" : "#fff",
-                          cursor: "pointer",
                         }}
                       >
-                        {isFollowing ? (
-                          <Check size={14} />
-                        ) : (
-                          <UserPlus size={14} />
-                        )}
+                        {isFollowing ? <Check size={14} /> : <UserPlus size={14} />}
                         {isFollowing ? "Following" : "Follow"}
                       </button>
                     </div>
@@ -1067,19 +676,7 @@ export default function ProfilePage() {
                       <button
                         onClick={cancelRequest}
                         disabled={fsLoading}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "8px 16px",
-                          borderRadius: "9px",
-                          border: "1.5px solid var(--border)",
-                          background: "transparent",
-                          fontSize: "13px",
-                          fontWeight: "500",
-                          color: "var(--text-muted)",
-                          cursor: "pointer",
-                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-[13px] font-medium text-text-muted cursor-pointer"
                       >
                         <Clock size={14} /> Pending
                       </button>
@@ -1091,39 +688,14 @@ export default function ProfilePage() {
                         whileTap={{ scale: 0.97 }}
                         onClick={acceptRequest}
                         disabled={fsLoading}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "8px 16px",
-                          borderRadius: "9px",
-                          border: "none",
-                          background: "var(--btn-grad)",
-                          boxShadow: "var(--btn-grad-shadow)",
-                          color: "#fff",
-                          fontSize: "13px",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-[9px] border-none bg-(image:--btn-grad) shadow-btn text-white text-[13px] font-semibold cursor-pointer"
                       >
                         <UserCheck size={14} /> Accept Request
                       </motion.button>
                     )}
 
                   {friendStatus.status === "accepted" && (
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        padding: "8px 14px",
-                        borderRadius: "9px",
-                        border: "1.5px solid #22c55e",
-                        color: "#22c55e",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
+                    <span className="flex items-center gap-[5px] px-3.5 py-2 rounded-[9px] border-[1.5px] border-[#22c55e] text-[#22c55e] text-[13px] font-semibold">
                       <UserCheck size={14} /> Friends
                     </span>
                   )}
@@ -1132,146 +704,58 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <h1
-            style={{
-              fontSize: "22px",
-              fontWeight: "800",
-              color: "var(--text-primary)",
-              letterSpacing: "-0.5px",
-              marginBottom: "2px",
-            }}
-          >
+          <h1 className="text-[22px] font-extrabold text-text-primary tracking-[-0.5px] mb-0.5">
             {profile.name}
           </h1>
-          <p
-            style={{
-              fontSize: "14px",
-              color: "var(--text-muted)",
-              marginBottom: "10px",
-            }}
-          >
+          <p className="text-sm text-text-muted mb-2.5">
             @{profile.username || profile.email?.split("@")[0] || "user"}
           </p>
 
-          <p
-            style={{
-              fontSize: "14px",
-              color: "var(--text-secondary)",
-              lineHeight: "1.65",
-              marginBottom: "14px",
-              maxWidth: "560px",
-            }}
-          >
+          <p className="text-sm text-text-secondary leading-[1.65] mb-3.5 max-w-[560px]">
             {profile.bio}
           </p>
 
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "14px",
-              marginBottom: "16px",
-            }}
-          >
+          <div className="flex flex-wrap gap-3.5 mb-4">
             {profile.location && (
-              <span
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px",
-                  fontSize: "13px",
-                  color: "var(--text-secondary)",
-                }}
-              >
-                <MapPin size={13} color="var(--text-muted)" />{" "}
-                {profile.location}
+              <span className="flex items-center gap-1 text-[13px] text-text-secondary">
+                <MapPin size={13} color="var(--text-muted)" /> {profile.location}
               </span>
             )}
             {profile.website && (
               <a
                 href="#"
                 onClick={(e) => e.preventDefault()}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px",
-                  fontSize: "13px",
-                  color: "var(--accent)",
-                  textDecoration: "none",
-                }}
+                className="flex items-center gap-1 text-[13px] text-accent no-underline"
               >
                 <Globe size={13} /> {profile.website}
               </a>
             )}
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-                fontSize: "13px",
-                color: "var(--text-secondary)",
-              }}
-            >
-              <Calendar size={13} color="var(--text-muted)" /> Joined{" "}
-              {profile.joinedYear}
+            <span className="flex items-center gap-1 text-[13px] text-text-secondary">
+              <Calendar size={13} color="var(--text-muted)" /> Joined {profile.joinedYear}
             </span>
           </div>
 
           {profile.skills?.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "6px",
-                marginBottom: "20px",
-              }}
-            >
+            <div className="flex flex-wrap gap-1.5 mb-5">
               {profile.skills.map((s) => (
                 <SkillBadge key={s} label={s} />
               ))}
             </div>
           )}
 
-          <div
-            style={{
-              height: "1px",
-              background: "var(--divider)",
-              marginBottom: "20px",
-            }}
-          />
+          <div className="h-px bg-divider mb-5" />
 
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <div className="flex justify-center">
             <StatPill value={userPosts.length} label="Posts" />
-            <div
-              style={{
-                width: "1px",
-                background: "var(--divider)",
-                margin: "4px 0",
-              }}
-            />
+            <div className="w-px bg-divider my-1" />
             <StatPill value={fmtNum(followerCount)} label="Followers" />
-            <div
-              style={{
-                width: "1px",
-                background: "var(--divider)",
-                margin: "4px 0",
-              }}
-            />
+            <div className="w-px bg-divider my-1" />
             <StatPill value={fmtNum(followingCount)} label="Following" />
           </div>
         </motion.div>
 
         {/* ── Tabs ── */}
-        <div
-          style={{
-            background: "var(--surface-1)",
-            border: "1px solid var(--border)",
-            borderRadius: "12px",
-            marginTop: "12px",
-            display: "flex",
-            overflow: "hidden",
-          }}
-        >
+        <div className="bg-surface-1 border border-border rounded-xl mt-3 flex overflow-hidden">
           {ALL_TABS.map((id) => {
             const active = activeTab === id;
             const isSoon = TAB_SOON.includes(id);
@@ -1280,44 +764,20 @@ export default function ProfilePage() {
               <button
                 key={id}
                 onClick={() => !locked && setActiveTab(id)}
+                className={[
+                  'flex-1 px-2 py-3.5 border-none border-b-2 text-[13px] flex items-center justify-center gap-1.5 transition-all duration-150',
+                  active ? 'font-bold' : 'font-medium',
+                  locked ? 'cursor-default' : 'cursor-pointer',
+                ].join(' ')}
                 style={{
-                  flex: 1,
-                  padding: "13px 8px",
-                  border: "none",
-                  borderBottom: active
-                    ? "2px solid var(--accent)"
-                    : "2px solid transparent",
-                  background: active ? "var(--accent-dim)" : "transparent",
-                  color: active
-                    ? "var(--accent)"
-                    : locked
-                      ? "var(--text-muted)"
-                      : "var(--text-secondary)",
-                  fontSize: "13px",
-                  fontWeight: active ? "700" : "500",
-                  cursor: locked ? "default" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "5px",
-                  transition: "all 0.15s",
+                  borderBottomColor: active ? 'var(--accent)' : 'transparent',
+                  background: active ? 'var(--accent-dim)' : 'transparent',
+                  color: active ? 'var(--accent)' : locked ? 'var(--text-muted)' : 'var(--text-secondary)',
                 }}
               >
                 {TAB_LABELS[id]}
                 {locked && (
-                  <span
-                    style={{
-                      fontSize: "10px",
-                      padding: "1px 5px",
-                      borderRadius: "4px",
-                      background: "var(--surface-2)",
-                      color: "var(--text-muted)",
-                      fontWeight: "500",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "2px",
-                    }}
-                  >
+                  <span className="text-[10px] px-1.5 py-px rounded bg-surface-2 text-text-muted font-medium inline-flex items-center gap-0.5">
                     <Lock size={9} /> Soon
                   </span>
                 )}
@@ -1339,7 +799,7 @@ export default function ProfilePage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              style={{ marginTop: "14px" }}
+              className="mt-3.5"
             >
               <FriendsList userId={userId} isOwnProfile={isOwnProfile} />
             </motion.div>
@@ -1360,38 +820,15 @@ export default function ProfilePage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              style={{
-                marginTop: "14px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              }}
+              className="mt-3.5 flex flex-col gap-3"
             >
               {userPosts.length === 0 ? (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "60px 20px",
-                    background: "var(--card-bg)",
-                    border: "1px solid var(--card-border)",
-                    borderRadius: "14px",
-                  }}
-                >
-                  <Edit3
-                    size={32}
-                    style={{ marginBottom: "12px", opacity: 0.4, color: "var(--text-muted)" }}
-                  />
-                  <p
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "600",
-                      color: "var(--text-primary)",
-                      marginBottom: "6px",
-                    }}
-                  >
+                <div className="text-center px-5 py-15 bg-card border border-card-border rounded-2xl">
+                  <Edit3 size={32} className="mb-3 opacity-40 text-text-muted" />
+                  <p className="text-base font-semibold text-text-primary mb-1.5">
                     No posts yet
                   </p>
-                  <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
+                  <p className="text-sm text-text-muted">
                     Posts you share will appear here.
                   </p>
                 </div>
@@ -1399,44 +836,17 @@ export default function ProfilePage() {
                 <>
                   {pinnedPost && (
                     <div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          marginBottom: "8px",
-                          paddingLeft: "4px",
-                        }}
-                      >
-                        <Pin
-                          size={12}
-                          style={{ color: "var(--text-muted)" }}
-                        />
-                        <span
-                          style={{
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            color: "var(--text-muted)",
-                            letterSpacing: "0.04em",
-                            textTransform: "uppercase",
-                          }}
-                        >
+                      <div className="flex items-center gap-1.5 mb-2 pl-1">
+                        <Pin size={12} className="text-text-muted" />
+                        <span className="text-xs font-semibold text-text-muted tracking-wide uppercase">
                           Pinned post
                         </span>
                       </div>
                       <PostCard post={pinnedPost} index={0} />
                     </div>
                   )}
-                  <div style={{ paddingLeft: "4px" }}>
-                    <span
-                      style={{
-                        fontSize: "12px",
-                        fontWeight: "600",
-                        color: "var(--text-muted)",
-                        letterSpacing: "0.04em",
-                        textTransform: "uppercase",
-                      }}
-                    >
+                  <div className="pl-1">
+                    <span className="text-xs font-semibold text-text-muted tracking-wide uppercase">
                       All posts
                     </span>
                   </div>
@@ -1463,31 +873,6 @@ export default function ProfilePage() {
           />
         )}
       </AnimatePresence>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spin { animation: spin 1s linear infinite; }
-
-        /* banner hover */
-        div:hover > .banner-overlay {
-          opacity: 1 !important;
-          background: rgba(0,0,0,0.38) !important;
-        }
-        /* avatar hover */
-        div:hover > .avatar-overlay {
-          opacity: 1 !important;
-          background: rgba(0,0,0,0.48) !important;
-        }
-
-        button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible, [tabindex]:focus-visible {
-          outline: 2px solid var(--accent);
-          outline-offset: 2px;
-        }
-
-        @media (max-width: 480px) {
-          .theme-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }

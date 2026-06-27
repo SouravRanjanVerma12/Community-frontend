@@ -13,7 +13,6 @@ import CollabPage from "./pages/CollabPage";
 import CollabRequestsPage from "./pages/CollabRequestsPage";
 import MessagesPage from "./pages/MessagesPage";
 import WorkspacePage from "./pages/WorkspacePage";
-import "./App.css";
 
 function ThemeApplier() {
   const { theme } = useThemeStore();

@@ -9,9 +9,9 @@ import api from '../../api/axiosInstance';
 function Avatar({ name, src, size = 32 }) {
   const initials = name?.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) ?? '?';
   const hue = [...(name ?? '')].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-  if (src) return <img src={src} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />;
+  if (src) return <img src={src} alt={name} style={{ width: size, height: size, background: undefined }} className="rounded-full object-cover shrink-0" />;
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: `hsl(${hue},55%,55%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.36, fontWeight: '600', flexShrink: 0 }}>
+    <div style={{ width: size, height: size, background: `hsl(${hue},55%,55%)`, fontSize: size * 0.36 }} className="rounded-full text-white flex items-center justify-center font-semibold shrink-0">
       {initials}
     </div>
   );
@@ -19,8 +19,8 @@ function Avatar({ name, src, size = 32 }) {
 
 function Section({ title, children }) {
   return (
-    <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '14px 16px', transition: 'background 0.25s, border-color 0.25s' }}>
-      <p style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', marginBottom: '10px' }}>
+    <div className="bg-card border border-card-border rounded-xl px-4 py-3.5 transition-colors duration-250">
+      <p className="text-[11px] font-bold uppercase tracking-[0.07em] text-text-muted mb-2.5">
         {title}
       </p>
       {children}
@@ -29,7 +29,7 @@ function Section({ title, children }) {
 }
 
 function Spinner() {
-  return <div style={{ display: 'flex', justifyContent: 'center', padding: '12px' }}><Loader2 size={16} color="var(--text-muted)" style={{ animation: 'spin 1s linear infinite' }} /></div>;
+  return <div className="flex justify-center p-3"><Loader2 size={16} color="var(--text-muted)" className="animate-spin" /></div>;
 }
 
 export default function RightSidebar() {
@@ -56,31 +56,36 @@ export default function RightSidebar() {
   };
 
   return (
-    <aside style={{
-      position: 'sticky', top: '112px',
-      height: 'calc(100svh - 112px)', overflowY: 'auto',
-      width: '280px', flexShrink: 0,
-      display: 'flex', flexDirection: 'column', gap: '14px',
-      paddingBottom: '24px', scrollbarWidth: 'none',
-    }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-
+    <aside className="hidden xl:flex sticky top-[112px] h-[calc(100svh-112px)] overflow-y-auto w-70 shrink-0 flex-col gap-3.5 pb-6 scrollbar-none">
       {/* Quick share */}
       <Section title="✏️ Quick share">
         {!composing ? (
-          <button onClick={() => setComposing(true)} style={{ width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: '20px', border: '1.5px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text-muted)', fontSize: '13px', cursor: 'text', transition: 'border-color 0.15s' }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent-border)')}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}>
+          <button
+            onClick={() => setComposing(true)}
+            className="w-full text-left px-3 py-2 rounded-full border-[1.5px] border-border hover:border-accent-border bg-input text-text-muted text-[13px] cursor-text transition-colors duration-150"
+          >
             {user ? `What's on your mind?` : 'Log in to post…'}
           </button>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <textarea autoFocus rows={3} value={postBody} onChange={(e) => setPostBody(e.target.value)} placeholder="Write your post…"
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1.5px solid var(--accent-border)', fontSize: '13px', lineHeight: '1.5', resize: 'none', outline: 'none', fontFamily: 'inherit', color: 'var(--text-primary)', background: 'var(--input-bg)' }} />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-              <button onClick={() => setComposing(false)} style={{ padding: '5px 10px', borderRadius: '7px', border: '1.5px solid var(--border)', background: 'transparent', fontSize: '12px', cursor: 'pointer', color: 'var(--text-secondary)' }}>Cancel</button>
-              <button onClick={handlePost} disabled={!postBody.trim() || posted}
-                style={{ padding: '5px 12px', borderRadius: '7px', border: 'none', background: posted ? 'var(--success-bg)' : postBody.trim() ? 'var(--accent)' : 'var(--accent-dim)', color: posted ? 'var(--success-text)' : '#fff', fontSize: '12px', fontWeight: '600', cursor: postBody.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}>
+          <div className="flex flex-col gap-2">
+            <textarea
+              autoFocus
+              rows={3}
+              value={postBody}
+              onChange={(e) => setPostBody(e.target.value)}
+              placeholder="Write your post…"
+              className="w-full px-2.5 py-2 rounded-lg border-[1.5px] border-accent-border text-[13px] leading-normal resize-none outline-none font-[inherit] text-text-primary bg-input"
+            />
+            <div className="flex justify-end gap-1.5">
+              <button onClick={() => setComposing(false)} className="px-2.5 py-[5px] rounded-[7px] border-[1.5px] border-border bg-transparent text-xs cursor-pointer text-text-secondary">Cancel</button>
+              <button
+                onClick={handlePost}
+                disabled={!postBody.trim() || posted}
+                className={[
+                  'px-3 py-[5px] rounded-[7px] border-none text-xs font-semibold transition-colors duration-200',
+                  posted ? 'bg-success-bg text-success' : postBody.trim() ? 'bg-accent text-white cursor-pointer' : 'bg-accent-dim text-white cursor-not-allowed',
+                ].join(' ')}
+              >
                 {posted ? 'Posted! ✓' : 'Post'}
               </button>
             </div>
@@ -91,15 +96,13 @@ export default function RightSidebar() {
       {/* Trending */}
       <Section title="🔥 Trending">
         {tagsLoading ? <Spinner /> : !tags?.length ? (
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No data yet.</p>
+          <p className="text-[13px] text-text-muted">No data yet.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div className="flex flex-col gap-0.5">
             {tags.map((tag) => (
-              <div key={tag.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 6px', borderRadius: '7px', cursor: 'pointer', transition: 'background 0.1s' }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--hover-bg)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-                <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--accent)' }}>{tag.label}</span>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{tag.count} posts</span>
+              <div key={tag.label} className="flex justify-between items-center px-1.5 py-1 rounded-[7px] cursor-pointer transition-colors duration-100 hover:bg-hover">
+                <span className="text-[13px] font-medium text-accent">{tag.label}</span>
+                <span className="text-[11px] text-text-muted">{tag.count} posts</span>
               </div>
             ))}
           </div>
@@ -109,17 +112,15 @@ export default function RightSidebar() {
       {/* Top this week */}
       <Section title="⭐ Top This Week">
         {topLoading ? <Spinner /> : !topPosts?.length ? (
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No posts yet.</p>
+          <p className="text-[13px] text-text-muted">No posts yet.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div className="flex flex-col gap-2.5">
             {topPosts.map((post, i) => (
               <div key={post._id}>
-                {i > 0 && <div style={{ height: '1px', background: 'var(--divider)', marginBottom: '10px' }} />}
-                <div style={{ cursor: 'pointer' }}
-                  onMouseEnter={(e) => e.currentTarget.querySelector('p').style.color = 'var(--accent)'}
-                  onMouseLeave={(e) => e.currentTarget.querySelector('p').style.color = 'var(--text-primary)'}>
-                  <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', lineHeight: '1.35', marginBottom: '4px', transition: 'color 0.12s' }}>{post.title}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                {i > 0 && <div className="h-px bg-divider mb-2.5" />}
+                <div className="group cursor-pointer">
+                  <p className="text-[13px] font-semibold text-text-primary leading-[1.35] mb-1 transition-colors duration-[120ms] group-hover:text-accent">{post.title}</p>
+                  <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
                     <span>{post.author?.name}</span><span>·</span><span>❤️ {post.likeCount}</span>
                   </div>
                 </div>
@@ -132,21 +133,27 @@ export default function RightSidebar() {
       {/* Who to follow */}
       <Section title="👥 Who to Follow">
         {suggestLoading ? <Spinner /> : !suggestions?.length ? (
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No suggestions yet.</p>
+          <p className="text-[13px] text-text-muted">No suggestions yet.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="flex flex-col gap-3">
             {suggestions.map((u) => {
               const isFollowing = Array.isArray(user?.following) && user.following.includes(u._id);
               return (
-                <div key={u._id} style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                  <Link to={`/profile/${u._id}`} style={{ display: 'flex', alignItems: 'center', gap: '9px', flex: 1, minWidth: 0, textDecoration: 'none' }}>
+                <div key={u._id} className="flex items-center gap-2.5">
+                  <Link to={`/profile/${u._id}`} className="flex items-center gap-2.5 flex-1 min-w-0 no-underline">
                     <Avatar name={u.name} src={u.avatarUrl || null} size={32} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', margin: 0 }}>{u.name}</p>
-                      <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.bio || `@${u.username}`}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-semibold text-text-primary m-0">{u.name}</p>
+                      <p className="text-[11px] text-text-muted m-0 overflow-hidden text-ellipsis whitespace-nowrap">{u.bio || `@${u.username}`}</p>
                     </div>
                   </Link>
-                  <button onClick={() => toggleFollow(u._id)} style={{ padding: '4px 10px', borderRadius: '20px', flexShrink: 0, border: isFollowing ? '1.5px solid var(--border)' : '1.5px solid var(--accent)', background: isFollowing ? 'var(--surface-2)' : 'var(--accent)', color: isFollowing ? 'var(--text-secondary)' : '#fff', fontSize: '11px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', transition: 'all 0.15s' }}>
+                  <button
+                    onClick={() => toggleFollow(u._id)}
+                    className={[
+                      'px-2.5 py-1 rounded-full shrink-0 text-[11px] font-semibold cursor-pointer flex items-center gap-[3px] transition-all duration-150 border-[1.5px]',
+                      isFollowing ? 'border-border bg-surface-2 text-text-secondary' : 'border-accent bg-accent text-white',
+                    ].join(' ')}
+                  >
                     {isFollowing ? <><Check size={10} /> Following</> : <><UserPlus size={10} /> Follow</>}
                   </button>
                 </div>
@@ -157,13 +164,13 @@ export default function RightSidebar() {
       </Section>
 
       {/* Footer */}
-      <div style={{ padding: '0 4px' }}>
-        <p style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.9' }}>
+      <div className="px-1">
+        <p className="text-[11px] text-text-muted leading-[1.9]">
           {['About', 'Guidelines', 'Privacy', 'Terms'].map((l, i) => (
-            <span key={l}>{i > 0 && ' · '}<a href="#" style={{ color: 'var(--text-muted)' }} onClick={(e) => e.preventDefault()}>{l}</a></span>
+            <span key={l}>{i > 0 && ' · '}<a href="#" className="text-text-muted" onClick={(e) => e.preventDefault()}>{l}</a></span>
           ))}
         </p>
-        <p style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '2px' }}>© 2026 Prograstic</p>
+        <p className="text-[11px] text-text-faint mt-0.5">© 2026 Prograstic</p>
       </div>
     </aside>
   );

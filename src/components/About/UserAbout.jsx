@@ -20,51 +20,17 @@ function formatDate(dateStr) {
   return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
-function timeSince(dateStr) {
-  const diff = (Date.now() - new Date(dateStr)) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
-  return `${Math.floor(diff / 2592000)}mo ago`;
-}
-
 /* ── sub-components ── */
 
 /* --- Empty state --- */
 function EmptySection({ icon: Icon, title, description, action, actionLabel }) {
   return (
-    <div
-      style={{
-        textAlign: "center",
-        padding: "32px 20px",
-        background: "var(--surface-2)",
-        borderRadius: "12px",
-        border: "2px dashed var(--border)",
-      }}
-    >
-      <Icon
-        size={32}
-        color="var(--text-muted)"
-        style={{ marginBottom: "12px", opacity: 0.5 }}
-      />
-      <p
-        style={{
-          fontSize: "15px",
-          fontWeight: "600",
-          color: "var(--text-primary)",
-          marginBottom: "4px",
-        }}
-      >
+    <div className="text-center px-5 py-8 bg-surface-2 rounded-xl border-2 border-dashed border-border">
+      <Icon size={32} color="var(--text-muted)" className="mb-3 opacity-50" />
+      <p className="text-[15px] font-semibold text-text-primary mb-1">
         {title}
       </p>
-      <p
-        style={{
-          fontSize: "13px",
-          color: "var(--text-muted)",
-          marginBottom: "12px",
-        }}
-      >
+      <p className="text-[13px] text-text-muted mb-3">
         {description}
       </p>
       {action && (
@@ -89,61 +55,31 @@ function SkillInput({ skills, onAdd, onRemove }) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {skills.map((s) => (
           <span
             key={s}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
-              padding: "4px 10px",
-              borderRadius: "20px",
-              background: "var(--accent-bg)",
-              color: "var(--accent)",
-              border: "1px solid var(--accent-border)",
-              fontSize: "12px",
-              fontWeight: "500",
-            }}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent-bg text-accent border border-accent-border text-xs font-medium"
           >
             {s}
             <button
               onClick={() => onRemove(s)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--accent)",
-                padding: "0 2px",
-                fontSize: "14px",
-                lineHeight: 1,
-              }}
+              className="bg-none border-none cursor-pointer text-accent px-0.5 text-sm leading-none"
             >
               ×
             </button>
           </span>
         ))}
       </div>
-      <div style={{ display: "flex", gap: "6px" }}>
+      <div className="flex gap-1.5">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Add a skill…"
-          style={{
-            flex: 1,
-            padding: "6px 10px",
-            borderRadius: "6px",
-            border: "1.5px solid var(--border)",
-            background: "var(--input-bg)",
-            fontSize: "13px",
-            color: "var(--text-primary)",
-            outline: "none",
-          }}
-          onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-          onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
+          className="flex-1 px-2.5 py-1.5 rounded-md border-[1.5px] border-border bg-input text-[13px] text-text-primary outline-none transition-colors duration-150 focus:border-accent"
         />
         <button
           onClick={() => {
@@ -152,17 +88,7 @@ function SkillInput({ skills, onAdd, onRemove }) {
               setInput("");
             }
           }}
-          style={{
-            padding: "6px 12px",
-            borderRadius: "6px",
-            border: "none",
-            background: "var(--btn-grad)",
-            color: "#fff",
-            fontSize: "13px",
-            fontWeight: "600",
-            cursor: "pointer",
-            boxShadow: "var(--btn-grad-shadow)",
-          }}
+          className="px-3 py-1.5 rounded-md border-none bg-(image:--btn-grad) text-white text-[13px] font-semibold cursor-pointer shadow-btn"
         >
           <Plus size={14} />
         </button>
@@ -190,92 +116,36 @@ function ExperienceSection({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div className="flex flex-col gap-4">
       {experiences.map((exp, idx) => (
-        <div
-          key={idx}
-          style={{
-            background: "var(--surface-1)",
-            border: "1px solid var(--card-border)",
-            borderRadius: "10px",
-            padding: "14px 18px",
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-            }}
-          >
+        <div key={idx} className="bg-surface-1 border border-card-border rounded-[10px] px-4.5 py-3.5 relative">
+          <div className="flex justify-between items-start">
             <div>
-              <h4
-                style={{
-                  fontSize: "15px",
-                  fontWeight: "700",
-                  color: "var(--text-primary)",
-                  marginBottom: "2px",
-                }}
-              >
+              <h4 className="text-[15px] font-bold text-text-primary mb-0.5">
                 {exp.title}
               </h4>
-              <p
-                style={{
-                  fontSize: "14px",
-                  color: "var(--text-secondary)",
-                  marginBottom: "2px",
-                }}
-              >
+              <p className="text-sm text-text-secondary mb-0.5">
                 {exp.company}
               </p>
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "var(--text-muted)",
-                  marginBottom: "6px",
-                }}
-              >
+              <p className="text-xs text-text-muted mb-1.5">
                 {formatDate(exp.startDate)} –{" "}
                 {exp.endDate ? formatDate(exp.endDate) : "Present"}
               </p>
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "var(--text-secondary)",
-                  lineHeight: "1.5",
-                }}
-              >
+              <p className="text-[13px] text-text-secondary leading-snug">
                 {exp.description}
               </p>
             </div>
             {isEditing && (
-              <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+              <div className="flex gap-1 shrink-0">
                 <button
                   onClick={() => onEdit(idx)}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    border: "1px solid var(--border)",
-                    background: "transparent",
-                    color: "var(--text-muted)",
-                    cursor: "pointer",
-                    fontSize: "11px",
-                  }}
+                  className="px-2 py-1 rounded-md border border-border bg-transparent text-text-muted cursor-pointer text-[11px]"
                 >
                   <Edit3 size={12} />
                 </button>
                 <button
                   onClick={() => onRemove(idx)}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    border: "1px solid var(--error-border)",
-                    background: "transparent",
-                    color: "var(--error-text)",
-                    cursor: "pointer",
-                    fontSize: "11px",
-                  }}
+                  className="px-2 py-1 rounded-md border border-error-border bg-transparent text-error cursor-pointer text-[11px]"
                 >
                   <Trash2 size={12} />
                 </button>
@@ -287,27 +157,7 @@ function ExperienceSection({
       {isEditing && (
         <button
           onClick={() => onAdd()}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "8px 14px",
-            borderRadius: "8px",
-            border: "1.5px dashed var(--border)",
-            background: "transparent",
-            color: "var(--text-muted)",
-            fontSize: "13px",
-            cursor: "pointer",
-            transition: "all 0.15s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "var(--accent)";
-            e.currentTarget.style.color = "var(--accent)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "var(--border)";
-            e.currentTarget.style.color = "var(--text-muted)";
-          }}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border-[1.5px] border-dashed border-border bg-transparent text-text-muted text-[13px] cursor-pointer transition-colors duration-150 hover:border-accent hover:text-accent"
         >
           <Plus size={14} /> Add experience
         </button>
@@ -329,78 +179,34 @@ function EducationSection({ educations, isEditing, onAdd, onEdit, onRemove }) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div className="flex flex-col gap-4">
       {educations.map((edu, idx) => (
-        <div
-          key={idx}
-          style={{
-            background: "var(--surface-1)",
-            border: "1px solid var(--card-border)",
-            borderRadius: "10px",
-            padding: "14px 18px",
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-            }}
-          >
+        <div key={idx} className="bg-surface-1 border border-card-border rounded-[10px] px-4.5 py-3.5 relative">
+          <div className="flex justify-between items-start">
             <div>
-              <h4
-                style={{
-                  fontSize: "15px",
-                  fontWeight: "700",
-                  color: "var(--text-primary)",
-                  marginBottom: "2px",
-                }}
-              >
+              <h4 className="text-[15px] font-bold text-text-primary mb-0.5">
                 {edu.degree} {edu.field && `in ${edu.field}`}
               </h4>
-              <p
-                style={{
-                  fontSize: "14px",
-                  color: "var(--text-secondary)",
-                  marginBottom: "2px",
-                }}
-              >
+              <p className="text-sm text-text-secondary mb-0.5">
                 {edu.institution}
               </p>
               {edu.graduationYear && (
-                <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                <p className="text-xs text-text-muted">
                   Graduated {edu.graduationYear}
                 </p>
               )}
             </div>
             {isEditing && (
-              <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+              <div className="flex gap-1 shrink-0">
                 <button
                   onClick={() => onEdit(idx)}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    border: "1px solid var(--border)",
-                    background: "transparent",
-                    color: "var(--text-muted)",
-                    cursor: "pointer",
-                    fontSize: "11px",
-                  }}
+                  className="px-2 py-1 rounded-md border border-border bg-transparent text-text-muted cursor-pointer text-[11px]"
                 >
                   <Edit3 size={12} />
                 </button>
                 <button
                   onClick={() => onRemove(idx)}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    border: "1px solid var(--error-border)",
-                    background: "transparent",
-                    color: "var(--error-text)",
-                    cursor: "pointer",
-                    fontSize: "11px",
-                  }}
+                  className="px-2 py-1 rounded-md border border-error-border bg-transparent text-error cursor-pointer text-[11px]"
                 >
                   <Trash2 size={12} />
                 </button>
@@ -412,27 +218,7 @@ function EducationSection({ educations, isEditing, onAdd, onEdit, onRemove }) {
       {isEditing && (
         <button
           onClick={() => onAdd()}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "8px 14px",
-            borderRadius: "8px",
-            border: "1.5px dashed var(--border)",
-            background: "transparent",
-            color: "var(--text-muted)",
-            fontSize: "13px",
-            cursor: "pointer",
-            transition: "all 0.15s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "var(--accent)";
-            e.currentTarget.style.color = "var(--accent)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "var(--border)";
-            e.currentTarget.style.color = "var(--text-muted)";
-          }}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border-[1.5px] border-dashed border-border bg-transparent text-text-muted text-[13px] cursor-pointer transition-colors duration-150 hover:border-accent hover:text-accent"
         >
           <Plus size={14} /> Add education
         </button>
@@ -444,57 +230,38 @@ function EducationSection({ educations, isEditing, onAdd, onEdit, onRemove }) {
 /* --- Social Links --- */
 function SocialLinks({ links, isEditing, onChange }) {
   const socialFields = [
-  { key: 'github', icon: Code, label: 'GitHub', placeholder: 'https://github.com/username' },
-  { key: 'linkedin', icon: User, label: 'LinkedIn', placeholder: 'https://linkedin.com/in/username' },
-  { key: 'twitter', icon: Share2, label: 'Twitter/X', placeholder: 'https://twitter.com/username' },
-  { key: 'website', icon: Globe, label: 'Website', placeholder: 'https://yoursite.com' },
-  { key: 'figma', icon: Link2, label: 'Figma', placeholder: 'https://figma.com/@username' },
-];
+    { key: 'github', icon: Code, label: 'GitHub', placeholder: 'https://github.com/username' },
+    { key: 'linkedin', icon: User, label: 'LinkedIn', placeholder: 'https://linkedin.com/in/username' },
+    { key: 'twitter', icon: Share2, label: 'Twitter/X', placeholder: 'https://twitter.com/username' },
+    { key: 'website', icon: Globe, label: 'Website', placeholder: 'https://yoursite.com' },
+    { key: 'figma', icon: Link2, label: 'Figma', placeholder: 'https://figma.com/@username' },
+  ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <div className="flex flex-col gap-3">
       {socialFields.map(({ key, icon: Icon, label, placeholder }) => (
-        <div
-          key={key}
-          style={{ display: "flex", alignItems: "center", gap: "10px" }}
-        >
-          <Icon size={16} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+        <div key={key} className="flex items-center gap-2.5">
+          <Icon size={16} color="var(--text-muted)" className="shrink-0" />
           {isEditing ? (
             <input
               type="url"
               value={links[key] || ""}
               onChange={(e) => onChange(key, e.target.value)}
               placeholder={placeholder}
-              style={{
-                flex: 1,
-                padding: "6px 10px",
-                borderRadius: "6px",
-                border: "1.5px solid var(--border)",
-                background: "var(--input-bg)",
-                fontSize: "13px",
-                color: "var(--text-primary)",
-                outline: "none",
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-              onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
+              className="flex-1 px-2.5 py-1.5 rounded-md border-[1.5px] border-border bg-input text-[13px] text-text-primary outline-none transition-colors duration-150 focus:border-accent"
             />
           ) : links[key] ? (
             <a
               href={links[key]}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                fontSize: "13px",
-                color: "var(--accent)",
-                textDecoration: "none",
-                wordBreak: "break-all",
-              }}
+              className="text-[13px] text-accent no-underline break-all"
             >
               {links[key].replace(/^https?:\/\//, "").slice(0, 40)}
               {links[key].length > 40 && "…"}
             </a>
           ) : (
-            <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+            <span className="text-[13px] text-text-muted">
               Not provided
             </span>
           )}
@@ -516,79 +283,32 @@ function LearningPaths({ paths }) {
     );
   }
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <div className="flex flex-col gap-3">
       {paths.map((p, idx) => (
-        <div
-          key={idx}
-          style={{
-            background: "var(--surface-1)",
-            border: "1px solid var(--card-border)",
-            borderRadius: "8px",
-            padding: "12px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              background: "var(--accent-bg)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
+        <div key={idx} className="bg-surface-1 border border-card-border rounded-lg px-4 py-3 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-accent-bg flex items-center justify-center shrink-0">
             <GitBranch size={18} color="var(--accent)" />
           </div>
-          <div style={{ flex: 1 }}>
-            <p
-              style={{
-                fontSize: "14px",
-                fontWeight: "600",
-                color: "var(--text-primary)",
-                marginBottom: "2px",
-              }}
-            >
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-text-primary mb-0.5">
               {p.name}
             </p>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <div
-                style={{
-                  flex: 1,
-                  height: "4px",
-                  background: "var(--surface-3)",
-                  borderRadius: "2px",
-                  overflow: "hidden",
-                }}
-              >
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-1 bg-surface-3 rounded-sm overflow-hidden">
                 <div
-                  style={{
-                    width: `${p.progress || 0}%`,
-                    height: "100%",
-                    background: "var(--accent)",
-                    borderRadius: "2px",
-                  }}
+                  className="h-full bg-accent rounded-sm"
+                  style={{ width: `${p.progress || 0}%` }}
                 />
               </div>
-              <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+              <span className="text-[11px] text-text-muted">
                 {p.progress || 0}%
               </span>
             </div>
           </div>
           <span
+            className="px-2.5 py-0.5 rounded-xl text-[10px] font-semibold"
             style={{
-              padding: "2px 10px",
-              borderRadius: "12px",
-              fontSize: "10px",
-              fontWeight: "600",
-              background:
-                p.progress >= 100
-                  ? "rgba(34,197,94,0.12)"
-                  : "rgba(245,158,11,0.12)",
+              background: p.progress >= 100 ? "rgba(34,197,94,0.12)" : "rgba(245,158,11,0.12)",
               color: p.progress >= 100 ? "#16a34a" : "#d97706",
             }}
           >
@@ -605,7 +325,6 @@ function LearningPaths({ paths }) {
    ──────────────────────────────────────────────────────────── */
 export default function UserAbout({ profile, isOwnProfile }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -674,10 +393,6 @@ export default function UserAbout({ profile, isOwnProfile }) {
   };
 
   const editExperience = (idx) => {
-    // simple inline editing: we'll replace with a modal or inline form later; for now we just allow direct update via setState
-    // This is a placeholder – we'll implement a simple prompt or we can make each field editable directly.
-    // For simplicity, we'll just prompt for new values using a generic prompt.
-    // In production, you'd use a modal form.
     const exp = experiences[idx];
     const newCompany = prompt("Company:", exp.company);
     if (newCompany !== null) {
@@ -763,23 +478,11 @@ export default function UserAbout({ profile, isOwnProfile }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      style={{
-        marginTop: "14px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "24px",
-      }}
+      className="mt-3.5 flex flex-col gap-6"
     >
       {/* Edit / view toggle */}
       {isOwnProfile && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: "8px",
-            marginBottom: "4px",
-          }}
-        >
+        <div className="flex justify-end gap-2 mb-1">
           {isEditing ? (
             <>
               <Button variant="ghost" onClick={handleCancel} disabled={saving}>
@@ -788,25 +491,10 @@ export default function UserAbout({ profile, isOwnProfile }) {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  border: "none",
-                  background: saveSuccess ? "var(--success-bg)" : "var(--btn-grad)",
-                  color: saveSuccess ? "var(--success-text)" : "#fff",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: saving ? "not-allowed" : "pointer",
-                  boxShadow: saveSuccess
-                    ? "none"
-                    : "var(--btn-grad-shadow)",
-                }}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg border-none text-[13px] font-semibold ${saveSuccess ? 'bg-success-bg text-success' : 'bg-(image:--btn-grad) text-white shadow-btn'} ${saving ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 {saving ? (
-                  <Loader2 size={14} className="spin" />
+                  <Loader2 size={14} className="animate-spin" />
                 ) : saveSuccess ? (
                   <CheckCircle size={14} />
                 ) : (
@@ -824,36 +512,14 @@ export default function UserAbout({ profile, isOwnProfile }) {
       )}
 
       {saveError && (
-        <div
-          style={{
-            padding: "10px 14px",
-            borderRadius: "8px",
-            background: "var(--error-bg)",
-            border: "1px solid var(--error-border)",
-            color: "var(--error-text)",
-            fontSize: "13px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        <div className="px-3.5 py-2.5 rounded-lg bg-error-bg border border-error-border text-error text-[13px] flex items-center justify-between">
           <span>
-            <AlertCircle
-              size={14}
-              style={{ display: "inline", marginRight: "8px" }}
-            />
+            <AlertCircle size={14} className="inline mr-2" />
             {saveError}
           </span>
           <button
             onClick={() => setSaveError("")}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--error-text)",
-              fontSize: "18px",
-              lineHeight: 1,
-            }}
+            className="bg-none border-none cursor-pointer text-error text-lg leading-none"
           >
             ×
           </button>
@@ -861,62 +527,25 @@ export default function UserAbout({ profile, isOwnProfile }) {
       )}
 
       {/* Contribution Score */}
-      <div
-        style={{
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border)",
-          borderRadius: "12px",
-          padding: "16px 20px",
-          display: "flex",
-          alignItems: "center",
-          gap: "16px",
-        }}
-      >
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4 flex items-center gap-4">
         <Award size={32} color="var(--accent)" />
         <div>
-          <p
-            style={{
-              fontSize: "14px",
-              fontWeight: "600",
-              color: "var(--text-primary)",
-              marginBottom: "2px",
-            }}
-          >
+          <p className="text-sm font-semibold text-text-primary mb-0.5">
             Contribution Score
           </p>
-          <p
-            style={{
-              fontSize: "24px",
-              fontWeight: "800",
-              color: "var(--accent)",
-            }}
-          >
+          <p className="text-2xl font-extrabold text-accent">
             {contributionScore}
           </p>
         </div>
-        <div style={{ flex: 1 }} />
-        <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+        <div className="flex-1" />
+        <span className="text-xs text-text-muted">
           Earned via reviews, projects, and contributions
         </span>
       </div>
 
       {/* Skills */}
-      <div
-        style={{
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border)",
-          borderRadius: "12px",
-          padding: "18px 20px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "15px",
-            fontWeight: "700",
-            color: "var(--text-primary)",
-            marginBottom: "12px",
-          }}
-        >
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
           Skills & Expertise
         </h3>
         {isEditing ? (
@@ -926,24 +555,16 @@ export default function UserAbout({ profile, isOwnProfile }) {
             onRemove={handleRemoveSkill}
           />
         ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+          <div className="flex flex-wrap gap-1.5">
             {skills.length === 0 ? (
-              <span style={{ color: "var(--text-muted)", fontSize: "13px" }}>
+              <span className="text-text-muted text-[13px]">
                 No skills added yet
               </span>
             ) : (
               skills.map((s) => (
                 <span
                   key={s}
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: "20px",
-                    fontSize: "12px",
-                    fontWeight: "500",
-                    background: "var(--accent-bg)",
-                    color: "var(--accent)",
-                    border: "1px solid var(--accent-border)",
-                  }}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border"
                 >
                   {s}
                 </span>
@@ -954,27 +575,9 @@ export default function UserAbout({ profile, isOwnProfile }) {
       </div>
 
       {/* Experience */}
-      <div
-        style={{
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border)",
-          borderRadius: "12px",
-          padding: "18px 20px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "15px",
-            fontWeight: "700",
-            color: "var(--text-primary)",
-            marginBottom: "12px",
-          }}
-        >
-          <Briefcase
-            size={16}
-            style={{ display: "inline", marginRight: "8px" }}
-          />{" "}
-          Experience
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          <Briefcase size={16} className="inline mr-2" /> Experience
         </h3>
         <ExperienceSection
           experiences={experiences}
@@ -986,27 +589,9 @@ export default function UserAbout({ profile, isOwnProfile }) {
       </div>
 
       {/* Education */}
-      <div
-        style={{
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border)",
-          borderRadius: "12px",
-          padding: "18px 20px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "15px",
-            fontWeight: "700",
-            color: "var(--text-primary)",
-            marginBottom: "12px",
-          }}
-        >
-          <GraduationCap
-            size={16}
-            style={{ display: "inline", marginRight: "8px" }}
-          />{" "}
-          Education
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          <GraduationCap size={16} className="inline mr-2" /> Education
         </h3>
         <EducationSection
           educations={educations}
@@ -1018,50 +603,17 @@ export default function UserAbout({ profile, isOwnProfile }) {
       </div>
 
       {/* Learning Paths (read-only) */}
-      <div
-        style={{
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border)",
-          borderRadius: "12px",
-          padding: "18px 20px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "15px",
-            fontWeight: "700",
-            color: "var(--text-primary)",
-            marginBottom: "12px",
-          }}
-        >
-          <GitBranch
-            size={16}
-            style={{ display: "inline", marginRight: "8px" }}
-          />{" "}
-          Learning Paths
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          <GitBranch size={16} className="inline mr-2" /> Learning Paths
         </h3>
         <LearningPaths paths={learningPaths} />
       </div>
 
       {/* Social Links */}
-      <div
-        style={{
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border)",
-          borderRadius: "12px",
-          padding: "18px 20px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "15px",
-            fontWeight: "700",
-            color: "var(--text-primary)",
-            marginBottom: "12px",
-          }}
-        >
-          <Link2 size={16} style={{ display: "inline", marginRight: "8px" }} />{" "}
-          Social & External Links
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          <Link2 size={16} className="inline mr-2" /> Social & External Links
         </h3>
         <SocialLinks
           links={socialLinks}
@@ -1069,11 +621,6 @@ export default function UserAbout({ profile, isOwnProfile }) {
           onChange={updateSocialLink}
         />
       </div>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spin { animation: spin 1s linear infinite; }
-      `}</style>
     </motion.div>
   );
 }

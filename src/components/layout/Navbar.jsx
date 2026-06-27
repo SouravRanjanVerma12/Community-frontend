@@ -16,10 +16,10 @@ function Avatar({ name, src, size = 34 }) {
   const initials = name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const hue = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
   if (src) return (
-    <img src={src} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid var(--border)' }} />
+    <img src={src} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover shrink-0 border-2 border-border" />
   );
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: `hsl(${hue},55%,55%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.36, fontWeight: '600', flexShrink: 0, userSelect: 'none' }}>
+    <div style={{ width: size, height: size, background: `hsl(${hue},55%,55%)`, fontSize: size * 0.36 }} className="rounded-full text-white flex items-center justify-center font-semibold shrink-0 select-none">
       {initials}
     </div>
   );
@@ -80,53 +80,44 @@ function GlobalSearch() {
   const FriendButton = ({ user }) => {
     const fs = friendStatus[user._id] ?? { status: 'none' };
     if (fs.status === 'accepted') return (
-      <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '3px' }}>
+      <span className="text-[11px] text-[#22c55e] font-semibold flex items-center gap-[3px]">
         <UserCheck size={12} /> Friends
       </span>
     );
     if (fs.status === 'pending' && fs.iAmRequester) return (
       <button onClick={() => cancelRequest(user._id)}
-        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>
+        className="text-[11px] px-2.5 py-1 rounded-md border-[1.5px] border-border bg-transparent text-text-muted cursor-pointer">
         Pending
       </button>
     );
     if (fs.status === 'pending' && !fs.iAmRequester) return (
       <button onClick={() => sendRequest(user._id)}
-        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', border: 'none', background: 'var(--btn-grad)', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
+        className="text-[11px] px-2.5 py-1 rounded-md border-none bg-(image:--btn-grad) text-white cursor-pointer font-semibold">
         Accept
       </button>
     );
     return (
       <button onClick={() => sendRequest(user._id)}
-        style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', border: 'none', background: 'var(--btn-grad)', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
+        className="text-[11px] px-2.5 py-1 rounded-md border-none bg-(image:--btn-grad) text-white cursor-pointer font-semibold">
         + Add
       </button>
     );
   };
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative', flex: 1, maxWidth: '340px', marginLeft: '12px' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '0 12px', borderRadius: '10px',
-        border: '1.5px solid var(--border)', background: 'var(--input-bg)',
-        transition: 'border-color 0.15s',
-      }}>
+    <div ref={wrapRef} className="relative flex-1 max-w-[340px] ml-3">
+      <div className="flex items-center gap-2 px-3 rounded-[10px] border-[1.5px] border-border bg-input transition-colors duration-150">
         <Search size={14} color="var(--text-muted)" />
         <input
           value={q}
           onChange={handleChange}
           onFocus={() => q.length >= 2 && setOpen(true)}
           placeholder="Search people…"
-          style={{
-            flex: 1, padding: '8px 0', background: 'transparent',
-            border: 'none', outline: 'none', fontSize: '13px',
-            color: 'var(--text-primary)',
-          }}
+          className="flex-1 py-2 bg-transparent border-none outline-none text-[13px] text-text-primary"
         />
         {q && (
           <button onClick={() => { setQ(''); setResults([]); setOpen(false); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: 0 }}>
+            className="bg-none border-none cursor-pointer text-text-muted flex p-0">
             <X size={13} />
           </button>
         )}
@@ -136,37 +127,30 @@ function GlobalSearch() {
         {open && (
           <motion.div
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
-            style={{
-              position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 500,
-              background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-              borderRadius: '12px', boxShadow: 'var(--shadow-popup)',
-              overflow: 'hidden',
-            }}>
+            className="absolute top-[calc(100%+6px)] left-0 right-0 z-500 bg-card border border-card-border rounded-xl shadow-popup overflow-hidden"
+          >
             {loading ? (
-              <div style={{ padding: '14px', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
+              <div className="p-3.5 text-center text-[13px] text-text-muted">
                 Searching…
               </div>
             ) : results.length === 0 ? (
-              <div style={{ padding: '14px', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
+              <div className="p-3.5 text-center text-[13px] text-text-muted">
                 No results
               </div>
             ) : (
               results.map((u) => (
-                <div key={u._id} style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '10px 14px', borderBottom: '1px solid var(--divider)',
-                }}>
+                <div key={u._id} className="flex items-center gap-2.5 px-3.5 py-2.5 border-b border-divider">
                   <Link to={`/profile/${u._id}`} onClick={() => setOpen(false)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, textDecoration: 'none' }}>
+                    className="flex items-center gap-2.5 flex-1 no-underline">
                     {u.avatarUrl
-                      ? <img src={u.avatarUrl} alt={u.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
-                      : <div style={{ width: 32, height: 32, borderRadius: '50%', background: `hsl(${[...u.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: '700' }}>
+                      ? <img src={u.avatarUrl} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
+                      : <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold" style={{ background: `hsl(${[...u.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)` }}>
                           {u.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)}
                         </div>
                     }
                     <div>
-                      <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{u.name}</p>
-                      <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)' }}>@{u.username || u.email?.split('@')[0]}</p>
+                      <p className="m-0 text-[13px] font-semibold text-text-primary">{u.name}</p>
+                      <p className="m-0 text-[11px] text-text-muted">@{u.username || u.email?.split('@')[0]}</p>
                     </div>
                   </Link>
                   <FriendButton user={u} />
@@ -193,16 +177,9 @@ function FriendBell() {
   if (count === 0) return null;
 
   return (
-    <Link to="/messages" style={{ position: 'relative', display: 'flex', color: 'var(--text-muted)', textDecoration: 'none' }} title="Friend requests">
+    <Link to="/messages" className="relative flex text-text-muted no-underline" title="Friend requests">
       <Bell size={18} />
-      <span style={{
-        position: 'absolute', top: -5, right: -5,
-        width: 15, height: 15, borderRadius: '50%',
-        background: 'var(--btn-grad)', color: '#fff',
-        fontSize: '9px', fontWeight: '700',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: '2px solid var(--nav-bg)',
-      }}>
+      <span className="absolute top-[-5px] right-[-5px] w-[15px] h-[15px] rounded-full bg-(image:--btn-grad) text-white text-[9px] font-bold flex items-center justify-center border-2 border-nav">
         {count}
       </span>
     </Link>
@@ -245,22 +222,15 @@ function FriendsDropdown() {
   };
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} className="relative">
       <button
         onClick={toggle}
         title="Friends"
-        style={{
-          display: 'flex', alignItems: 'center', background: 'none',
-          border: 'none', cursor: 'pointer', padding: 0,
-          color: open ? 'var(--accent)' : 'var(--text-muted)', transition: 'color 0.15s',
-        }}
+        className={`flex items-center bg-none border-none cursor-pointer p-0 transition-colors duration-150 ${open ? 'text-accent' : 'text-text-muted'}`}
       >
         <Users size={18} />
         {friends.length > 0 && (
-          <span style={{
-            marginLeft: '3px', fontSize: '11px', fontWeight: '700',
-            color: open ? 'var(--accent)' : 'var(--text-muted)',
-          }}>
+          <span className={`ml-[3px] text-[11px] font-bold ${open ? 'text-accent' : 'text-text-muted'}`}>
             {friends.length}
           </span>
         )}
@@ -273,21 +243,13 @@ function FriendsDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            style={{
-              position: 'absolute', top: 'calc(100% + 12px)', right: '-8px', zIndex: 500,
-              background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-              borderRadius: '14px', boxShadow: 'var(--shadow-popup)',
-              width: '300px', overflow: 'hidden',
-            }}
+            className="absolute top-[calc(100%+12px)] -right-2 z-500 bg-card border border-card-border rounded-2xl shadow-popup w-[min(300px,90vw)] overflow-hidden"
           >
             {/* Header */}
-            <div style={{
-              padding: '13px 16px 11px', borderBottom: '1px solid var(--divider)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-              <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>Friends</span>
+            <div className="px-4 pt-[13px] pb-[11px] border-b border-divider flex items-center justify-between">
+              <span className="text-sm font-bold text-text-primary">Friends</span>
               {!loading && (
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                <span className="text-xs text-text-muted">
                   {friends.length} {friends.length === 1 ? 'friend' : 'friends'}
                 </span>
               )}
@@ -295,17 +257,17 @@ function FriendsDropdown() {
 
             {/* Body */}
             {loading ? (
-              <div style={{ padding: '28px 0', display: 'flex', justifyContent: 'center' }}>
-                <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid var(--border)', borderTopColor: 'var(--accent)', animation: 'spin 0.8s linear infinite' }} />
+              <div className="py-7 flex justify-center">
+                <div className="w-5 h-5 rounded-full border-2 border-border border-t-accent animate-spin" />
               </div>
             ) : friends.length === 0 ? (
-              <div style={{ padding: '28px 16px', textAlign: 'center' }}>
-                <Users size={28} color="var(--text-muted)" style={{ marginBottom: '10px' }} />
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>No friends yet</p>
-                <p style={{ fontSize: '12px', color: 'var(--text-faint)', margin: '4px 0 0' }}>Use search to find people</p>
+              <div className="py-7 px-4 text-center">
+                <Users size={28} color="var(--text-muted)" className="mb-2.5" />
+                <p className="text-[13px] text-text-muted m-0">No friends yet</p>
+                <p className="text-xs text-text-faint mt-1 mb-0">Use search to find people</p>
               </div>
             ) : (
-              <div style={{ maxHeight: '380px', overflowY: 'auto' }}>
+              <div className="max-h-[380px] overflow-y-auto">
                 <AnimatePresence initial={false}>
                   {friends.map((f) => (
                     <FriendRowWithId
@@ -360,41 +322,29 @@ export default function Navbar() {
   };
 
   return (
-    <nav style={{
-      position: 'sticky', top: 0, zIndex: 100,
-      height: '60px', background: 'var(--nav-bg)',
-      borderBottom: '1px solid var(--nav-border)',
-      display: 'flex', alignItems: 'center',
-      padding: '0 20px', gap: '12px',
-      transition: 'background 0.25s, border-color 0.25s',
-    }}>
+    <nav className="sticky top-0 z-100 h-15 bg-nav border-b border-nav-border flex items-center px-5 gap-3 transition-colors duration-250">
       {/* Logo */}
-      <Link to="/explore" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0, marginRight: '8px' }}>
-        <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'var(--btn-grad)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Link to="/explore" className="flex items-center gap-2 no-underline shrink-0 mr-2">
+        <div className="w-[30px] h-[30px] rounded-lg bg-(image:--btn-grad) flex items-center justify-center">
           <Zap size={16} color="#fff" fill="#fff" />
         </div>
-        <span className="nav-brand-label" style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+        <span className="hidden sm:inline text-base font-bold text-text-primary tracking-[-0.3px]">
           Prograstic
         </span>
       </Link>
 
       {/* Center tabs */}
-      <div style={{ display: 'flex', alignItems: 'stretch', height: '100%', gap: '2px' }}>
+      <div className="flex items-stretch h-full gap-0.5">
         {NAV_TABS.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to}
-            style={({ isActive }) => ({
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '0 14px',
-              borderBottom: isActive ? '2px solid var(--accent)' : '2px solid transparent',
-              color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-              fontSize: '14px', fontWeight: isActive ? '600' : '500',
-              textDecoration: 'none',
-              transition: 'color 0.15s, border-color 0.15s',
-              whiteSpace: 'nowrap',
-            })}
+            className={({ isActive }) => [
+              'flex items-center gap-1.5 px-3.5 no-underline whitespace-nowrap text-sm',
+              'transition-colors duration-150 border-b-2',
+              isActive ? 'border-accent text-accent font-semibold' : 'border-transparent text-text-secondary font-medium',
+            ].join(' ')}
           >
             <Icon size={15} />
-            <span className="nav-tab-label">{label}</span>
+            <span className="hidden sm:inline">{label}</span>
           </NavLink>
         ))}
       </div>
@@ -403,49 +353,40 @@ export default function Navbar() {
       {user && <GlobalSearch />}
 
       {/* Spacer to push right actions to the edge */}
-      <div style={{ flex: 1 }} />
+      <div className="flex-1" />
 
       {/* Right actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+      <div className="flex items-center gap-2.5 shrink-0">
         {user ? (
           <>
-            <Link to="/messages" style={{ display: 'flex', color: 'var(--text-muted)', textDecoration: 'none' }} title="Messages">
+            <Link to="/messages" className="flex text-text-muted no-underline" title="Messages">
               <MessageSquare size={18} />
             </Link>
             <FriendsDropdown />
             <FriendBell />
             <NotificationBell />
-            <Link to={`/profile/${user._id}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+            <Link to={`/profile/${user._id}`} className="flex items-center gap-2 no-underline">
               <Avatar name={user.name} src={user.avatarUrl || null} />
-              <span className="nav-user-label" style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+              <span className="hidden sm:inline text-sm font-medium text-text-secondary">
                 {user.name.split(' ')[0]}
               </span>
             </Link>
             <Button variant="ghost" size="sm" onClick={handleLogout} title="Log out">
               <LogOut size={14} />
-              <span className="nav-logout-label">Log out</span>
+              <span className="hidden sm:inline">Log out</span>
             </Button>
           </>
         ) : (
           <>
-            <Link to="/" style={{ padding: '7px 14px', borderRadius: '8px', border: '1.5px solid var(--border)', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+            <Link to="/" className="px-3.5 py-[7px] rounded-lg border-[1.5px] border-border text-text-secondary text-[13px] font-medium flex items-center gap-1.5 no-underline">
               <LogIn size={14} /> Log in
             </Link>
-            <Link to="/register" style={{ padding: '7px 14px', borderRadius: '8px', background: 'var(--btn-grad)', boxShadow: 'var(--btn-grad-shadow)', color: '#fff', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+            <Link to="/register" className="px-3.5 py-[7px] rounded-lg bg-(image:--btn-grad) shadow-btn text-white text-[13px] font-semibold flex items-center gap-1.5 no-underline">
               <UserPlus size={14} /> Sign up
             </Link>
           </>
         )}
       </div>
-
-      <style>{`
-        @media (max-width: 640px) {
-          .nav-logout-label { display: none; }
-          .nav-user-label   { display: none; }
-          .nav-brand-label  { display: none; }
-        }
-        @media (max-width: 480px) { .nav-tab-label { display: none; } }
-      `}</style>
     </nav>
   );
 }

@@ -21,17 +21,9 @@ export default function InputField({
   const errorId = `${inputId}-error`;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <div className="flex flex-col gap-1.5">
       {label && (
-        <label
-          htmlFor={inputId}
-          style={{
-            fontSize: '13px',
-            fontWeight: '500',
-            color: 'var(--text-secondary)',
-            letterSpacing: '0.01em',
-          }}
-        >
+        <label htmlFor={inputId} className="text-[13px] font-medium text-text-secondary tracking-[0.01em]">
           {label}
         </label>
       )}
@@ -45,15 +37,12 @@ export default function InputField({
             : '0 0 0 1px var(--border)',
         }}
         transition={{ duration: 0.15 }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          borderRadius: '10px',
-          background: focused ? 'var(--input-bg-focus)' : 'var(--input-bg)',
-          border: `1.5px solid ${error ? 'var(--error-text)' : focused ? 'var(--accent)' : 'var(--input-border)'}`,
-          transition: 'border-color 0.15s, background 0.15s',
-          overflow: 'hidden',
-        }}
+        className={[
+          'flex items-center rounded-[10px] overflow-hidden border-[1.5px]',
+          'transition-[border-color,background-color] duration-150',
+          focused ? 'bg-input-focus' : 'bg-input',
+          error ? 'border-error' : focused ? 'border-accent' : 'border-input-border',
+        ].join(' ')}
       >
         <input
           id={inputId}
@@ -67,17 +56,7 @@ export default function InputField({
           aria-describedby={error ? errorId : undefined}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          style={{
-            flex: 1,
-            minHeight: '44px',
-            padding: '11px 14px',
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            color: 'var(--text-primary)',
-            fontSize: '16px',
-            lineHeight: '1.5',
-          }}
+          className="flex-1 min-h-11 px-3.5 py-[11px] bg-transparent border-none outline-none text-text-primary text-base leading-normal"
         />
         {isPassword && (
           <button
@@ -85,23 +64,11 @@ export default function InputField({
             onClick={() => setShowPw((v) => !v)}
             aria-label={showPw ? 'Hide password' : 'Show password'}
             aria-pressed={showPw}
-            style={{
-              width: '44px',
-              height: '44px',
-              padding: 0,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              borderRadius: '8px',
-              transition: 'color 0.15s, background 0.15s',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'none'; }}
+            className={[
+              'w-11 h-11 p-0 bg-none border-none cursor-pointer shrink-0 rounded-lg',
+              'flex items-center justify-center text-text-muted',
+              'transition-colors duration-150 hover:text-text-primary hover:bg-surface-2',
+            ].join(' ')}
           >
             {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -116,9 +83,9 @@ export default function InputField({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: 'var(--error-text)', margin: 0, lineHeight: '1.5' }}
+            className="flex items-center gap-[5px] text-[13px] text-error m-0 leading-normal"
           >
-            <AlertCircle size={13} style={{ flexShrink: 0 }} />
+            <AlertCircle size={13} className="shrink-0" />
             {error}
           </motion.p>
         )}

@@ -36,13 +36,7 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onCancel}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 300,
-        background: 'rgba(0,0,0,0.7)',
-        backdropFilter: 'blur(6px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '20px',
-      }}
+      className="fixed inset-0 z-300 bg-black/70 backdrop-blur-md flex items-center justify-center p-5"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
@@ -50,47 +44,28 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
         exit={{ opacity: 0, scale: 0.96 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: '520px',
-          background: 'var(--card-bg)', borderRadius: '18px',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.3)',
-          overflow: 'hidden',
-          display: 'flex', flexDirection: 'column',
-        }}
+        className="w-full max-w-[520px] bg-card rounded-[18px] shadow-[0_24px_80px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--divider)',
-        }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-divider">
           <div>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
+            <h3 className="text-[15px] font-bold text-text-primary m-0">
               Adjust {label}
             </h3>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
+            <p className="text-xs text-text-muted m-0 mt-0.5">
               Drag to reposition · scroll or pinch to zoom
             </p>
           </div>
           <button
             onClick={onCancel}
-            style={{
-              width: '30px', height: '30px', borderRadius: '50%',
-              border: 'none', background: 'var(--surface-2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: 'var(--text-secondary)',
-            }}
+            className="w-[30px] h-[30px] rounded-full border-none bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary"
           >
             <X size={15} />
           </button>
         </div>
 
         {/* Crop area */}
-        <div style={{
-          position: 'relative',
-          height: aspect >= 2 ? '220px' : '320px',
-          background: '#1a1a2e',
-        }}>
+        <div className={`relative bg-[#1a1a2e] ${aspect >= 2 ? 'h-[220px]' : 'h-[320px]'}`}>
           {src && (
             <Cropper
               image={src}
@@ -115,53 +90,47 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
         </div>
 
         {/* Controls */}
-        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="px-5 py-4 flex flex-col gap-3.5">
           {/* Zoom slider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="flex items-center gap-2.5">
             <ZoomOut size={15} color="var(--text-muted)" />
             <input
               type="range"
               min={1} max={3} step={0.05}
               value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
-              style={{
-                flex: 1, accentColor: 'var(--accent)', height: '4px', cursor: 'pointer',
-              }}
+              className="flex-1 accent-accent h-1 cursor-pointer"
             />
             <ZoomIn size={15} color="var(--text-muted)" />
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', minWidth: '36px', textAlign: 'right' }}>
+            <span className="text-xs text-text-muted min-w-9 text-right">
               {Math.round(zoom * 100)}%
             </span>
           </div>
 
           {/* Rotation slider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="flex items-center gap-2.5">
             <RotateCcw size={14} color="var(--text-muted)" />
             <input
               type="range"
               min={-45} max={45} step={1}
               value={rotation}
               onChange={(e) => setRotation(Number(e.target.value))}
-              style={{ flex: 1, accentColor: 'var(--accent)', height: '4px', cursor: 'pointer' }}
+              className="flex-1 accent-accent h-1 cursor-pointer"
             />
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', minWidth: '36px', textAlign: 'right' }}>
+            <span className="text-xs text-text-muted min-w-9 text-right">
               {rotation > 0 ? `+${rotation}` : rotation}°
             </span>
             <button
               onClick={() => setRotation(0)}
               disabled={rotation === 0}
-              style={{
-                fontSize: '11px', padding: '3px 8px', borderRadius: '5px',
-                border: '1px solid var(--border)', background: 'transparent',
-                color: 'var(--text-muted)', cursor: rotation === 0 ? 'default' : 'pointer',
-              }}
+              className={`text-[11px] px-2 py-[3px] rounded-[5px] border border-border bg-transparent text-text-muted ${rotation === 0 ? 'cursor-default' : 'cursor-pointer'}`}
             >
               Reset
             </button>
           </div>
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <div className="flex gap-2 justify-end">
             <Button variant="ghost" size="sm" onClick={onCancel}>
               Cancel
             </Button>

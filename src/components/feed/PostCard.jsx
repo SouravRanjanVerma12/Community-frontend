@@ -14,16 +14,11 @@ function Avatar({ name, src, size = 36 }) {
   const hue = [...(name ?? 'U')].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
   if (src) {
     return (
-      <img src={src} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+      <img src={src} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover shrink-0" />
     );
   }
   return (
-    <div style={{
-      width: size, height: size, borderRadius: '50%',
-      background: `hsl(${hue},55%,55%)`, color: '#fff',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: size * 0.36, fontWeight: '600', flexShrink: 0, userSelect: 'none',
-    }}>
+    <div style={{ width: size, height: size, background: `hsl(${hue},55%,55%)`, fontSize: size * 0.36 }} className="rounded-full text-white flex items-center justify-center font-semibold shrink-0 select-none">
       {initials}
     </div>
   );
@@ -45,40 +40,24 @@ function CodeBlock({ code, language }) {
     setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)', marginTop: '12px' }}>
+    <div className="rounded-[10px] overflow-hidden border border-border mt-3">
       {/* Header bar */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '8px 14px',
-        background: 'var(--code-header-bg)',
-        borderBottom: '1px solid var(--border)',
-      }}>
-        <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-secondary)', fontFamily: 'var(--mono)' }}>
+      <div className="flex justify-between items-center px-3.5 py-2 bg-code-header border-b border-border">
+        <span className="text-xs font-medium text-text-secondary font-mono">
           {language}
         </span>
         <button
           onClick={copy}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '3px 8px', borderRadius: '5px', border: 'none',
-            background: copied ? 'var(--success-bg)' : 'transparent',
-            color: copied ? 'var(--success-text)' : 'var(--text-muted)',
-            fontSize: '12px', cursor: 'pointer', transition: 'all 0.15s',
-          }}
+          className={[
+            'flex items-center gap-1 px-2 py-[3px] rounded-[5px] border-none cursor-pointer text-xs transition-colors duration-150',
+            copied ? 'bg-success-bg text-success' : 'bg-transparent text-text-muted',
+          ].join(' ')}
         >
           {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
         </button>
       </div>
       {/* Code */}
-      <pre style={{
-        margin: 0, padding: '16px',
-        background: 'var(--code-bg)',
-        color: 'var(--code-text)',
-        fontSize: '13px', lineHeight: '1.65',
-        fontFamily: 'var(--mono)',
-        overflowX: 'auto',
-        whiteSpace: 'pre',
-      }}>
+      <pre className="m-0 p-4 bg-code-bg text-code-text text-[13px] leading-[1.65] font-mono overflow-x-auto whitespace-pre">
         <code>{code}</code>
       </pre>
     </div>
@@ -171,70 +150,53 @@ export default function PostCard({ post: initialPost, index = 0 }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -2, boxShadow: 'var(--shadow-hover)' }}
+      className="rounded-[14px] px-[22px] py-5 cursor-default transition-[box-shadow,background-color,border-color] duration-200 bg-card"
       style={{
-        background: 'var(--card-bg)',
         border: `1px solid ${isCollab ? COLLAB_COLOR + '35' : 'var(--card-border)'}`,
-        borderRadius: '14px',
-        padding: '20px 22px',
-        cursor: 'default',
         boxShadow: isCollab ? `0 2px 12px ${COLLAB_COLOR}18` : 'var(--shadow-sm)',
-        transition: 'box-shadow 0.2s, background 0.25s, border-color 0.25s',
       }}
     >
       {/* Author row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-        <Link to={`/profile/${post.author._id}`} style={{ flexShrink: 0 }}>
+      <div className="flex items-center gap-2.5 mb-3.5">
+        <Link to={`/profile/${post.author._id}`} className="shrink-0">
           <Avatar name={post.author.name} src={post.author.avatarUrl || null} />
         </Link>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Link to={`/profile/${post.author._id}`} style={{ textDecoration: 'none' }}>
-            <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', margin: 0, display: 'inline', transition: 'color 0.12s' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-            >
+        <div className="flex-1 min-w-0">
+          <Link to={`/profile/${post.author._id}`} className="no-underline">
+            <p className="text-sm font-semibold text-text-primary m-0 inline transition-colors duration-[120ms] hover:text-accent">
               {post.author.name}
             </p>
           </Link>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+          <p className="text-xs text-text-muted m-0">
             @{post.author.username || post.author.email?.split('@')[0] || 'user'} · {timeAgo(post.createdAt)}
           </p>
         </div>
         {/* Collab badge OR domain badge */}
         {isCollab ? (
-          <span style={{
-            padding: '3px 10px', borderRadius: '20px',
-            fontSize: '12px', fontWeight: '600',
-            background: `${COLLAB_COLOR}18`, color: COLLAB_COLOR,
-            display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0,
-          }}>
+          <span
+            className="px-2.5 py-[3px] rounded-full text-xs font-semibold flex items-center gap-1 shrink-0"
+            style={{ background: `${COLLAB_COLOR}18`, color: COLLAB_COLOR }}
+          >
             <Users2 size={11} /> Collab
           </span>
         ) : (
-          <span style={{
-            padding: '3px 10px', borderRadius: '20px',
-            fontSize: '12px', fontWeight: '500',
-            background: `${domain.color}12`, color: domain.color, flexShrink: 0,
-          }}>
+          <span
+            className="px-2.5 py-[3px] rounded-full text-xs font-medium shrink-0"
+            style={{ background: `${domain.color}12`, color: domain.color }}
+          >
             {domain.label}
           </span>
         )}
       </div>
 
       {/* Title */}
-      <h3 style={{
-        fontSize: '16px', fontWeight: '700',
-        color: 'var(--text-primary)', lineHeight: '1.4',
-        marginBottom: '8px', letterSpacing: '-0.2px',
-      }}>
+      <h3 className="text-base font-bold text-text-primary leading-[1.4] mb-2 tracking-[-0.2px]">
         {post.title}
       </h3>
 
       {/* Body */}
       {post.body && (
-        <p style={{
-          fontSize: '14px', color: 'var(--text-secondary)',
-          lineHeight: '1.65', marginBottom: post.type === 'code' ? '0' : '14px',
-        }}>
+        <p className={`text-sm text-text-secondary leading-[1.65] ${post.type === 'code' ? 'mb-0' : 'mb-3.5'}`}>
           {post.body}
         </p>
       )}
@@ -246,41 +208,48 @@ export default function PostCard({ post: initialPost, index = 0 }) {
 
       {/* Collab details */}
       {isCollab && (
-        <div style={{ marginTop: '14px', padding: '14px 16px', borderRadius: '12px', background: `${COLLAB_COLOR}0a`, border: `1px solid ${COLLAB_COLOR}25`, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div
+          className="mt-3.5 px-4 py-3.5 rounded-xl flex flex-col gap-3"
+          style={{ background: `${COLLAB_COLOR}0a`, border: `1px solid ${COLLAB_COLOR}25` }}
+        >
           {/* Project name + member progress */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             {post.projectName && (
-              <p style={{ fontSize: '13px', fontWeight: '700', color: COLLAB_COLOR, margin: 0 }}>
+              <p className="text-[13px] font-bold m-0" style={{ color: COLLAB_COLOR }}>
                 🚀 {post.projectName}
               </p>
             )}
             {post.membersNeeded === 0 ? (
               /* Unlimited */
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 10px', borderRadius: '20px', background: `${COLLAB_COLOR}10`, border: `1px solid ${COLLAB_COLOR}25` }}>
+              <div
+                className="flex items-center gap-[5px] px-2.5 py-1 rounded-full"
+                style={{ background: `${COLLAB_COLOR}10`, border: `1px solid ${COLLAB_COLOR}25` }}
+              >
                 <Users2 size={11} color={COLLAB_COLOR} />
-                <span style={{ fontSize: '11px', fontWeight: '700', color: COLLAB_COLOR }}>
+                <span className="text-[11px] font-bold" style={{ color: COLLAB_COLOR }}>
                   {post.memberCount ?? 0} joined · Unlimited
                 </span>
               </div>
             ) : post.membersNeeded > 0 ? (
               /* Fixed slots */
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', minWidth: '120px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div className="flex flex-col items-end gap-1 min-w-[120px]">
+                <div className="flex items-center gap-[5px]">
                   <Users2 size={12} color={COLLAB_COLOR} />
-                  <span style={{ fontSize: '12px', fontWeight: '700', color: COLLAB_COLOR }}>
+                  <span className="text-xs font-bold" style={{ color: COLLAB_COLOR }}>
                     {post.memberCount ?? 0} / {post.membersNeeded} joined
                   </span>
                 </div>
-                <div style={{ width: '120px', height: '5px', borderRadius: '3px', background: `${COLLAB_COLOR}20`, overflow: 'hidden' }}>
+                <div className="w-[120px] h-[5px] rounded-[3px] overflow-hidden" style={{ background: `${COLLAB_COLOR}20` }}>
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min(100, ((post.memberCount ?? 0) / post.membersNeeded) * 100)}%` }}
                     transition={{ duration: 0.8, ease: 'easeOut' }}
-                    style={{ height: '100%', borderRadius: '3px', background: (post.memberCount ?? 0) >= post.membersNeeded ? '#22c55e' : COLLAB_COLOR }}
+                    className="h-full rounded-[3px]"
+                    style={{ background: (post.memberCount ?? 0) >= post.membersNeeded ? '#22c55e' : COLLAB_COLOR }}
                   />
                 </div>
                 {(post.memberCount ?? 0) >= post.membersNeeded && (
-                  <span style={{ fontSize: '10px', color: '#22c55e', fontWeight: '600' }}>Team full ✓</span>
+                  <span className="text-[10px] text-[#22c55e] font-semibold">Team full ✓</span>
                 )}
               </div>
             ) : null}
@@ -289,10 +258,10 @@ export default function PostCard({ post: initialPost, index = 0 }) {
           {/* Tech stack */}
           {post.techStack?.length > 0 && (
             <div>
-              <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Tech Stack</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+              <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.06em] mb-1.5">Tech Stack</p>
+              <div className="flex flex-wrap gap-[5px]">
                 {post.techStack.map((t) => (
-                  <span key={t} style={{ padding: '3px 10px', borderRadius: '6px', background: 'var(--surface-2)', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '500', fontFamily: 'var(--mono)' }}>
+                  <span key={t} className="px-2.5 py-[3px] rounded-md bg-surface-2 text-text-secondary text-xs font-medium font-mono">
                     {t}
                   </span>
                 ))}
@@ -302,26 +271,23 @@ export default function PostCard({ post: initialPost, index = 0 }) {
 
           {/* Creator: link to dedicated review page */}
           {isOwnPost && (post.requestCount ?? 0) > 0 && (
-            <Link to={`/collab/${post._id}/requests`} style={{ textDecoration: 'none' }}>
-              <motion.div whileHover={{ x: 2 }}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '10px 14px', borderRadius: '10px',
-                  border: `1.5px solid ${COLLAB_COLOR}35`,
-                  background: `${COLLAB_COLOR}08`,
-                  cursor: 'pointer', transition: 'background 0.15s',
-                }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Link to={`/collab/${post._id}/requests`} className="no-underline">
+              <motion.div
+                whileHover={{ x: 2 }}
+                className="flex items-center justify-between px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-colors duration-150"
+                style={{ border: `1.5px solid ${COLLAB_COLOR}35`, background: `${COLLAB_COLOR}08` }}
+              >
+                <div className="flex items-center gap-2">
                   <ClipboardList size={15} color={COLLAB_COLOR} />
-                  <span style={{ fontSize: '13px', fontWeight: '600', color: COLLAB_COLOR }}>
+                  <span className="text-[13px] font-semibold" style={{ color: COLLAB_COLOR }}>
                     Review applications
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ padding: '2px 10px', borderRadius: '20px', background: COLLAB_COLOR, color: '#fff', fontSize: '11px', fontWeight: '700' }}>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-white text-[11px] font-bold" style={{ background: COLLAB_COLOR }}>
                     {post.requestCount}
                   </span>
-                  <span style={{ fontSize: '14px', color: COLLAB_COLOR }}>→</span>
+                  <span className="text-sm" style={{ color: COLLAB_COLOR }}>→</span>
                 </div>
               </motion.div>
             </Link>
@@ -338,13 +304,8 @@ export default function PostCard({ post: initialPost, index = 0 }) {
 
           {/* Request count — social proof */}
           {(post.requestCount ?? 0) > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: '5px',
-                padding: '4px 10px', borderRadius: '20px',
-                background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.25)',
-                fontSize: '12px', fontWeight: '600', color: 'var(--warning-text)',
-              }}>
+            <div className="flex items-center gap-[5px]">
+              <span className="inline-flex items-center gap-[5px] px-2.5 py-1 rounded-full bg-[rgba(245,158,11,0.10)] border border-[rgba(245,158,11,0.25)] text-xs font-semibold text-warning">
                 🔥 {post.requestCount} {post.requestCount === 1 ? 'person' : 'people'} interested
               </span>
             </div>
@@ -352,12 +313,12 @@ export default function PostCard({ post: initialPost, index = 0 }) {
 
           {/* Roles + Join button */}
           {post.rolesNeeded?.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>Looking For</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+            <div className="flex items-end justify-between gap-3 flex-wrap">
+              <div className="flex-1">
+                <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.06em] mb-1.5">Looking For</p>
+                <div className="flex flex-wrap gap-[5px]">
                   {post.rolesNeeded.map((r) => (
-                    <span key={r} style={{ padding: '4px 12px', borderRadius: '20px', background: COLLAB_COLOR, color: '#fff', fontSize: '12px', fontWeight: '500' }}>
+                    <span key={r} className="px-3 py-1 rounded-full text-white text-xs font-medium" style={{ background: COLLAB_COLOR }}>
                       {r}
                     </span>
                   ))}
@@ -367,22 +328,18 @@ export default function PostCard({ post: initialPost, index = 0 }) {
                 <motion.button
                   whileTap={{ scale: 0.96 }}
                   onClick={() => !requested && setJoinModalOpen(true)}
-                  style={{
-                    padding: '8px 18px', borderRadius: '10px', border: 'none',
-                    background: requested ? 'var(--surface-2)' : COLLAB_COLOR,
-                    color: requested ? 'var(--text-secondary)' : '#fff',
-                    fontSize: '13px', fontWeight: '700', cursor: requested ? 'default' : 'pointer',
-                    display: 'flex', alignItems: 'center', gap: '6px',
-                    flexShrink: 0, transition: 'all 0.15s',
-                    boxShadow: requested ? 'none' : `0 4px 14px ${COLLAB_COLOR}40`,
-                  }}
+                  className={[
+                    'px-[18px] py-2 rounded-[10px] border-none text-[13px] font-bold flex items-center gap-1.5 shrink-0 transition-all duration-150',
+                    requested ? 'bg-surface-2 text-text-secondary cursor-default' : 'text-white cursor-pointer',
+                  ].join(' ')}
+                  style={requested ? {} : { background: COLLAB_COLOR, boxShadow: `0 4px 14px ${COLLAB_COLOR}40` }}
                 >
                   {requested ? <CheckCircle size={14} /> : <Users2 size={14} />}
                   {requested ? 'Request Sent' : 'Join Project'}
                 </motion.button>
               )}
               {isOwnPost && (
-                <span style={{ fontSize: '12px', color: COLLAB_COLOR, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span className="text-xs font-semibold flex items-center gap-1" style={{ color: COLLAB_COLOR }}>
                   <Users2 size={12} /> Your project
                 </span>
               )}
@@ -392,11 +349,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
       )}
 
       {/* Action row */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '4px',
-        marginTop: '16px', paddingTop: '14px',
-        borderTop: '1px solid var(--divider)',
-      }}>
+      <div className="flex items-center gap-1 mt-4 pt-3.5 border-t border-divider">
         <ActionBtn
           icon={<Heart size={15} fill={liked ? '#ef4444' : 'none'} color={liked ? '#ef4444' : 'var(--text-muted)'} />}
           label={post.likes?.length || 0}
@@ -411,7 +364,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
           active={showComments}
           activeColor="var(--accent)"
         />
-        <div style={{ marginLeft: 'auto' }}>
+        <div className="ml-auto">
           <ActionBtn icon={<Share2 size={15} color="var(--text-muted)" />} onClick={share} />
         </div>
       </div>
@@ -436,67 +389,61 @@ export default function PostCard({ post: initialPost, index = 0 }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            style={{ overflow: 'hidden' }}
+            className="overflow-hidden"
           >
-            <div style={{ paddingTop: '16px', marginTop: '16px', borderTop: '1px solid var(--divider)' }}>
+            <div className="pt-4 mt-4 border-t border-divider">
               {/* Add comment input */}
               {user ? (
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <div className="flex gap-2 mb-4">
                   <Avatar name={user.name} src={user.avatarUrl || null} size={30} />
                   <input
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
                     placeholder="Write a comment..."
-                    style={{
-                      flex: 1, padding: '8px 12px', borderRadius: '8px',
-                      border: '1.5px solid var(--border)', background: 'var(--input-bg)',
-                      color: 'var(--text-primary)', fontSize: '13px', outline: 'none',
-                    }}
+                    className="flex-1 px-3 py-2 rounded-lg border-[1.5px] border-border bg-input text-text-primary text-[13px] outline-none"
                   />
-                  <button onClick={handleAddComment} disabled={!newComment.trim()}
-                    style={{
-                      width: 34, height: 34, borderRadius: '8px', border: 'none',
-                      background: newComment.trim() ? 'var(--accent)' : 'var(--surface-2)',
-                      color: newComment.trim() ? '#fff' : 'var(--text-muted)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: newComment.trim() ? 'pointer' : 'not-allowed',
-                    }}>
+                  <button
+                    onClick={handleAddComment}
+                    disabled={!newComment.trim()}
+                    className={[
+                      'w-[34px] h-[34px] rounded-lg border-none flex items-center justify-center',
+                      newComment.trim() ? 'bg-accent text-white cursor-pointer' : 'bg-surface-2 text-text-muted cursor-not-allowed',
+                    ].join(' ')}
+                  >
                     <Send size={14} />
                   </button>
                 </div>
               ) : (
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                <p className="text-xs text-text-muted mb-4">
                   Log in to join the conversation.
                 </p>
               )}
 
               {/* Comments list */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="flex flex-col gap-3">
                 {!commentsLoaded ? (
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Loading comments...</p>
+                  <p className="text-xs text-text-muted">Loading comments...</p>
                 ) : comments.length === 0 ? (
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No comments yet.</p>
+                  <p className="text-xs text-text-muted">No comments yet.</p>
                 ) : (
                   comments.map((c, i) => (
-                    <div key={c._id || i} style={{ display: 'flex', gap: '8px' }}>
+                    <div key={c._id || i} className="flex gap-2">
                       <Link to={`/profile/${c.author?._id}`}>
                         <Avatar name={c.author?.name} src={c.author?.avatarUrl || null} size={28} />
                       </Link>
                       <div>
-                        <div style={{
-                          background: 'var(--surface-2)', padding: '8px 12px', borderRadius: '0 12px 12px 12px',
-                        }}>
-                          <Link to={`/profile/${c.author?._id}`} style={{ textDecoration: 'none' }}>
-                            <p style={{ margin: 0, fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '2px' }}>
+                        <div className="bg-surface-2 px-3 py-2 rounded-[0_12px_12px_12px]">
+                          <Link to={`/profile/${c.author?._id}`} className="no-underline">
+                            <p className="m-0 text-xs font-bold text-text-primary mb-0.5">
                               {c.author?.name}
                             </p>
                           </Link>
-                          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                          <p className="m-0 text-[13px] text-text-secondary leading-[1.4]">
                             {c.text}
                           </p>
                         </div>
-                        <p style={{ margin: '4px 0 0 4px', fontSize: '10px', color: 'var(--text-muted)' }}>
+                        <p className="mt-1 mb-0 ml-1 text-[10px] text-text-muted">
                           {timeAgo(c.createdAt || Date.now())}
                         </p>
                       </div>
@@ -516,17 +463,8 @@ function ActionBtn({ icon, label, onClick, active, activeColor }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: '5px',
-        padding: '5px 10px', borderRadius: '8px', border: 'none',
-        background: 'transparent',
-        color: active ? activeColor : 'var(--text-muted)',
-        fontSize: '13px', fontWeight: '500',
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'background 0.12s, color 0.12s',
-      }}
-      onMouseEnter={(e) => onClick && (e.currentTarget.style.background = 'var(--hover-bg)')}
-      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+      className={`flex items-center gap-[5px] px-2.5 py-[5px] rounded-lg border-none bg-transparent text-[13px] font-medium transition-colors duration-[120ms] hover:bg-hover ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      style={{ color: active ? activeColor : 'var(--text-muted)' }}
     >
       {icon}
       {label !== undefined && <span>{label}</span>}

@@ -15,8 +15,8 @@ const DOMAIN_COLORS = {
 function Avatar({ name, src, size = 32 }) {
   const initials = (name ?? 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const hue = [...(name ?? 'U')].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-  if (src) return <img src={src} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--card-bg)' }} />;
-  return <div style={{ width: size, height: size, borderRadius: '50%', background: `hsl(${hue},55%,55%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.36, fontWeight: '700', border: '2px solid var(--card-bg)' }}>{initials}</div>;
+  if (src) return <img src={src} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover border-2 border-card" />;
+  return <div style={{ width: size, height: size, background: `hsl(${hue},55%,55%)`, fontSize: size * 0.36 }} className="rounded-full text-white flex items-center justify-center font-bold border-2 border-card">{initials}</div>;
 }
 
 function timeAgo(iso) {
@@ -44,25 +44,15 @@ export default function ProjectCard({ post, index = 0, showReviewLink = false })
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         whileHover={{ y: -3, boxShadow: `0 8px 32px ${CC}18, 0 2px 8px rgba(0,0,0,0.08)` }}
-        style={{
-          background: 'var(--card-bg)',
-          border: `1px solid ${CC}28`,
-          borderRadius: '16px',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-          boxShadow: 'var(--shadow-sm)',
-          transition: 'box-shadow 0.2s, transform 0.2s',
-          cursor: 'default',
-        }}
+        className="bg-card rounded-2xl p-5 flex flex-col gap-3.5 shadow-sm transition-[box-shadow,transform] duration-200 cursor-default"
+        style={{ border: `1px solid ${CC}28` }}
       >
         {/* Top: domain badge + time */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: `${domainColor}14`, color: domainColor }}>
+        <div className="flex items-center justify-between">
+          <span className="px-2.5 py-[3px] rounded-full text-[11px] font-semibold" style={{ background: `${domainColor}14`, color: domainColor }}>
             {post.domain}
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+          <span className="flex items-center gap-1 text-[11px] text-text-muted">
             <Clock size={11} /> {timeAgo(post.createdAt)}
           </span>
         </div>
@@ -70,15 +60,15 @@ export default function ProjectCard({ post, index = 0, showReviewLink = false })
         {/* Title + project name */}
         <div>
           {post.projectName && (
-            <p style={{ fontSize: '12px', fontWeight: '700', color: CC, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <p className="text-xs font-bold mb-1 flex items-center gap-1" style={{ color: CC }}>
               🚀 {post.projectName}
             </p>
           )}
-          <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', lineHeight: '1.4', letterSpacing: '-0.2px' }}>
+          <h3 className="text-[15px] font-bold text-text-primary leading-[1.4] tracking-[-0.2px]">
             {post.title}
           </h3>
           {post.body && (
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', marginTop: '6px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <p className="text-[13px] text-text-secondary leading-[1.6] mt-1.5 line-clamp-2">
               {post.body}
             </p>
           )}
@@ -86,37 +76,37 @@ export default function ProjectCard({ post, index = 0, showReviewLink = false })
 
         {/* Tech stack */}
         {post.techStack?.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+          <div className="flex flex-wrap gap-[5px]">
             {post.techStack.map(t => (
-              <span key={t} style={{ padding: '3px 9px', borderRadius: '6px', background: 'var(--surface-2)', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '500', fontFamily: 'var(--mono)' }}>{t}</span>
+              <span key={t} className="px-2.5 py-[3px] rounded-md bg-surface-2 text-text-secondary text-[11px] font-medium font-mono">{t}</span>
             ))}
           </div>
         )}
 
         {/* Roles needed */}
         {post.rolesNeeded?.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+          <div className="flex flex-wrap gap-[5px]">
             {post.rolesNeeded.map(r => (
-              <span key={r} style={{ padding: '3px 10px', borderRadius: '20px', background: `${CC}14`, color: CC, fontSize: '11px', fontWeight: '600', border: `1px solid ${CC}25` }}>{r}</span>
+              <span key={r} className="px-2.5 py-[3px] rounded-full text-[11px] font-semibold" style={{ background: `${CC}14`, color: CC, border: `1px solid ${CC}25` }}>{r}</span>
             ))}
           </div>
         )}
 
         {/* Divider */}
-        <div style={{ height: '1px', background: 'var(--divider)' }} />
+        <div className="h-px bg-divider" />
 
         {/* Footer: author + stats + action */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="flex items-center gap-2.5">
           {/* Author */}
-          <Link to={`/profile/${post.author?._id}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none', flexShrink: 0 }}>
+          <Link to={`/profile/${post.author?._id}`} className="flex items-center gap-1.5 no-underline shrink-0">
             <Avatar name={post.author?.name} src={post.author?.avatarUrl} size={24} />
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>{post.author?.name}</span>
+            <span className="text-xs text-text-muted font-medium">{post.author?.name}</span>
           </Link>
 
-          <div style={{ flex: 1 }} />
+          <div className="flex-1" />
 
           {/* Member progress */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: filled ? '#16a34a' : CC, fontWeight: '600' }}>
+          <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: filled ? '#16a34a' : CC }}>
             <Users2 size={12} />
             {unlimited ? `${post.memberCount ?? 0} joined` : `${post.memberCount ?? 0}/${post.membersNeeded}`}
             {filled && ' • Full'}
@@ -124,22 +114,22 @@ export default function ProjectCard({ post, index = 0, showReviewLink = false })
 
           {/* Interest count */}
           {(post.requestCount ?? 0) > 0 && (
-            <span style={{ fontSize: '11px', color: '#d97706', fontWeight: '600' }}>🔥 {post.requestCount}</span>
+            <span className="text-[11px] font-semibold text-[#d97706]">🔥 {post.requestCount}</span>
           )}
 
           {/* Action button */}
           {isOwn ? (
             showReviewLink && (post.requestCount ?? 0) > 0 ? (
-              <Link to={`/collab/${post._id}/requests`} style={{ textDecoration: 'none' }}>
+              <Link to={`/collab/${post._id}/requests`} className="no-underline">
                 <Button size="sm" style={{ padding: '6px 12px', fontSize: '12px', minHeight: 'auto' }}>
                   <ClipboardList size={12} /> Review ({post.requestCount})
                 </Button>
               </Link>
             ) : (
-              <span style={{ fontSize: '11px', color: CC, fontWeight: '600', padding: '6px 10px', borderRadius: '8px', background: `${CC}10`, border: `1px solid ${CC}25` }}>Your project</span>
+              <span className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg" style={{ color: CC, background: `${CC}10`, border: `1px solid ${CC}25` }}>Your project</span>
             )
           ) : requested ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#16a34a', fontWeight: '600' }}>
+            <span className="flex items-center gap-1 text-xs font-semibold text-[#16a34a]">
               <CheckCircle size={13} /> Requested
             </span>
           ) : !filled ? (
@@ -147,7 +137,7 @@ export default function ProjectCard({ post, index = 0, showReviewLink = false })
               <Users2 size={12} /> Join
             </Button>
           ) : (
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>Team full</span>
+            <span className="text-[11px] font-medium text-text-muted">Team full</span>
           )}
         </div>
       </motion.div>

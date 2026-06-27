@@ -4,39 +4,38 @@ import { Megaphone, Lightbulb, ArrowRight, Inbox } from 'lucide-react';
 export default function CollaborationSidebar({ activity }) {
   return (
     <>
-      <div className="card" style={{ padding: '16px' }}>
-        <div className="section-title" style={{ marginBottom: 12, borderLeft: '3px solid var(--domain-career)', paddingLeft: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="bg-card border border-card-border rounded-2xl overflow-hidden shadow-card p-4">
+        <div className="text-base font-bold text-text-primary mb-3 flex items-center gap-2 uppercase tracking-wider border-l-[3px] border-domain-career pl-3">
           <Megaphone size={14} color="var(--domain-career)" />
           Recent Activity
         </div>
         {activity.length === 0 && (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-            color: 'var(--text-muted)', padding: '20px 8px', textAlign: 'center',
-          }}>
+          <div className="flex flex-col items-center gap-2 text-text-muted px-2 py-5 text-center">
             <Inbox size={28} color="var(--text-faint)" />
-            <span style={{ fontSize: 13, lineHeight: 1.6 }}>No recent activity yet</span>
+            <span className="text-[13px] leading-[1.6]">No recent activity yet</span>
           </div>
         )}
         {activity.map(act => (
-          <div key={act.id} style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-secondary)', borderLeft: '2px solid var(--domain-career)', paddingLeft: 10, marginBottom: 12 }}>
+          <div key={act.id} className="text-sm leading-[1.6] text-text-secondary border-l-2 border-domain-career pl-2.5 mb-3">
             {act.text}
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{new Date(act.time).toLocaleString()}</div>
+            <div className="text-xs text-text-muted mt-1">{new Date(act.time).toLocaleString()}</div>
           </div>
         ))}
       </div>
-      <div className="card" style={{ padding: '16px', background: 'var(--accent-bg)', borderColor: 'var(--accent-border)' }}>
-        <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
+      <div className="bg-accent-bg border border-accent-border rounded-2xl overflow-hidden shadow-card p-4">
+        <div className="font-semibold mb-2 text-text-primary flex items-center gap-2 text-[15px]">
           <Lightbulb size={16} color="var(--accent)" />
           Need help?
         </div>
-        <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)', marginBottom: 12 }}>Ask AI Mentor or request a code review from the community.</div>
+        <div className="text-[13px] leading-[1.6] text-text-secondary mb-3">Ask AI Mentor or request a code review from the community.</div>
         <button
-          className="badge badge-teal collab-sidebar-cta"
-          style={{
-            cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
-            minHeight: 44, padding: '0 16px', fontSize: 13, border: 'none',
-          }}
+          className={[
+            'inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[11px] font-semibold',
+            'border border-domain-backend text-domain-backend bg-[rgba(5,150,105,0.08)]',
+            'cursor-pointer gap-1.5 min-h-11 px-4 text-[13px] border-none',
+            'transition-transform duration-200 hover:-translate-y-px hover:shadow-sm',
+            'focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2',
+          ].join(' ')}
         >
           Request Review <ArrowRight size={14} />
         </button>
