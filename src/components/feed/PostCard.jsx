@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   Heart, MessageCircle, Share2, Copy, Check, Send, Users2, CheckCircle, ClipboardList,
-  MoreHorizontal, Pencil, Trash2, X as XIcon,
+  MoreHorizontal, Pencil, Trash2, X as XIcon, Bookmark,
 } from 'lucide-react';
 import JoinProjectModal from './JoinProjectModal';
 import CollabRequesters from './CollabRequesters';
@@ -14,7 +14,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { getSocket, useSocketStore } from '../../stores/socketStore';
 import api from '../../api/axiosInstance';
 import { useComments, appendCachedComment, removeCachedComment } from '../../hooks/useComments';
-import { updateCachedPost, removeCachedPost } from '../../hooks/usePosts';
+import { updateCachedPost, removeCachedPost, useBookmarkedPosts, toggleCachedBookmark } from '../../hooks/usePosts';
 
 function Avatar({ name, src, size = 36 }) {
   const initials = (name ?? 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -78,6 +78,8 @@ export default function PostCard({ post: initialPost, index = 0 }) {
   const { data: comments = [], isLoading: commentsLoading } = useComments(post._id, showComments);
   const [newComment, setNewComment] = useState('');
   const [liked, setLiked] = useState(initialPost.likes?.includes(user?._id));
+  const { data: bookmarkedPosts = [] } = useBookmarkedPosts(!!user);
+  const isBookmarked = bookmarkedPosts.some((p) => p._id === post._id);
 
   const connected = useSocketStore((s) => s.connected);
   const domain   = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
@@ -156,6 +158,18 @@ export default function PostCard({ post: initialPost, index = 0 }) {
       await api.post(`/posts/${post._id}/like`);
     } catch {
       setLiked(liked); // revert on error
+    }
+  };
+
+  const toggleBookmark = async () => {
+    if (!user) return;
+    const next = !isBookmarked;
+    toggleCachedBookmark(post, next); // optimistic
+    try {
+      await api.post(`/posts/${post._id}/bookmark`);
+    } catch {
+      toggleCachedBookmark(post, !next); // revert on error
+      toast.error('Failed to update bookmark');
     }
   };
 
@@ -524,6 +538,14 @@ export default function PostCard({ post: initialPost, index = 0 }) {
           active={showComments}
           activeColor="var(--accent)"
         />
+        {user && (
+          <ActionBtn
+            icon={<Bookmark size={15} fill={isBookmarked ? 'var(--accent)' : 'none'} color={isBookmarked ? 'var(--accent)' : 'var(--text-muted)'} />}
+            onClick={toggleBookmark}
+            active={isBookmarked}
+            activeColor="var(--accent)"
+          />
+        )}
         <div className="ml-auto">
           <ActionBtn icon={<Share2 size={15} color="var(--text-muted)" />} onClick={share} />
         </div>

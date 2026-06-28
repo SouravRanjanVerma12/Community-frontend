@@ -16,8 +16,8 @@ import {
   Clock,
   Check,
   Pin,
-  Heart,
   BarChart3,
+  Bookmark,
 } from "lucide-react";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { BarChart } from "@mui/x-charts/BarChart";
@@ -30,6 +30,7 @@ import ImageCropper from "../components/ui/ImageCropper";
 import { DOMAINS } from "../data/mockPosts";
 import { useAuthStore } from "../stores/authStore";
 import { useUserProfile, useUserPosts } from "../hooks/useProfile";
+import { useBookmarkedPosts } from "../hooks/usePosts";
 import { useThemeStore } from "../stores/themeStore";
 import api from "../api/axiosInstance";
 
@@ -84,10 +85,11 @@ function SkillBadge({ label }) {
 }
 
 const ALL_TABS = ["posts", "friends", "about", "projects", "settings"];
-const OWN_PROFILE_TABS = ["posts", "stats", "friends", "about", "projects", "settings"];
+const OWN_PROFILE_TABS = ["posts", "stats", "bookmarks", "friends", "about", "projects", "settings"];
 const TAB_LABELS = {
   posts: "Posts",
   stats: "Stats",
+  bookmarks: "Bookmarks",
   friends: "Friends",
   about: "About",
   projects: "Projects",
@@ -201,6 +203,39 @@ function StatsPanel({ posts, followerCount }) {
             />
           </div>
         </div>
+      )}
+    </motion.div>
+  );
+}
+
+/* ── Bookmarks panel ── */
+function BookmarksPanel() {
+  const { data: posts = [], isLoading } = useBookmarkedPosts();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      className="mt-3.5 flex flex-col gap-3"
+    >
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 size={24} color="var(--text-muted)" className="animate-spin" />
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="text-center px-5 py-15 bg-card border border-card-border rounded-2xl">
+          <Bookmark size={32} className="mb-3 opacity-40 text-text-muted mx-auto" />
+          <p className="text-base font-semibold text-text-primary mb-1.5">
+            No bookmarks yet
+          </p>
+          <p className="text-sm text-text-muted">
+            Tap the bookmark icon on any post to save it for later.
+          </p>
+        </div>
+      ) : (
+        posts.map((post, i) => <PostCard key={post._id} post={post} index={i} />)
       )}
     </motion.div>
   );
@@ -911,6 +946,10 @@ export default function ProfilePage() {
 
           {activeTab === "stats" && isOwnProfile && (
             <StatsPanel key="stats" posts={userPosts} followerCount={followerCount} />
+          )}
+
+          {activeTab === "bookmarks" && isOwnProfile && (
+            <BookmarksPanel key="bookmarks" />
           )}
 
           {activeTab === "friends" && (
