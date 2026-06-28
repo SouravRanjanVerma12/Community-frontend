@@ -19,3 +19,11 @@ export function useComments(postId, enabled) {
 export function appendCachedComment(postId, comment) {
   queryClient.setQueryData(['comments', postId], (prev) => prev ? [...prev, comment] : prev);
 }
+
+/* Called after a successful comment delete (or the post:commentDeleted socket
+   event) to remove it from the cache without an extra round trip. */
+export function removeCachedComment(postId, commentId) {
+  queryClient.setQueryData(['comments', postId], (prev) =>
+    prev ? prev.filter((c) => c._id !== commentId) : prev
+  );
+}
