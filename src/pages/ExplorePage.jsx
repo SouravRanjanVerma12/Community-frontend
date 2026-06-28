@@ -302,7 +302,7 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
 const DOMAIN_LABELS = {
   all: 'Explore', webdev: 'Web Dev', backend: 'Backend',
   devops: 'DevOps', aiml: 'AI / ML', mobile: 'Mobile',
-  oss: 'Open Source', career: 'Career',
+  oss: 'Open Source',
 };
 
 export default function ExplorePage() {

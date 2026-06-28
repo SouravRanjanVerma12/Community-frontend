@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LogOut, LogIn, UserPlus, Zap, Compass, Users2,
+  LogOut, LogIn, UserPlus, Zap, Compass, Users2, Briefcase,
   Search, MessageSquare, X, UserCheck, Bell, Users, Menu,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
@@ -320,6 +320,7 @@ function FriendRowWithId({ friend, onRemove, onNavigate, compact }) {
 const NAV_TABS = [
   { to: '/explore',  label: 'Explore',  icon: Compass       },
   { to: '/collab',   label: 'Collab',   icon: Users2        },
+  { to: '/jobs',     label: 'Jobs',     icon: Briefcase     },
 ];
 
 export default function Navbar() {

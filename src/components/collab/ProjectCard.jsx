@@ -9,7 +9,7 @@ import Button from '../ui/Button';
 const CC = '#3a3d4a';
 const DOMAIN_COLORS = {
   webdev: '#2563eb', backend: '#059669', devops: '#d97706',
-  aiml: '#7c3aed', mobile: '#db2777', oss: '#0891b2', career: '#ea580c',
+  aiml: '#7c3aed', mobile: '#db2777', oss: '#0891b2',
 };
 
 function Avatar({ name, src, size = 32 }) {
