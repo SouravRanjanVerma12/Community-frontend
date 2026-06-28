@@ -4,7 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../stores/authStore';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegisterForm';
-import bgPanel from '../assets/auth-hero/bg-panel.png';
+import { SplineScene } from '../components/ui/spline';
+import { Spotlight } from '../components/ui/spotlight';
+import { Sparkles } from 'lucide-react';
+
+const HUB_CHIPS = ['founders', 'builders', 'collab()', 'startupIndia', 'community'];
 
 // Dark-glass theme override for the auth card — redefines the shared design
 // tokens so child components (InputField, Button) pick up the auth look
@@ -41,6 +45,7 @@ const cardClasses = [
   'shadow-[0_0_0_1px_rgba(255,255,255,0.03)_inset,0_32px_80px_rgba(0,0,0,0.80)]',
   'max-h-[90svh] overflow-y-auto scrollbar-none',
   '**:font-[DM_Sans,system-ui,sans-serif]',
+  'pointer-events-auto',
 ].join(' ');
 
 export default function AuthPage() {
@@ -65,16 +70,55 @@ export default function AuthPage() {
 
   return (
     <>
-      {/* Background image */}
+      {/* Background: interactive 3D scene */}
       <div className="fixed inset-0 z-0 bg-[#02030a] overflow-hidden" aria-hidden>
-        <img src={bgPanel} alt="" className="w-full h-full object-cover object-center" />
+        <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+        <SplineScene
+          scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+          className="w-full h-full"
+        />
       </div>
 
       {/* Login / Sign Up pill */}
       <AuthTabPill tab={tab} switchTab={switchTab} />
 
+      {/* Right-side brand copy — fills the empty space beside the robot */}
+      <div className="hidden lg:block fixed top-28 right-10 z-10 w-[300px] text-right pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full py-1 px-3 mb-4 backdrop-blur-[10px]">
+            <Sparkles size={10} className="text-white/70" />
+            <span className="text-[11px] text-white/60 font-medium">Prograstic Hub</span>
+          </div>
+
+          <h2 className="font-[Outfit,system-ui,sans-serif]! text-2xl font-extrabold leading-[1.2] tracking-[-0.02em] text-white mb-3">
+            Where builders find their{' '}
+            <span className="text-white/35 font-medium">people.</span>
+          </h2>
+
+          <p className="text-[13px] text-white/45 leading-[1.6] mb-4">
+            Prograstic Hub connects founders, developers, and operators to collaborate
+            on real projects, share resources, and grow India's startup ecosystem together.
+          </p>
+
+          <div className="flex flex-wrap gap-1.5 justify-end">
+            {HUB_CHIPS.map((chip) => (
+              <span
+                key={chip}
+                className="px-2.5 py-1 rounded-full font-mono text-[10px] bg-white/4 border border-white/9 text-white/55"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
       {/* Centered form */}
-      <div className="relative z-1 min-h-svh flex items-center justify-start px-5 pt-14 pb-10 pl-[min(80px,6vw)]">
+      <div className="relative z-1 min-h-svh flex items-center justify-start px-5 pt-14 pb-10 pl-[min(80px,6vw)] pointer-events-none">
         <AnimatePresence mode="wait">
           {tab === 'login' ? (
             <motion.div
