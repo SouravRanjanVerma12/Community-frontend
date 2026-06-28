@@ -3,7 +3,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LogIn, UserPlus, Zap, Compass, Users2,
-  Search, MessageSquare, X, UserCheck, Bell, Users,
+  Search, MessageSquare, X, UserCheck, Bell, Users, Menu,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useSocketStore } from '../../stores/socketStore';
@@ -289,78 +289,212 @@ const NAV_TABS = [
 export default function Navbar() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const closeDrawer = () => setDrawerOpen(false);
 
   const handleLogout = async () => {
+    closeDrawer();
     await logout();
     navigate('/');
   };
 
+  // Close drawer on Escape, and lock body scroll while it's open
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') closeDrawer(); };
+    document.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [drawerOpen]);
+
   return (
-    <nav className="sticky top-0 z-100 h-15 bg-nav border-b border-nav-border flex items-center px-5 gap-3 transition-colors duration-250">
-      {/* Logo */}
-      <Link to="/explore" className="flex items-center gap-2 no-underline shrink-0 mr-2">
-        <div className="w-[30px] h-[30px] rounded-lg bg-(image:--btn-grad) flex items-center justify-center">
-          <Zap size={16} color="#fff" fill="#fff" />
+    <>
+      <nav className="sticky top-0 z-100 h-15 bg-nav border-b border-nav-border flex items-center px-5 gap-3 transition-colors duration-250">
+        {/* Logo */}
+        <Link to="/explore" className="flex items-center gap-2 no-underline shrink-0 mr-2">
+          <div className="w-[30px] h-[30px] rounded-lg bg-(image:--btn-grad) flex items-center justify-center">
+            <Zap size={16} color="#fff" fill="#fff" />
+          </div>
+          <span className="hidden sm:inline text-base font-bold text-text-primary tracking-[-0.3px]">
+            Prograstic
+          </span>
+        </Link>
+
+        {/* Center tabs — desktop/tablet */}
+        <div className="hidden lg:flex items-stretch h-full gap-0.5">
+          {NAV_TABS.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to}
+              className={({ isActive }) => [
+                'flex items-center gap-1.5 px-3.5 no-underline whitespace-nowrap text-sm',
+                'transition-colors duration-150 border-b-2',
+                isActive ? 'border-accent text-accent font-semibold' : 'border-transparent text-text-secondary font-medium',
+              ].join(' ')}
+            >
+              <Icon size={15} />
+              <span className="hidden sm:inline">{label}</span>
+            </NavLink>
+          ))}
         </div>
-        <span className="hidden sm:inline text-base font-bold text-text-primary tracking-[-0.3px]">
-          Prograstic
-        </span>
-      </Link>
 
-      {/* Center tabs */}
-      <div className="flex items-stretch h-full gap-0.5">
-        {NAV_TABS.map(({ to, label, icon: Icon }) => (
-          <NavLink key={to} to={to}
-            className={({ isActive }) => [
-              'flex items-center gap-1.5 px-3.5 no-underline whitespace-nowrap text-sm',
-              'transition-colors duration-150 border-b-2',
-              isActive ? 'border-accent text-accent font-semibold' : 'border-transparent text-text-secondary font-medium',
-            ].join(' ')}
-          >
-            <Icon size={15} />
-            <span className="hidden sm:inline">{label}</span>
-          </NavLink>
-        ))}
-      </div>
+        {/* Search — desktop/tablet */}
+        {user && (
+          <div className="hidden lg:flex flex-1 max-w-[340px] ml-3">
+            <GlobalSearch />
+          </div>
+        )}
 
-      {/* Search */}
-      {user && <GlobalSearch />}
+        {/* Spacer to push right actions to the edge */}
+        <div className="flex-1" />
 
-      {/* Spacer to push right actions to the edge */}
-      <div className="flex-1" />
+        {/* Right actions — desktop/tablet */}
+        <div className="hidden lg:flex items-center gap-2.5 shrink-0">
+          {user ? (
+            <>
+              <Link to="/messages" className="flex text-text-muted no-underline" title="Messages">
+                <MessageSquare size={18} />
+              </Link>
+              <FriendsDropdown />
+              <FriendBell />
+              <NotificationBell />
+              <Link to={`/profile/${user._id}`} className="flex items-center gap-2 no-underline">
+                <Avatar name={user.name} src={user.avatarUrl || null} />
+                <span className="hidden sm:inline text-sm font-medium text-text-secondary">
+                  {user.name.split(' ')[0]}
+                </span>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={handleLogout} title="Log out">
+                <LogOut size={14} />
+                <span className="hidden sm:inline">Log out</span>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/" className="px-3.5 py-[7px] rounded-lg border-[1.5px] border-border text-text-secondary text-[13px] font-medium flex items-center gap-1.5 no-underline">
+                <LogIn size={14} /> Log in
+              </Link>
+              <Link to="/register" className="px-3.5 py-[7px] rounded-lg bg-(image:--btn-grad) shadow-btn text-white text-[13px] font-semibold flex items-center gap-1.5 no-underline">
+                <UserPlus size={14} /> Sign up
+              </Link>
+            </>
+          )}
+        </div>
 
-      {/* Right actions */}
-      <div className="flex items-center gap-2.5 shrink-0">
-        {user ? (
+        {/* Hamburger — mobile/tablet only */}
+        <button
+          onClick={() => setDrawerOpen((v) => !v)}
+          title="Menu"
+          className="lg:hidden flex items-center justify-center text-text-secondary bg-none border-none cursor-pointer p-1.5 rounded-lg transition-colors duration-150 hover:bg-surface-2"
+        >
+          <Menu size={20} />
+        </button>
+      </nav>
+
+      {/* Mobile/tablet drawer */}
+      <AnimatePresence>
+        {drawerOpen && (
           <>
-            <Link to="/messages" className="flex text-text-muted no-underline" title="Messages">
-              <MessageSquare size={18} />
-            </Link>
-            <FriendsDropdown />
-            <FriendBell />
-            <NotificationBell />
-            <Link to={`/profile/${user._id}`} className="flex items-center gap-2 no-underline">
-              <Avatar name={user.name} src={user.avatarUrl || null} />
-              <span className="hidden sm:inline text-sm font-medium text-text-secondary">
-                {user.name.split(' ')[0]}
-              </span>
-            </Link>
-            <Button variant="ghost" size="sm" onClick={handleLogout} title="Log out">
-              <LogOut size={14} />
-              <span className="hidden sm:inline">Log out</span>
-            </Button>
-          </>
-        ) : (
-          <>
-            <Link to="/" className="px-3.5 py-[7px] rounded-lg border-[1.5px] border-border text-text-secondary text-[13px] font-medium flex items-center gap-1.5 no-underline">
-              <LogIn size={14} /> Log in
-            </Link>
-            <Link to="/register" className="px-3.5 py-[7px] rounded-lg bg-(image:--btn-grad) shadow-btn text-white text-[13px] font-semibold flex items-center gap-1.5 no-underline">
-              <UserPlus size={14} /> Sign up
-            </Link>
+            <motion.div
+              key="nav-drawer-backdrop"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="lg:hidden fixed inset-0 z-200 bg-black/45"
+              onClick={closeDrawer}
+            />
+            <motion.div
+              key="nav-drawer"
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:hidden fixed top-0 right-0 h-full w-[82%] max-w-[320px] z-201 bg-card shadow-popup overflow-y-auto flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-divider shrink-0">
+                {user ? (
+                  <Link to={`/profile/${user._id}`} onClick={closeDrawer} className="flex items-center gap-2.5 no-underline">
+                    <Avatar name={user.name} src={user.avatarUrl || null} />
+                    <span className="text-sm font-semibold text-text-primary">{user.name}</span>
+                  </Link>
+                ) : (
+                  <span className="text-sm font-bold text-text-primary">Menu</span>
+                )}
+                <button onClick={closeDrawer} className="bg-none border-none cursor-pointer text-text-muted p-1 flex">
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Search */}
+              {user && (
+                <div className="p-3 border-b border-divider">
+                  <GlobalSearch />
+                </div>
+              )}
+
+              {/* Nav links */}
+              <div className="flex flex-col py-2">
+                {NAV_TABS.map(({ to, label, icon: Icon }) => (
+                  <NavLink key={to} to={to} onClick={closeDrawer}
+                    className={({ isActive }) => [
+                      'flex items-center gap-3 px-4 py-3 no-underline text-sm font-medium',
+                      isActive ? 'text-accent bg-accent-bg' : 'text-text-secondary',
+                    ].join(' ')}
+                  >
+                    <Icon size={18} /> {label}
+                  </NavLink>
+                ))}
+
+                {user && (
+                  <>
+                    <Link to="/messages" onClick={closeDrawer}
+                      className="flex items-center gap-3 px-4 py-3 no-underline text-sm font-medium text-text-secondary">
+                      <MessageSquare size={18} /> Messages
+                    </Link>
+
+                    <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary">
+                      <span className="flex items-center gap-3"><Users size={18} /> Friends</span>
+                      <FriendsDropdown />
+                    </div>
+
+                    <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary">
+                      <span className="flex items-center gap-3"><Bell size={18} /> Friend requests</span>
+                      <FriendBell />
+                    </div>
+
+                    <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary">
+                      <span className="flex items-center gap-3"><Bell size={18} /> Notifications</span>
+                      <NotificationBell />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer action */}
+              <div className="mt-auto p-3 border-t border-divider shrink-0">
+                {user ? (
+                  <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full justify-center">
+                    <LogOut size={14} />
+                    Log out
+                  </Button>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <Link to="/" onClick={closeDrawer}
+                      className="px-3.5 py-2.5 rounded-lg border-[1.5px] border-border text-text-secondary text-sm font-medium flex items-center justify-center gap-1.5 no-underline">
+                      <LogIn size={14} /> Log in
+                    </Link>
+                    <Link to="/register" onClick={closeDrawer}
+                      className="px-3.5 py-2.5 rounded-lg bg-(image:--btn-grad) shadow-btn text-white text-sm font-semibold flex items-center justify-center gap-1.5 no-underline">
+                      <UserPlus size={14} /> Sign up
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </>
         )}
-      </div>
-    </nav>
+      </AnimatePresence>
+    </>
   );
 }
