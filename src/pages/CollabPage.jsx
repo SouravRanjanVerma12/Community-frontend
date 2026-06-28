@@ -398,14 +398,14 @@ export default function CollabPage() {
           </div>
 
           {/* Tab bar */}
-          <div className="flex gap-0">
+          <div className="flex gap-0 overflow-x-auto scrollbar-none -mx-6 px-6 sm:mx-0 sm:px-0">
             {TABS.map(({ id, label, icon: Icon }) => {
               const active = activeTab === id;
               return (
                 <button
                   key={id} onClick={() => setActiveTab(id)}
                   className={[
-                    'flex items-center gap-1.5 min-h-11 px-5 border-none bg-transparent text-sm cursor-pointer whitespace-nowrap',
+                    'flex items-center gap-1.5 min-h-11 px-3 sm:px-5 border-none bg-transparent text-sm cursor-pointer whitespace-nowrap shrink-0',
                     'transition-colors duration-150 border-b-2 hover:opacity-92',
                     'focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2',
                     active ? 'font-bold' : 'font-medium',

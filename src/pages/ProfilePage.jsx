@@ -731,7 +731,7 @@ export default function ProfilePage() {
               </a>
             )}
             <span className="flex items-center gap-1 text-[13px] text-text-secondary">
-              <Calendar size={13} color="var(--text-muted)" /> Joined {profile.joinedYear}
+              <Calendar size={13} color="var(--text-muted)" /> Joined {profile.createdAt ? new Date(profile.createdAt).getFullYear() : ''}
             </span>
           </div>
 
