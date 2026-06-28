@@ -907,7 +907,7 @@ export default function ProfilePage() {
         </motion.div>
 
         {/* ── Tabs ── */}
-        <div className="bg-surface-1 border border-border rounded-xl mt-3 flex overflow-hidden">
+        <div className="bg-surface-1 border border-border rounded-xl mt-3 flex overflow-x-auto scrollbar-none">
           {(isOwnProfile ? OWN_PROFILE_TABS : ALL_TABS).map((id) => {
             const active = activeTab === id;
             const isSoon = TAB_SOON.includes(id);
@@ -917,7 +917,7 @@ export default function ProfilePage() {
                 key={id}
                 onClick={() => !locked && setActiveTab(id)}
                 className={[
-                  'flex-1 px-2 py-3.5 border-none border-b-2 text-[13px] flex items-center justify-center gap-1.5 transition-all duration-150',
+                  'flex-1 shrink-0 px-3 sm:px-2 py-3.5 border-none border-b-2 text-[13px] flex items-center justify-center gap-1.5 transition-all duration-150 whitespace-nowrap',
                   active ? 'font-bold' : 'font-medium',
                   locked ? 'cursor-default' : 'cursor-pointer',
                 ].join(' ')}
