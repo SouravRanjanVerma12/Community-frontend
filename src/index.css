@@ -15,6 +15,7 @@
   --color-surface-2:     var(--surface-2);
   --color-surface-3:     var(--surface-3);
   --color-card:          var(--card-bg);
+  --color-card-foreground: var(--text-primary);
   --color-nav:           var(--nav-bg);
   --color-dark-section:  var(--dark-section);
 
@@ -76,6 +77,22 @@
   --font-sans:    var(--sans);
   --font-mono:    var(--mono);
   --font-heading: var(--heading);
+
+  /* ── shadcn-style tokens (added alongside existing tokens for copy-pasted shadcn components) ── */
+  --color-muted-foreground: var(--muted-foreground);
+
+  --animate-spotlight: spotlight 2s ease .75s 1 forwards;
+
+  @keyframes spotlight {
+    0% {
+      opacity: 0;
+      transform: translate(-72%, -62%) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%,-40%) scale(1);
+    }
+  }
 }
 
 /* ── Light theme (default) — Twitter-blue palette ── */
@@ -105,6 +122,7 @@
   --text-secondary: rgba(15, 20, 25, 0.6);
   --text-muted:     rgba(15, 20, 25, 0.45);
   --text-faint:     rgba(15, 20, 25, 0.22);
+  --muted-foreground: rgba(15, 20, 25, 0.45);
 
   /* ── Accent: Twitter blue ── */
   --accent:        #1e9df1;
@@ -199,6 +217,7 @@
   --text-secondary: #72767a;
   --text-muted:     rgba(114, 118, 122, 0.75);
   --text-faint:     rgba(114, 118, 122, 0.45);
+  --muted-foreground: #72767a;
 
   /* ── Accent: Twitter blue ── */
   --accent:        #1c9cf0;
