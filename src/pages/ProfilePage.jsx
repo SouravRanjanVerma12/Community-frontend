@@ -16,7 +16,11 @@ import {
   Clock,
   Check,
   Pin,
+  Heart,
+  BarChart3,
 } from "lucide-react";
+import { PieChart } from "@mui/x-charts/PieChart";
+import { BarChart } from "@mui/x-charts/BarChart";
 import Navbar from "../components/layout/Navbar";
 import FriendsList from "../components/friends/FriendsList";
 import UserAbout from "../components/About/UserAbout";
@@ -80,14 +84,127 @@ function SkillBadge({ label }) {
 }
 
 const ALL_TABS = ["posts", "friends", "about", "projects", "settings"];
+const OWN_PROFILE_TABS = ["posts", "stats", "friends", "about", "projects", "settings"];
 const TAB_LABELS = {
   posts: "Posts",
+  stats: "Stats",
   friends: "Friends",
   about: "About",
   projects: "Projects",
   settings: "Settings",
 };
 const TAB_SOON = [""]; // Settings unlocked for own profile
+
+/* ── Stats panel ── */
+const TYPE_COLORS = { text: '#1e9df1', code: '#8b5cf6', video: '#ec4899', collab: '#3a3d4a' };
+const TYPE_LABELS = { text: 'Text', code: 'Code', video: 'Video', collab: 'Collab' };
+
+function lastSixMonths() {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    return { year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleString('default', { month: 'short' }) };
+  });
+}
+
+function StatsPanel({ posts, followerCount }) {
+  const fmtNum = (n) => (n >= 1000 ? (n / 1000).toFixed(1) + "k" : n);
+
+  const totalLikes = posts.reduce((sum, p) => sum + (p.likes?.length || 0), 0);
+  const totalComments = posts.reduce((sum, p) => sum + (p.commentCount || 0), 0);
+
+  const typeCounts = posts.reduce((acc, p) => {
+    acc[p.type] = (acc[p.type] || 0) + 1;
+    return acc;
+  }, {});
+  const typeSlices = Object.entries(typeCounts).map(([type, value]) => ({
+    id: type,
+    label: TYPE_LABELS[type] ?? type,
+    value,
+    color: TYPE_COLORS[type] ?? '#6b7280',
+  }));
+
+  const months = lastSixMonths();
+  const monthCounts = months.map(({ year, month }) =>
+    posts.filter((p) => {
+      const d = new Date(p.createdAt);
+      return d.getFullYear() === year && d.getMonth() === month;
+    }).length
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      className="mt-3.5 flex flex-col gap-3.5"
+    >
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: 'Posts', value: posts.length },
+          { label: 'Likes received', value: fmtNum(totalLikes) },
+          { label: 'Comments received', value: fmtNum(totalComments) },
+          { label: 'Followers', value: fmtNum(followerCount) },
+        ].map((s) => (
+          <div key={s.label} className="bg-card border border-card-border rounded-xl px-4 py-3.5">
+            <p className="m-0 text-2xl font-extrabold text-text-primary">{s.value}</p>
+            <p className="m-0 text-xs text-text-muted mt-0.5">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {posts.length === 0 ? (
+        <div className="bg-card border border-card-border rounded-xl px-4 py-10 text-center">
+          <BarChart3 size={28} color="var(--text-faint)" className="mx-auto mb-2" />
+          <p className="text-sm text-text-muted m-0">No posts yet — stats will show up once you start posting.</p>
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 gap-3.5">
+          {/* Posts by type */}
+          <div className="bg-card border border-card-border rounded-xl px-4 py-3.5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.07em] text-text-muted mb-2.5">
+              Posts by type
+            </p>
+            <div className="flex flex-col items-center gap-3">
+              <PieChart
+                series={[{ data: typeSlices, innerRadius: 32, outerRadius: 60, paddingAngle: 2, cornerRadius: 3 }]}
+                width={160}
+                height={160}
+                slotProps={{ legend: { hidden: true } }}
+                tooltip={{ trigger: 'item' }}
+              />
+              <div className="flex flex-col gap-1.5 w-full">
+                {typeSlices.map((s) => (
+                  <div key={s.id} className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: s.color }} />
+                    <span className="text-xs text-text-secondary flex-1">{s.label}</span>
+                    <span className="text-xs font-semibold text-text-primary">{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Posts over time */}
+          <div className="bg-card border border-card-border rounded-xl px-4 py-3.5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.07em] text-text-muted mb-2.5">
+              Posts over the last 6 months
+            </p>
+            <BarChart
+              xAxis={[{ data: months.map((m) => m.label), scaleType: 'band' }]}
+              series={[{ data: monthCounts, color: '#1e9df1' }]}
+              width={280}
+              height={200}
+              slotProps={{ legend: { hidden: true } }}
+            />
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
 
 /* ── Settings panel ── */
 function SettingsPanel({ profile }) {
@@ -756,7 +873,7 @@ export default function ProfilePage() {
 
         {/* ── Tabs ── */}
         <div className="bg-surface-1 border border-border rounded-xl mt-3 flex overflow-hidden">
-          {ALL_TABS.map((id) => {
+          {(isOwnProfile ? OWN_PROFILE_TABS : ALL_TABS).map((id) => {
             const active = activeTab === id;
             const isSoon = TAB_SOON.includes(id);
             const locked = isSoon || (id === "settings" && !isOwnProfile);
@@ -790,6 +907,10 @@ export default function ProfilePage() {
         <AnimatePresence mode="wait">
           {activeTab === "settings" && isOwnProfile && (
             <SettingsPanel key="settings" profile={profile} />
+          )}
+
+          {activeTab === "stats" && isOwnProfile && (
+            <StatsPanel key="stats" posts={userPosts} followerCount={followerCount} />
           )}
 
           {activeTab === "friends" && (
