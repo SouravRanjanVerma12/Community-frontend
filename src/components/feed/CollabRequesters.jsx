@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Check, X, Loader2, ExternalLink, ClipboardList, Users2, CheckCircle2, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axiosInstance';
+import { queryClient } from '../../api/queryClient';
 import Button from '../ui/Button';
+import { useCollabRequesters } from '../../hooks/useCollabRequests';
 
 const COLLAB_COLOR = '#3a3d4a';
 
@@ -128,25 +130,13 @@ function PublicRow({ person }) {
 }
 
 export default function CollabRequesters({ postId, requestCount, isCreator }) {
-  const [open, setOpen]           = useState(false);
-  const [data, setData]           = useState(null);
-  const [loading, setLoading]     = useState(false);
+  const [open, setOpen] = useState(false);
+  const { data, isLoading: loading } = useCollabRequesters(postId, isCreator, open);
 
-  const load = async () => {
-    if (data) return; // already loaded
-    setLoading(true);
-    try {
-      const endpoint = isCreator ? `/posts/${postId}/requests` : `/posts/${postId}/requesters`;
-      const { data: res } = await api.get(endpoint);
-      setData(isCreator ? res.requests : res.requesters);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const toggle = () => setOpen((v) => !v);
 
-  const toggle = () => {
-    if (!open) load();
-    setOpen((v) => !v);
+  const refetchAfterRespond = () => {
+    queryClient.invalidateQueries({ queryKey: ['collab-requesters', postId, isCreator] });
   };
 
   if (!requestCount) return null;
@@ -192,7 +182,7 @@ export default function CollabRequesters({ postId, requestCount, isCreator }) {
                   <p className="text-[13px] leading-[1.6]">No requests yet.</p>
                 </div>
               ) : isCreator ? (
-                data.map((req) => <CreatorRow key={req._id} req={req} onRespond={() => setData(null)} />)
+                data.map((req) => <CreatorRow key={req._id} req={req} onRespond={refetchAfterRespond} />)
               ) : (
                 data.map((person) => <PublicRow key={person._id} person={person} />)
               )}

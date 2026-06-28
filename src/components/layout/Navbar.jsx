@@ -11,6 +11,7 @@ import { FriendRow } from '../friends/FriendsList';
 import api from '../../api/axiosInstance';
 import Button from '../ui/Button';
 import NotificationBell from './NotificationBell';
+import { useFriends, usePendingRequests, useFriendStatus, invalidateFriends } from '../../hooks/useFriends';
 
 function Avatar({ name, src, size = 34 }) {
   const initials = name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -69,12 +70,14 @@ function GlobalSearch() {
   const sendRequest = async (userId) => {
     await api.post(`/friends/request/${userId}`);
     setFriendStatus((s) => ({ ...s, [userId]: { status: 'pending', iAmRequester: true } }));
+    invalidateFriends();
   };
 
   const cancelRequest = async (userId) => {
     const fs = friendStatus[userId];
     if (fs?.id) await api.delete(`/friends/${fs.id}`);
     setFriendStatus((s) => ({ ...s, [userId]: { status: 'none' } }));
+    invalidateFriends();
   };
 
   const FriendButton = ({ user }) => {
@@ -166,13 +169,8 @@ function GlobalSearch() {
 
 /* ── Friend requests notification bell ── */
 function FriendBell() {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    api.get('/friends/pending')
-      .then(({ data }) => setCount(data.requests.length))
-      .catch(() => {});
-  }, []);
+  const { data: pending = [] } = usePendingRequests();
+  const count = pending.length;
 
   if (count === 0) return null;
 
@@ -188,10 +186,8 @@ function FriendBell() {
 
 /* ── Friends dropdown ── */
 function FriendsDropdown() {
-  const [open, setOpen]       = useState(false);
-  const [friends, setFriends] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded]   = useState(false);
+  const [open, setOpen] = useState(false);
+  const { data: friends = [], isLoading: loading } = useFriends();
   const ref = useRef(null);
 
   useEffect(() => {
@@ -200,26 +196,9 @@ function FriendsDropdown() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const load = async () => {
-    if (loaded) return;
-    setLoading(true);
-    try {
-      const { data } = await api.get('/friends');
-      setFriends(data.friends);
-      setLoaded(true);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
+  const toggle = () => setOpen((v) => !v);
 
-  const toggle = () => {
-    const next = !open;
-    setOpen(next);
-    if (next) load();
-  };
-
-  const handleRemove = (removedId) => {
-    setFriends((prev) => prev.filter((f) => f._id !== removedId));
-  };
+  const handleRemove = () => invalidateFriends();
 
   return (
     <div ref={ref} className="relative">
@@ -290,16 +269,11 @@ function FriendsDropdown() {
 
 /* Wraps FriendRow, looks up friendship ID for the remove action */
 function FriendRowWithId({ friend, onRemove, onNavigate, compact }) {
-  const [friendshipId, setFriendshipId] = useState(null);
-  useEffect(() => {
-    api.get(`/friends/status/${friend._id}`)
-      .then(({ data }) => { if (data.id) setFriendshipId(data.id); })
-      .catch(() => {});
-  }, [friend._id]);
+  const { data: status } = useFriendStatus(friend._id);
   return (
     <FriendRow
       friend={friend}
-      friendshipId={friendshipId}
+      friendshipId={status?.id ?? null}
       onRemove={onRemove}
       onNavigate={onNavigate}
       compact={compact}

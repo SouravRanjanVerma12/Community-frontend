@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -9,6 +9,7 @@ import Navbar from '../components/layout/Navbar';
 import { useAuthStore } from '../stores/authStore';
 import { useSocketStore } from '../stores/socketStore';
 import api from '../api/axiosInstance';
+import { useFriends, usePendingRequests, invalidateFriends } from '../hooks/useFriends';
 
 /* ── helpers ── */
 const avatarColor = (name) =>
@@ -83,12 +84,14 @@ function ChatWindow({ friend, onBack }) {
   const messages = conversations[friend._id] ?? [];
   const isTyping = typingMap[friend._id];
 
-  // Load history
+  // Load history (skip if already cached in the socket store from a previous visit)
   useEffect(() => {
+    if (conversations[friend._id]) { setLoading(false); return; }
     setLoading(true);
     api.get(`/friends/messages/${friend._id}`)
       .then(({ data }) => seedConversation(friend._id, data.messages))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [friend._id]);
 
   useEffect(() => {
@@ -230,36 +233,24 @@ function ChatWindow({ friend, onBack }) {
 export default function MessagesPage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const [friends, setFriends]   = useState([]);
-  const [pending, setPending]   = useState([]);
-  const [active, setActive]     = useState(null); // friend object currently chatting
-  const [loading, setLoading]   = useState(true);
+  const [active, setActive] = useState(null); // friend object currently chatting
+
+  const { data: friends = [], isLoading: friendsLoading } = useFriends();
+  const { data: pending = [] } = usePendingRequests();
+  const loading = friendsLoading;
 
   const { isOnline } = useSocketStore();
 
   if (!user) { navigate('/'); return null; }
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const [fr, pe] = await Promise.all([
-      api.get('/friends'),
-      api.get('/friends/pending'),
-    ]);
-    setFriends(fr.data.friends);
-    setPending(pe.data.requests);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
   const handleAccept = async (requestId) => {
     await api.post(`/friends/accept/${requestId}`);
-    load();
+    invalidateFriends();
   };
 
   const handleDecline = async (requestId) => {
     await api.delete(`/friends/${requestId}`);
-    load();
+    invalidateFriends();
   };
 
   return (

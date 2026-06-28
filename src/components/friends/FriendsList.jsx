@@ -1,9 +1,10 @@
 // FriendsList.jsx – all in one file
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, UserMinus, Users, Loader2 } from "lucide-react";
 import api from "../../api/axiosInstance";
+import { useFriends, useFriendStatus, invalidateFriends } from "../../hooks/useFriends";
 
 /* ──────────────────────────────────────
    ENHANCED AVATAR – with size variants & online status
@@ -207,29 +208,14 @@ export function FriendRow({
 /* ──────────────────────────────────────
    MAIN FRIENDS LIST
    ────────────────────────────────────── */
-export default function FriendsList({ userId, isOwnProfile }) {
-  const [friends, setFriends] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function FriendsList({ isOwnProfile }) {
   const [onlineUsers] = useState(new Set()); // <-- add this
+  // This component only ever renders for the signed-in user's own profile
+  // (see early return below), so it always shares the same cached "my
+  // friends" query as the Navbar dropdown and Messages page.
+  const { data: friends = [], isLoading: loading } = useFriends();
 
-  // Fetch friends
-  useEffect(() => {
-    if (!userId) return;
-    setLoading(true);
-    const endpoint = isOwnProfile ? "/friends" : `/users/${userId}/friends`;
-    api
-      .get(endpoint)
-      .then(({ data }) => {
-        // data.friends is an array of user objects
-        setFriends(data.friends || []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [userId, isOwnProfile]);
-
-  const handleRemove = (removedId) => {
-    setFriends((prev) => prev.filter((f) => f._id !== removedId));
-  };
+  const handleRemove = () => invalidateFriends();
 
   if (!isOwnProfile) return null;
 
@@ -281,16 +267,8 @@ export default function FriendsList({ userId, isOwnProfile }) {
 
 /* Wrapper to fetch friendshipId per friend */
 function FriendRowWithId({ friend, onRemove, isOnline }) {
-  const [friendshipId, setFriendshipId] = useState(null);
-
-  useEffect(() => {
-    api
-      .get(`/friends/status/${friend._id}`)
-      .then(({ data }) => {
-        if (data.id) setFriendshipId(data.id);
-      })
-      .catch(() => {});
-  }, [friend._id]);
+  const { data: status } = useFriendStatus(friend._id);
+  const friendshipId = status?.id ?? null;
 
   return (
     <FriendRow

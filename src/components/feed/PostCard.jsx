@@ -8,6 +8,7 @@ import { DOMAINS } from '../../data/mockPosts';
 import { useAuthStore } from '../../stores/authStore';
 import { getSocket, useSocketStore } from '../../stores/socketStore';
 import api from '../../api/axiosInstance';
+import { useComments, appendCachedComment } from '../../hooks/useComments';
 
 function Avatar({ name, src, size = 36 }) {
   const initials = (name ?? 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -68,8 +69,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
   const { user } = useAuthStore();
   const [post, setPost] = useState(initialPost);
   const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState([]);
-  const [commentsLoaded, setCommentsLoaded] = useState(false);
+  const { data: comments = [], isLoading: commentsLoading } = useComments(post._id, showComments);
   const [newComment, setNewComment] = useState('');
   const [liked, setLiked] = useState(initialPost.likes?.includes(user?._id));
 
@@ -95,9 +95,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     const onCommented = (data) => {
       if (data.postId === post._id) {
         setPost((p) => ({ ...p, commentCount: data.commentCount }));
-        if (showComments) {
-          setComments((prev) => [...prev, data.comment]);
-        }
+        appendCachedComment(post._id, data.comment);
       }
     };
 
@@ -108,7 +106,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
       socket.off('post:updated', onUpdated);
       socket.off('post:commented', onCommented);
     };
-  }, [post._id, user?._id, showComments, connected]);
+  }, [post._id, user?._id, connected]);
 
   const toggleLike = async () => {
     if (!user) return;
@@ -120,17 +118,8 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     }
   };
 
-  const loadComments = async () => {
-    if (!commentsLoaded) {
-      const { data } = await api.get(`/posts/${post._id}/comments`);
-      setComments(data.comments);
-      setCommentsLoaded(true);
-    }
-  };
-
   const handleToggleComments = () => {
-    if (!showComments) loadComments();
-    setShowComments(!showComments);
+    setShowComments((v) => !v);
   };
 
   const handleAddComment = async () => {
@@ -422,7 +411,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
 
               {/* Comments list */}
               <div className="flex flex-col gap-3">
-                {!commentsLoaded ? (
+                {commentsLoading ? (
                   <p className="text-xs text-text-muted">Loading comments...</p>
                 ) : comments.length === 0 ? (
                   <p className="text-xs text-text-muted">No comments yet.</p>

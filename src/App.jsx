@@ -1,18 +1,28 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import ConfirmDialogHost from "./components/ui/ConfirmDialog";
+import Spinner from "./components/ui/Spinner";
 import { useAuthStore } from "./stores/authStore";
 import { useThemeStore } from "./stores/themeStore";
 import { useSocketStore } from "./stores/socketStore";
 import api from "./api/axiosInstance";
-import AuthPage from "./pages/AuthPage";
-import ExplorePage from "./pages/ExplorePage";
-import ProfilePage from "./pages/ProfilePage";
-import CollabPage from "./pages/CollabPage";
-import CollabRequestsPage from "./pages/CollabRequestsPage";
-import MessagesPage from "./pages/MessagesPage";
-import WorkspacePage from "./pages/WorkspacePage";
+
+const AuthPage           = lazy(() => import("./pages/AuthPage"));
+const ExplorePage        = lazy(() => import("./pages/ExplorePage"));
+const ProfilePage        = lazy(() => import("./pages/ProfilePage"));
+const CollabPage         = lazy(() => import("./pages/CollabPage"));
+const CollabRequestsPage = lazy(() => import("./pages/CollabRequestsPage"));
+const MessagesPage       = lazy(() => import("./pages/MessagesPage"));
+const WorkspacePage      = lazy(() => import("./pages/WorkspacePage"));
+
+function RouteFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-svh">
+      <Spinner size="lg" color="var(--accent)" />
+    </div>
+  );
+}
 
 function ThemeApplier() {
   const { theme } = useThemeStore();
@@ -77,17 +87,19 @@ export default function App() {
       />
       <ConfirmDialogHost />
       <AuthHydrator>
-        <Routes>
-          <Route path="/" element={<AuthPage />} />
-          <Route path="/register" element={<AuthPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/profile/:userId" element={<ProfilePage />} />
-          <Route path="/collab" element={<CollabPage />} />
-          <Route path="/collab/:postId/requests" element={<CollabRequestsPage />} />
-          <Route path="/messages" element={<MessagesPage />} />
-          <Route path="/project/:id" element={<WorkspacePage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<AuthPage />} />
+            <Route path="/register" element={<AuthPage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/profile/:userId" element={<ProfilePage />} />
+            <Route path="/collab" element={<CollabPage />} />
+            <Route path="/collab/:postId/requests" element={<CollabRequestsPage />} />
+            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/project/:id" element={<WorkspacePage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </AuthHydrator>
     </BrowserRouter>
   );

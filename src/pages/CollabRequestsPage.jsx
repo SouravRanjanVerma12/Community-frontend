@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -7,6 +7,9 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import api from '../api/axiosInstance';
+import { usePost } from '../hooks/usePosts';
+import { useCollabRequesters } from '../hooks/useCollabRequests';
+import { queryClient } from '../api/queryClient';
 
 const COLLAB_COLOR = '#3a3d4a';
 
@@ -158,28 +161,19 @@ function ApplicantCard({ req, onUpdate }) {
 
 export default function CollabRequestsPage() {
   const { postId } = useParams();
-  const [post,     setPost]     = useState(null);
-  const [requests, setRequests] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState('');
-  const [tab,      setTab]      = useState('all');
+  const [tab, setTab] = useState('all');
 
-  const load = async () => {
-    try {
-      const [postRes, reqRes] = await Promise.all([
-        api.get(`/posts/${postId}`).catch(() => ({ data: { post: null } })),
-        api.get(`/posts/${postId}/requests`),
-      ]);
-      setPost(postRes.data.post ?? postRes.data);
-      setRequests(reqRes.data.requests);
-    } catch (err) {
-      setError(err.response?.data?.message ?? 'Failed to load requests.');
-    } finally {
-      setLoading(false);
-    }
+  const { data: post } = usePost(postId);
+  const {
+    data: requests = [],
+    isLoading: loading,
+    error: queryError,
+  } = useCollabRequesters(postId, true, true);
+  const error = queryError ? (queryError.response?.data?.message ?? 'Failed to load requests.') : '';
+
+  const load = () => {
+    queryClient.invalidateQueries({ queryKey: ['collab-requesters', postId, true] });
   };
-
-  useEffect(() => { load(); }, [postId]); // eslint-disable-line
 
   const filtered = tab === 'all' ? requests : requests.filter((r) => r.status === tab);
 

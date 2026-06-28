@@ -9,9 +9,11 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import api from "../../api/axiosInstance";
+import { queryClient } from "../../api/queryClient";
 import { DOMAINS } from "../../data/mockPosts";
 import { confirm } from "../ui/ConfirmDialog";
 import Button from "../ui/Button";
+import { useProjects } from "../../hooks/useProjects";
 
 /* ─────────────────────────── HELPERS ─────────────────────────── */
 const domainColor  = (k) => DOMAINS.find((d) => d.value === k)?.color  ?? "#ff5c35";
@@ -696,41 +698,26 @@ function StatsBar({ projects }) {
 
 /* ─────────────────────────── MAIN COMPONENT ─────────────────────────── */
 export default function Project({ userId, isOwnProfile }) {
-  const [projects,       setProjects]       = useState([]);
-  const [loading,        setLoading]        = useState(true);
-  const [error,          setError]          = useState("");
+  const queryKey = ["projects", userId, isOwnProfile];
+  const { data: projects = [], isLoading: loading, error: queryError } = useProjects(userId, isOwnProfile);
+  const error = queryError ? (queryError.response?.data?.message || "Failed to load projects.") : "";
   const [showModal,      setShowModal]      = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [viewingProject, setViewingProject] = useState(null);
   const [filter,         setFilter]         = useState("all");
   const [search,         setSearch]         = useState("");
 
-  /* ── Fetch ── */
-  useEffect(() => {
-    if (!userId) return;
-    setLoading(true);
-    setError("");
-    const endpoint = isOwnProfile ? "/projects" : `/users/${userId}/projects`;
-    api.get(endpoint)
-      .then(({ data }) => setProjects(data.projects || []))
-      .catch((err) => {
-        if (err.response?.status === 404) setProjects([]);  // backend not ready → empty list, no placeholder
-        else setError(err.response?.data?.message || "Failed to load projects.");
-      })
-      .finally(() => setLoading(false));
-  }, [userId, isOwnProfile]);
-
   /* ── CRUD ── */
   const handleCreate = async (payload) => {
     try {
       const { data } = await api.post("/projects", payload);
-      setProjects([data.project, ...projects]);
+      queryClient.setQueryData(queryKey, (prev = []) => [data.project, ...prev]);
       closeModal();
     } catch (err) {
       if (err.response?.status === 404) {
         // Backend placeholder: add locally with a temp id
         const tempProject = { ...payload, _id: `temp_${Date.now()}`, updatedAt: new Date().toISOString() };
-        setProjects([tempProject, ...projects]);
+        queryClient.setQueryData(queryKey, (prev = []) => [tempProject, ...prev]);
         closeModal();
       } else throw err;
     }
@@ -739,11 +726,11 @@ export default function Project({ userId, isOwnProfile }) {
   const handleUpdate = async (payload) => {
     try {
       const { data } = await api.patch(`/projects/${payload._id}`, payload);
-      setProjects(projects.map((p) => (p._id === data.project._id ? data.project : p)));
+      queryClient.setQueryData(queryKey, (prev = []) => prev.map((p) => (p._id === data.project._id ? data.project : p)));
       closeModal();
     } catch (err) {
       if (err.response?.status === 404) {
-        setProjects(projects.map((p) => (p._id === payload._id ? { ...p, ...payload } : p)));
+        queryClient.setQueryData(queryKey, (prev = []) => prev.map((p) => (p._id === payload._id ? { ...p, ...payload } : p)));
         closeModal();
       } else throw err;
     }
@@ -754,7 +741,7 @@ export default function Project({ userId, isOwnProfile }) {
     try {
       await api.delete(`/projects/${projectId}`);
     } catch (_) {}
-    setProjects(projects.filter((p) => p._id !== projectId));
+    queryClient.setQueryData(queryKey, (prev = []) => prev.filter((p) => p._id !== projectId));
     if (viewingProject?._id === projectId) setViewingProject(null);
   };
 

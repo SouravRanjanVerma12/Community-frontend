@@ -18,6 +18,10 @@ import { useAuthStore } from '../stores/authStore';
 import { getSocket, useSocketStore } from '../stores/socketStore';
 import { DOMAINS } from '../data/mockPosts';
 import { PieChart } from '@mui/x-charts/PieChart';
+import {
+  useWorkspaceOverview, useWorkspaceActivity, useWorkspaceMembers,
+  useWorkspaceResources, useWorkspaceTasks, invalidateWorkspace,
+} from '../hooks/useWorkspace';
 
 /* ── shared helpers ── */
 const CC = '#3a3d4a';
@@ -55,19 +59,8 @@ function Loader() {
 /* ── Overview section ── */
 
 function Overview({ postId, isOwner, onEdit }) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [recentActivity, setRecentActivity] = useState([]);
-
-  useEffect(() => {
-    Promise.all([
-      api.get(`/workspace/${postId}/overview`),
-      api.get(`/workspace/${postId}/activity?limit=5`).catch(() => ({ data: { activities: [] } }))
-    ]).then(([overviewRes, activityRes]) => {
-      setData(overviewRes.data);
-      setRecentActivity(activityRes.data?.activities || []);
-    }).finally(() => setLoading(false));
-  }, [postId]);
+  const { data, isLoading: loading } = useWorkspaceOverview(postId);
+  const { data: recentActivity = [] } = useWorkspaceActivity(postId, 5);
 
   if (loading) return <Loader />;
   if (!data) return null;
@@ -340,18 +333,14 @@ function Overview({ postId, isOwner, onEdit }) {
 
 function Members({ postId, isOwner }) {
   const { user: currentUser } = useAuthStore();
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: members = [], isLoading: loading } = useWorkspaceMembers(postId);
+  const membersQueryKey = ['workspace', postId, 'members'];
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('Contributor');
   const [inviting, setInviting] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [sortBy, setSortBy] = useState('joinedAt'); // joinedAt, name, role
-
-  useEffect(() => {
-    api.get(`/workspace/${postId}/members`).then(r => setMembers(r.data.members)).finally(() => setLoading(false));
-  }, [postId]);
 
   // Listen for online/offline events from socket
   useEffect(() => {
@@ -407,8 +396,7 @@ function Members({ postId, isOwner }) {
         email: inviteEmail.trim(),
         role: inviteRole,
       });
-      const { data } = await api.get(`/workspace/${postId}/members`);
-      setMembers(data.members);
+      queryClient.invalidateQueries({ queryKey: membersQueryKey });
       setInviteEmail('');
       setIsInviteModalOpen(false);
       toast.success(`Invitation sent to ${inviteEmail}`);
@@ -423,7 +411,7 @@ function Members({ postId, isOwner }) {
     if (!await confirm(`Change this member's role to ${newRole}?`, { title: 'Change role', danger: false, confirmLabel: 'Change role' })) return;
     try {
       await api.patch(`/workspace/${postId}/members/${userId}/role`, { role: newRole });
-      setMembers(prev => prev.map(m =>
+      queryClient.setQueryData(membersQueryKey, (prev = []) => prev.map(m =>
         m.user._id === userId ? { ...m, role: newRole } : m
       ));
       toast.success(`Role updated to ${newRole}`);
@@ -436,7 +424,7 @@ function Members({ postId, isOwner }) {
     if (!await confirm(`Remove ${userName} from this project?`, { title: 'Remove member', confirmLabel: 'Remove' })) return;
     try {
       await api.delete(`/workspace/${postId}/members/${userId}`);
-      setMembers(prev => prev.filter(m => m.user._id !== userId));
+      queryClient.setQueryData(membersQueryKey, (prev = []) => prev.filter(m => m.user._id !== userId));
       toast.success(`${userName} removed from the project`);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to remove member');
@@ -851,8 +839,8 @@ function Discussion({ postId, leadId }) {
 /* ── Resources section ── */
 
 function Resources({ postId, isOwner }) {
-  const [resources, setResources] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: resources = [], isLoading: loading } = useWorkspaceResources(postId);
+  const resourcesQueryKey = ['workspace', postId, 'resources'];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -860,16 +848,12 @@ function Resources({ postId, isOwner }) {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  useEffect(() => {
-    api.get(`/workspace/${postId}/resources`).then(r => setResources(r.data.resources)).finally(() => setLoading(false));
-  }, [postId]);
-
   const addResource = async () => {
     if (!form.title.trim() || !form.url.trim()) return;
     setSaving(true);
     try {
       const { data } = await api.post(`/workspace/${postId}/resources`, form);
-      setResources(prev => [data.resource, ...prev]);
+      queryClient.setQueryData(resourcesQueryKey, (prev = []) => [data.resource, ...prev]);
       setForm({ title: '', url: '', type: 'other', description: '' });
       setIsModalOpen(false);
     } finally { setSaving(false); }
@@ -880,7 +864,7 @@ function Resources({ postId, isOwner }) {
     setSaving(true);
     try {
       const { data } = await api.put(`/workspace/${postId}/resources/${editingId}`, form);
-      setResources(prev => prev.map(r => r._id === editingId ? data.resource : r));
+      queryClient.setQueryData(resourcesQueryKey, (prev = []) => prev.map(r => r._id === editingId ? data.resource : r));
       setForm({ title: '', url: '', type: 'other', description: '' });
       setEditingId(null);
       setIsModalOpen(false);
@@ -890,7 +874,7 @@ function Resources({ postId, isOwner }) {
   const removeResource = async (id) => {
     if (!await confirm('Remove this resource?', { title: 'Remove resource', confirmLabel: 'Remove' })) return;
     await api.delete(`/workspace/${postId}/resources/${id}`);
-    setResources(prev => prev.filter(r => r._id !== id));
+    queryClient.setQueryData(resourcesQueryKey, (prev = []) => prev.filter(r => r._id !== id));
   };
 
   const openEditModal = (resource) => {
@@ -1222,33 +1206,33 @@ function Resources({ postId, isOwner }) {
 
 /* ── Settings section (lead only) ── */
 function Settings({ postId, isOwner, onTitleChange }) {
-  const [loading, setLoading] = useState(true);
+  const { data: overviewData, isLoading: loading } = useWorkspaceOverview(isOwner ? postId : null);
   const [saving,  setSaving]  = useState(false);
   const [form, setForm] = useState({
     title: '', projectName: '', body: '', domain: 'webdev',
     techStack: [], rolesNeeded: [], membersNeeded: 1,
   });
+  const [formReady, setFormReady] = useState(false);
   const [techInput, setTechInput] = useState('');
   const [roleInput, setRoleInput] = useState('');
 
   useEffect(() => {
-    if (!isOwner) return;
-    api.get(`/workspace/${postId}/overview`).then(r => {
-      const post = r.data.post;
-      setForm({
-        title:         post?.title || '',
-        projectName:   post?.projectName || '',
-        body:          post?.body || '',
-        domain:        post?.domain || 'webdev',
-        techStack:     post?.techStack || [],
-        rolesNeeded:   post?.rolesNeeded || [],
-        membersNeeded: post?.membersNeeded ?? 1,
-      });
-    }).finally(() => setLoading(false));
-  }, [postId, isOwner]);
+    if (!overviewData || formReady) return;
+    const post = overviewData.post;
+    setForm({
+      title:         post?.title || '',
+      projectName:   post?.projectName || '',
+      body:          post?.body || '',
+      domain:        post?.domain || 'webdev',
+      techStack:     post?.techStack || [],
+      rolesNeeded:   post?.rolesNeeded || [],
+      membersNeeded: post?.membersNeeded ?? 1,
+    });
+    setFormReady(true);
+  }, [overviewData, formReady]);
 
   if (!isOwner) return null;
-  if (loading) return <Loader />;
+  if (loading || !formReady) return <Loader />;
 
   const addTag = (key, value, setInput) => {
     const v = value.trim();
@@ -1263,6 +1247,7 @@ function Settings({ postId, isOwner, onTitleChange }) {
     try {
       const { data } = await api.patch(`/workspace/${postId}/settings`, form);
       onTitleChange?.(data.post.projectName || data.post.title);
+      invalidateWorkspace(postId);
       toast.success('Workspace settings saved.');
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to save settings.');
@@ -1430,9 +1415,9 @@ const PRIORITY_COLORS = { high: '#ef4444', medium: '#f59e0b', low: '#6b7280' };
 
 // ── Task board with professional add modal ──
 function Tasks({ postId, isOwner }) {
+  const { data: queryTasks, isLoading: loading } = useWorkspaceTasks(postId);
   const [tasks, setTasks] = useState([]);
   const [selected, setSelected] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStatus, setModalStatus] = useState("todo");
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -1440,32 +1425,26 @@ function Tasks({ postId, isOwner }) {
   const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
-    api.get(`/posts/${postId}/tasks`).then(r => {
-      setTasks(r.data.tasks);
-      if (r.data.tasks.length) setSelected(r.data.tasks[0]);
-    }).finally(() => setLoading(false));
-  }, [postId]);
+    if (!queryTasks) return;
+    setTasks(queryTasks);
+    setSelected(prev => queryTasks.find(t => t._id === prev?._id) ?? queryTasks[0] ?? null);
+  }, [queryTasks]);
 
   useEffect(() => {
     setShowReviewForm(false);
     setReviewNote('');
   }, [selected?._id]);
 
-  const refresh = async () => {
-    const { data } = await api.get(`/posts/${postId}/tasks`);
-    setTasks(data.tasks);
-    if (selected) setSelected(data.tasks.find(t => t._id === selected._id) ?? null);
-  };
-
   const patch = async (taskId, updates) => {
     const { data } = await api.patch(`/tasks/${taskId}`, updates);
     setTasks(prev => prev.map(t => t._id === taskId ? data.task : t));
     if (selected?._id === taskId) setSelected(data.task);
+    invalidateWorkspace(postId);
   };
 
   const addTask = async (taskData) => {
     await api.post(`/posts/${postId}/tasks`, taskData);
-    await refresh();
+    invalidateWorkspace(postId);
   };
 
   const deleteTask = async (id) => {
@@ -1473,6 +1452,7 @@ function Tasks({ postId, isOwner }) {
     await api.delete(`/tasks/${id}`);
     setTasks(prev => prev.filter(t => t._id !== id));
     if (selected?._id === id) setSelected(null);
+    invalidateWorkspace(postId);
   };
 
   const toggleChecklist = async (idx) => {
@@ -2243,23 +2223,15 @@ export default function WorkspacePage() {
   const navigate        = useNavigate();
   const { user }        = useAuthStore();
   const [section,   setSection]   = useState('overview');
-  const [postTitle, setPostTitle] = useState('Workspace');
-  const [isOwner,   setIsOwner]   = useState(false);
-  const [leadId,    setLeadId]    = useState(null);
-  const [roleReady, setRoleReady] = useState(false);
+  const [titleOverride, setTitleOverride] = useState(null);
 
-  useEffect(() => {
-    api.get(`/workspace/${postId}/overview`)
-      .then(r => {
-        const post = r.data.post;
-        setPostTitle(post?.projectName || post?.title || 'Workspace');
-        const authorId = post?.author?._id ?? post?.author;
-        setIsOwner(String(authorId) === String(user?._id));
-        setLeadId(authorId ? String(authorId) : null);
-      })
-      .catch(() => {})
-      .finally(() => setRoleReady(true));
-  }, [postId, user?._id]);
+  const { data: overviewData, isFetched: roleReady } = useWorkspaceOverview(postId);
+  const post = overviewData?.post;
+  const authorId = post?.author?._id ?? post?.author;
+  const isOwner = !!post && String(authorId) === String(user?._id);
+  const leadId  = authorId ? String(authorId) : null;
+  const postTitle = titleOverride ?? (post ? (post.projectName || post.title || 'Workspace') : 'Workspace');
+  const setPostTitle = setTitleOverride;
 
   const renderSection = () => {
     switch (section) {

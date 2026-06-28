@@ -14,6 +14,17 @@ export function usePosts({ domain = 'all', search = '' } = {}) {
   });
 }
 
+export function usePost(postId) {
+  return useQuery({
+    queryKey: ['post', postId],
+    queryFn: async () => {
+      const { data } = await api.get(`/posts/${postId}`).catch(() => ({ data: { post: null } }));
+      return data.post ?? data;
+    },
+    enabled: !!postId,
+  });
+}
+
 export function useTopPosts() {
   return useQuery({
     queryKey: ['posts', 'top'],
