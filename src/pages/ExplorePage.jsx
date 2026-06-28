@@ -325,6 +325,19 @@ export default function ExplorePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Separate (re-runs on every URL change, not just mount) so a search result
+  // clicked while already on /explore — a query-string-only navigation that
+  // doesn't remount this component — still applies.
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setSearch(q);
+      const next = new URLSearchParams(searchParams);
+      next.delete('q');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   return (
     <div className="min-h-svh bg-surface-0 transition-colors duration-250">
       <Navbar />
