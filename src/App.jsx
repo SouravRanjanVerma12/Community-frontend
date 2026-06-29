@@ -15,6 +15,8 @@ const CollabPage         = lazy(() => import("./pages/CollabPage"));
 const CollabRequestsPage = lazy(() => import("./pages/CollabRequestsPage"));
 const MessagesPage       = lazy(() => import("./pages/MessagesPage"));
 const WorkspacePage      = lazy(() => import("./pages/WorkspacePage"));
+const JobsPage           = lazy(() => import("./pages/JobsPage"));
+const JobApplicantsPage  = lazy(() => import("./pages/JobApplicantsPage"));
 
 function RouteFallback() {
   return (
@@ -97,6 +99,8 @@ export default function App() {
             <Route path="/collab/:postId/requests" element={<CollabRequestsPage />} />
             <Route path="/messages" element={<MessagesPage />} />
             <Route path="/project/:id" element={<WorkspacePage />} />
+            <Route path="/jobs" element={<JobsPage />} />
+            <Route path="/jobs/:jobId/applicants" element={<JobApplicantsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>

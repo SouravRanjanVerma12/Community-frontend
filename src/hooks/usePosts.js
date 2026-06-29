@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axiosInstance';
+import { queryClient } from '../api/queryClient';
 
 export function usePosts({ domain = 'all', search = '' } = {}) {
   return useQuery({
@@ -43,4 +44,47 @@ export function useTrendingTags() {
       return data.tags;
     },
   });
+}
+
+export function useBookmarkedPosts(enabled = true) {
+  return useQuery({
+    queryKey: ['posts', 'bookmarked'],
+    queryFn: async () => {
+      const { data } = await api.get('/posts/bookmarked/me');
+      return data.posts;
+    },
+    enabled,
+  });
+}
+
+export function invalidateBookmarks() {
+  queryClient.invalidateQueries({ queryKey: ['posts', 'bookmarked'] });
+}
+
+/* Optimistically adds/removes a post from the cached bookmarked-posts list
+   so the Bookmarks tab reflects a toggle without waiting on a refetch. */
+export function toggleCachedBookmark(post, bookmarked) {
+  queryClient.setQueryData(['posts', 'bookmarked'], (old) => {
+    if (!old) return old;
+    if (bookmarked) return [post, ...old.filter((p) => p._id !== post._id)];
+    return old.filter((p) => p._id !== post._id);
+  });
+}
+
+/* Updates a post in every cached posts list + its singular ['post', id] cache.
+   Called after a successful edit (PATCH /posts/:id). */
+export function updateCachedPost(postId, updatedPost) {
+  queryClient.setQueriesData({ queryKey: ['posts'] }, (old) =>
+    Array.isArray(old) ? old.map((p) => (p._id === postId ? updatedPost : p)) : old
+  );
+  queryClient.setQueryData(['post', postId], updatedPost);
+}
+
+/* Removes a post from every cached posts list + its singular ['post', id] cache.
+   Called after a successful delete (DELETE /posts/:id). */
+export function removeCachedPost(postId) {
+  queryClient.setQueriesData({ queryKey: ['posts'] }, (old) =>
+    Array.isArray(old) ? old.filter((p) => p._id !== postId) : old
+  );
+  queryClient.setQueryData(['post', postId], null);
 }

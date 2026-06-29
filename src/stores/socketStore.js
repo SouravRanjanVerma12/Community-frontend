@@ -14,6 +14,9 @@ export const useSocketStore = create((set, get) => ({
   // Messages keyed by the OTHER user's id: { [userId]: Message[] }
   conversations: {},
 
+  // Workspace discussion messages keyed by postId: { [postId]: Message[] }
+  projectMessages: {},
+
   // { [senderId]: boolean }
   typingMap: {},
 
@@ -63,6 +66,14 @@ export const useSocketStore = create((set, get) => ({
       set((s) => ({ typingMap: { ...s.typingMap, [senderId]: isTyping } }));
     });
 
+    socket.on('project:message:receive', (msg) => {
+      set((s) => {
+        const existing = s.projectMessages[msg.post] ?? [];
+        if (existing.some((m) => m._id?.toString() === msg._id?.toString())) return s;
+        return { projectMessages: { ...s.projectMessages, [msg.post]: [...existing, msg] } };
+      });
+    });
+
     socket.on('notification:new', (notification) => {
       set((s) => ({
         notifications: [notification, ...s.notifications],
@@ -75,7 +86,7 @@ export const useSocketStore = create((set, get) => ({
   disconnect() {
     socket?.disconnect();
     socket = null;
-    set({ connected: false, onlineUsers: new Set(), conversations: {}, typingMap: {}, notifications: [], unreadCount: 0 });
+    set({ connected: false, onlineUsers: new Set(), conversations: {}, projectMessages: {}, typingMap: {}, notifications: [], unreadCount: 0 });
   },
 
   seedNotifications(notifications, unreadCount) {
@@ -115,6 +126,23 @@ export const useSocketStore = create((set, get) => ({
       conversations: {
         ...s.conversations,
         [userId]: messages,
+      },
+    }));
+  },
+
+  // Seed workspace discussion history from REST, or append a single message
+  // sent through the REST fallback path (when the socket isn't connected)
+  seedProjectMessages(postId, messages) {
+    set((s) => ({
+      projectMessages: { ...s.projectMessages, [postId]: messages },
+    }));
+  },
+
+  appendProjectMessage(postId, message) {
+    set((s) => ({
+      projectMessages: {
+        ...s.projectMessages,
+        [postId]: [...(s.projectMessages[postId] ?? []), message],
       },
     }));
   },

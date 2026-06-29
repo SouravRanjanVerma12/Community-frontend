@@ -657,31 +657,32 @@ function Members({ postId, isOwner }) {
 function Discussion({ postId, leadId }) {
   const { user }    = useAuthStore();
   const connected   = useSocketStore((s) => s.connected);
+  const rawMessages = useSocketStore((s) => s.projectMessages[postId]);
+  const messages    = rawMessages ?? [];
+  const seedProjectMessages   = useSocketStore((s) => s.seedProjectMessages);
+  const appendProjectMessage = useSocketStore((s) => s.appendProjectMessage);
 
-  const [messages,  setMessages]  = useState([]);
-  const [loading,   setLoading]   = useState(true);
+  const [loading,   setLoading]   = useState(rawMessages === undefined);
   const [text,      setText]      = useState('');
   const [typingUsers, setTypingUsers] = useState(new Set());
   const bottomRef   = useRef(null);
   const typingTimer = useRef(null);
 
-  /* Load history + join socket room */
+  /* Load history (skip if already cached from a previous visit to this tab)
+     + join socket room — the actual live-message handling lives in
+     socketStore (registered once, globally), so this only needs to manage
+     room membership and the ephemeral typing indicator. */
   useEffect(() => {
-    api.get(`/workspace/${postId}/messages`)
-      .then(r => setMessages(r.data.messages))
-      .finally(() => setLoading(false));
+    if (rawMessages === undefined) {
+      api.get(`/workspace/${postId}/messages`)
+        .then(r => seedProjectMessages(postId, r.data.messages))
+        .finally(() => setLoading(false));
+    }
 
     const socket = getSocket();
     if (!socket) return;
 
     socket.emit('project:join', { postId });
-
-    const onMsg = (msg) => {
-      setMessages(prev => {
-        if (prev.some(m => m._id?.toString() === msg._id?.toString())) return prev;
-        return [...prev, msg];
-      });
-    };
 
     const onTyping = ({ userId: uid, isTyping }) => {
       setTypingUsers(prev => {
@@ -691,14 +692,13 @@ function Discussion({ postId, leadId }) {
       });
     };
 
-    socket.on('project:message:receive', onMsg);
-    socket.on('project:typing',          onTyping);
+    socket.on('project:typing', onTyping);
 
     return () => {
       socket.emit('project:leave', { postId });
-      socket.off('project:message:receive', onMsg);
-      socket.off('project:typing',          onTyping);
+      socket.off('project:typing', onTyping);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
   /* Auto-scroll on new message */
@@ -714,7 +714,7 @@ function Discussion({ postId, leadId }) {
       socket.emit('project:message', { postId, text: text.trim() });
     } else {
       api.post(`/workspace/${postId}/messages`, { text: text.trim() })
-        .then(r => setMessages(prev => [...prev, r.data.message]));
+        .then(r => appendProjectMessage(postId, r.data.message));
     }
     setText('');
     clearTimeout(typingTimer.current);

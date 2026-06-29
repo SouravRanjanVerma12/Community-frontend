@@ -1,14 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Share2, Copy, Check, Send, Users2, CheckCircle, ClipboardList } from 'lucide-react';
+import toast from 'react-hot-toast';
+import {
+  Heart, MessageCircle, Share2, Copy, Check, Send, Users2, CheckCircle, ClipboardList,
+  MoreHorizontal, Pencil, Trash2, X as XIcon, Bookmark,
+} from 'lucide-react';
 import JoinProjectModal from './JoinProjectModal';
 import CollabRequesters from './CollabRequesters';
+import { confirm } from '../ui/ConfirmDialog';
 import { DOMAINS } from '../../data/mockPosts';
 import { useAuthStore } from '../../stores/authStore';
 import { getSocket, useSocketStore } from '../../stores/socketStore';
 import api from '../../api/axiosInstance';
-import { useComments, appendCachedComment } from '../../hooks/useComments';
+import { useComments, appendCachedComment, removeCachedComment } from '../../hooks/useComments';
+import { updateCachedPost, removeCachedPost, useBookmarkedPosts, toggleCachedBookmark } from '../../hooks/usePosts';
 
 function Avatar({ name, src, size = 36 }) {
   const initials = (name ?? 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -72,6 +78,8 @@ export default function PostCard({ post: initialPost, index = 0 }) {
   const { data: comments = [], isLoading: commentsLoading } = useComments(post._id, showComments);
   const [newComment, setNewComment] = useState('');
   const [liked, setLiked] = useState(initialPost.likes?.includes(user?._id));
+  const { data: bookmarkedPosts = [] } = useBookmarkedPosts(!!user);
+  const isBookmarked = bookmarkedPosts.some((p) => p._id === post._id);
 
   const connected = useSocketStore((s) => s.connected);
   const domain   = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
@@ -80,6 +88,20 @@ export default function PostCard({ post: initialPost, index = 0 }) {
   const isOwnPost = user && post.author._id === user._id;
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [requested, setRequested]         = useState(false);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing]   = useState(false);
+  const [editTitle, setEditTitle] = useState(post.title);
+  const [editBody, setEditBody]   = useState(post.type === 'code' ? post.codeSnippet : post.body);
+  const [saving, setSaving]       = useState(false);
+  const [deleted, setDeleted]     = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (!menuRef.current?.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     const socket = getSocket();
@@ -99,12 +121,33 @@ export default function PostCard({ post: initialPost, index = 0 }) {
       }
     };
 
+    const onEdited = (data) => {
+      if (data.postId === post._id) setPost(data.post);
+    };
+
+    const onDeleted = (data) => {
+      if (data.postId === post._id) setDeleted(true);
+    };
+
+    const onCommentDeleted = (data) => {
+      if (data.postId === post._id) {
+        setPost((p) => ({ ...p, commentCount: data.commentCount }));
+        removeCachedComment(post._id, data.commentId);
+      }
+    };
+
     socket.on('post:updated', onUpdated);
     socket.on('post:commented', onCommented);
+    socket.on('post:edited', onEdited);
+    socket.on('post:deleted', onDeleted);
+    socket.on('post:commentDeleted', onCommentDeleted);
 
     return () => {
       socket.off('post:updated', onUpdated);
       socket.off('post:commented', onCommented);
+      socket.off('post:edited', onEdited);
+      socket.off('post:deleted', onDeleted);
+      socket.off('post:commentDeleted', onCommentDeleted);
     };
   }, [post._id, user?._id, connected]);
 
@@ -115,6 +158,18 @@ export default function PostCard({ post: initialPost, index = 0 }) {
       await api.post(`/posts/${post._id}/like`);
     } catch {
       setLiked(liked); // revert on error
+    }
+  };
+
+  const toggleBookmark = async () => {
+    if (!user) return;
+    const next = !isBookmarked;
+    toggleCachedBookmark(post, next); // optimistic
+    try {
+      await api.post(`/posts/${post._id}/bookmark`);
+    } catch {
+      toggleCachedBookmark(post, !next); // revert on error
+      toast.error('Failed to update bookmark');
     }
   };
 
@@ -132,6 +187,63 @@ export default function PostCard({ post: initialPost, index = 0 }) {
   const share = () => {
     navigator.clipboard.writeText(window.location.href);
   };
+
+  const startEdit = () => {
+    setEditTitle(post.title);
+    setEditBody(post.type === 'code' ? post.codeSnippet : post.body);
+    setEditing(true);
+    setMenuOpen(false);
+  };
+
+  const cancelEdit = () => setEditing(false);
+
+  const saveEdit = async () => {
+    if (!editTitle.trim()) {
+      toast.error('Title cannot be empty.');
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = post.type === 'code'
+        ? { title: editTitle.trim(), codeSnippet: editBody }
+        : { title: editTitle.trim(), body: editBody };
+      const { data } = await api.patch(`/posts/${post._id}`, payload);
+      setPost(data.post);
+      updateCachedPost(post._id, data.post);
+      setEditing(false);
+      toast.success('Post updated');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update post');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    setMenuOpen(false);
+    if (!await confirm('Delete this post? This cannot be undone.', { title: 'Delete post', confirmLabel: 'Delete' })) return;
+    try {
+      await api.delete(`/posts/${post._id}`);
+      removeCachedPost(post._id);
+      setDeleted(true);
+      toast.success('Post deleted');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete post');
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!await confirm('Delete this comment?', { title: 'Delete comment', confirmLabel: 'Delete' })) return;
+    try {
+      const { data } = await api.delete(`/posts/${post._id}/comments/${commentId}`);
+      removeCachedComment(post._id, commentId);
+      setPost((p) => ({ ...p, commentCount: data.commentCount }));
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete comment');
+    }
+  };
+
+  if (deleted) return null;
 
   return (
     <motion.article
@@ -176,23 +288,96 @@ export default function PostCard({ post: initialPost, index = 0 }) {
             {domain.label}
           </span>
         )}
+
+        {/* Owner menu: edit / delete */}
+        {isOwnPost && (
+          <div ref={menuRef} className="relative shrink-0">
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex items-center justify-center w-7 h-7 rounded-md border-none bg-transparent text-text-muted cursor-pointer transition-colors duration-150 hover:bg-hover"
+            >
+              <MoreHorizontal size={15} />
+            </button>
+            <AnimatePresence>
+              {menuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 4, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 2, scale: 0.97 }}
+                  transition={{ duration: 0.12 }}
+                  className="absolute top-[calc(100%+4px)] right-0 z-50 bg-card border border-card-border rounded-xl shadow-popup overflow-hidden w-[150px]"
+                >
+                  <button
+                    onClick={startEdit}
+                    className="w-full flex items-center gap-2 px-3.5 py-2.5 border-none bg-transparent text-[13px] text-text-secondary cursor-pointer text-left hover:bg-hover"
+                  >
+                    <Pencil size={13} /> Edit
+                  </button>
+                  <button
+                    onClick={handleDeletePost}
+                    className="w-full flex items-center gap-2 px-3.5 py-2.5 border-none bg-transparent text-[13px] text-error cursor-pointer text-left hover:bg-hover"
+                  >
+                    <Trash2 size={13} /> Delete
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
 
-      {/* Title */}
-      <h3 className="text-base font-bold text-text-primary leading-[1.4] mb-2 tracking-[-0.2px]">
-        {post.title}
-      </h3>
+      {/* Title + body, or inline edit form */}
+      {editing ? (
+        <div className="flex flex-col gap-2 mb-3.5">
+          <input
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            className="px-3 py-2 rounded-lg border-[1.5px] border-border bg-input text-text-primary text-[15px] font-bold outline-none"
+            placeholder="Title"
+          />
+          <textarea
+            value={editBody}
+            onChange={(e) => setEditBody(e.target.value)}
+            rows={post.type === 'code' ? 6 : 3}
+            className={`px-3 py-2 rounded-lg border-[1.5px] border-border bg-input text-text-primary text-sm outline-none resize-vertical ${post.type === 'code' ? 'font-mono' : ''}`}
+            placeholder={post.type === 'code' ? 'Code' : 'Body'}
+          />
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              onClick={cancelEdit}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-[1.5px] border-border bg-transparent text-text-secondary text-[13px] font-medium cursor-pointer"
+            >
+              <XIcon size={13} /> Cancel
+            </button>
+            <button
+              onClick={saveEdit}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-none bg-accent text-white text-[13px] font-semibold cursor-pointer disabled:opacity-60"
+            >
+              <Check size={13} /> {saving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Title */}
+          <h3 className="text-base font-bold text-text-primary leading-[1.4] mb-2 tracking-[-0.2px]">
+            {post.title}
+          </h3>
 
-      {/* Body */}
-      {post.body && (
-        <p className={`text-sm text-text-secondary leading-[1.65] ${post.type === 'code' ? 'mb-0' : 'mb-3.5'}`}>
-          {post.body}
-        </p>
-      )}
+          {/* Body */}
+          {post.body && (
+            <p className={`text-sm text-text-secondary leading-[1.65] ${post.type === 'code' ? 'mb-0' : 'mb-3.5'}`}>
+              {post.body}
+            </p>
+          )}
 
-      {/* Code block */}
-      {post.type === 'code' && post.codeSnippet && (
-        <CodeBlock code={post.codeSnippet} language={post.language} />
+          {/* Code block */}
+          {post.type === 'code' && post.codeSnippet && (
+            <CodeBlock code={post.codeSnippet} language={post.language} />
+          )}
+        </>
       )}
 
       {/* Collab details */}
@@ -353,6 +538,14 @@ export default function PostCard({ post: initialPost, index = 0 }) {
           active={showComments}
           activeColor="var(--accent)"
         />
+        {user && (
+          <ActionBtn
+            icon={<Bookmark size={15} fill={isBookmarked ? 'var(--accent)' : 'none'} color={isBookmarked ? 'var(--accent)' : 'var(--text-muted)'} />}
+            onClick={toggleBookmark}
+            active={isBookmarked}
+            activeColor="var(--accent)"
+          />
+        )}
         <div className="ml-auto">
           <ActionBtn icon={<Share2 size={15} color="var(--text-muted)" />} onClick={share} />
         </div>
@@ -421,7 +614,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
                       <Link to={`/profile/${c.author?._id}`}>
                         <Avatar name={c.author?.name} src={c.author?.avatarUrl || null} size={28} />
                       </Link>
-                      <div>
+                      <div className="flex-1">
                         <div className="bg-surface-2 px-3 py-2 rounded-[0_12px_12px_12px]">
                           <Link to={`/profile/${c.author?._id}`} className="no-underline">
                             <p className="m-0 text-xs font-bold text-text-primary mb-0.5">
@@ -432,9 +625,19 @@ export default function PostCard({ post: initialPost, index = 0 }) {
                             {c.text}
                           </p>
                         </div>
-                        <p className="mt-1 mb-0 ml-1 text-[10px] text-text-muted">
-                          {timeAgo(c.createdAt || Date.now())}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1 ml-1">
+                          <p className="m-0 text-[10px] text-text-muted">
+                            {timeAgo(c.createdAt || Date.now())}
+                          </p>
+                          {user && c.author?._id === user._id && (
+                            <button
+                              onClick={() => handleDeleteComment(c._id)}
+                              className="flex items-center gap-1 border-none bg-transparent text-text-faint text-[10px] cursor-pointer transition-colors duration-150 hover:text-error"
+                            >
+                              <Trash2 size={10} /> Delete
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))

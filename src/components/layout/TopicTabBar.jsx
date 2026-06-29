@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import { motion, MotionConfig } from 'framer-motion';
 import {
   LayoutGrid, Globe, Server, Container,
-  BrainCircuit, Smartphone, GitBranch, Briefcase,
+  BrainCircuit, Smartphone, GitBranch,
   ChevronUp,
 } from 'lucide-react';
 import { DOMAINS } from '../../data/mockPosts';
@@ -15,7 +15,6 @@ const ICONS = {
   aiml:    BrainCircuit,
   mobile:  Smartphone,
   oss:     GitBranch,
-  career:  Briefcase,
 };
 
 export default function TopicTabBar({ activeDomain, onSelect, onHide }) {

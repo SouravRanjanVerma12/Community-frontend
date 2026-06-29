@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LogOut, LogIn, UserPlus, Zap, Compass, Users2,
+  LogOut, LogIn, UserPlus, Zap, Compass, Users2, Briefcase,
   Search, MessageSquare, X, UserCheck, Bell, Users, Menu,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
@@ -30,6 +30,7 @@ function Avatar({ name, src, size = 34 }) {
 function GlobalSearch() {
   const [q, setQ]             = useState('');
   const [results, setResults] = useState([]);
+  const [postResults, setPostResults] = useState([]);
   const [open, setOpen]       = useState(false);
   const [loading, setLoading] = useState(false);
   const [friendStatus, setFriendStatus] = useState({}); // { [userId]: { status, id } }
@@ -47,15 +48,19 @@ function GlobalSearch() {
     const val = e.target.value;
     setQ(val);
     clearTimeout(debounce.current);
-    if (val.trim().length < 2) { setResults([]); setOpen(false); return; }
+    if (val.trim().length < 2) { setResults([]); setPostResults([]); setOpen(false); return; }
     setLoading(true);
     debounce.current = setTimeout(async () => {
       try {
-        const { data } = await api.get(`/friends/search?q=${encodeURIComponent(val.trim())}`);
-        setResults(data.users);
+        const [peopleRes, postsRes] = await Promise.all([
+          api.get(`/friends/search?q=${encodeURIComponent(val.trim())}`),
+          api.get('/posts', { params: { search: val.trim(), limit: 5 } }).catch(() => ({ data: { posts: [] } })),
+        ]);
+        setResults(peopleRes.data.users);
+        setPostResults(postsRes.data.posts);
         // Fetch friend status for each
         const statuses = {};
-        await Promise.all(data.users.map(async (u) => {
+        await Promise.all(peopleRes.data.users.map(async (u) => {
           try {
             const r = await api.get(`/friends/status/${u._id}`);
             statuses[u._id] = r.data;
@@ -66,6 +71,8 @@ function GlobalSearch() {
       } finally { setLoading(false); }
     }, 350);
   };
+
+  const closeAndClear = () => { setOpen(false); setQ(''); setResults([]); setPostResults([]); };
 
   const sendRequest = async (userId) => {
     await api.post(`/friends/request/${userId}`);
@@ -115,11 +122,11 @@ function GlobalSearch() {
           value={q}
           onChange={handleChange}
           onFocus={() => q.length >= 2 && setOpen(true)}
-          placeholder="Search people…"
+          placeholder="Search people, posts, projects…"
           className="flex-1 py-2 bg-transparent border-none outline-none text-[13px] text-text-primary"
         />
         {q && (
-          <button onClick={() => { setQ(''); setResults([]); setOpen(false); }}
+          <button onClick={closeAndClear}
             className="bg-none border-none cursor-pointer text-text-muted flex p-0">
             <X size={13} />
           </button>
@@ -130,35 +137,64 @@ function GlobalSearch() {
         {open && (
           <motion.div
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
-            className="absolute top-[calc(100%+6px)] left-0 right-0 z-500 bg-card border border-card-border rounded-xl shadow-popup overflow-hidden"
+            className="absolute top-[calc(100%+6px)] left-0 right-0 z-500 bg-card border border-card-border rounded-xl shadow-popup overflow-hidden max-h-[70vh] overflow-y-auto"
           >
             {loading ? (
               <div className="p-3.5 text-center text-[13px] text-text-muted">
                 Searching…
               </div>
-            ) : results.length === 0 ? (
+            ) : results.length === 0 && postResults.length === 0 ? (
               <div className="p-3.5 text-center text-[13px] text-text-muted">
                 No results
               </div>
             ) : (
-              results.map((u) => (
-                <div key={u._id} className="flex items-center gap-2.5 px-3.5 py-2.5 border-b border-divider">
-                  <Link to={`/profile/${u._id}`} onClick={() => setOpen(false)}
-                    className="flex items-center gap-2.5 flex-1 no-underline">
-                    {u.avatarUrl
-                      ? <img src={u.avatarUrl} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
-                      : <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold" style={{ background: `hsl(${[...u.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)` }}>
-                          {u.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)}
+              <>
+                {results.length > 0 && (
+                  <>
+                    <p className="m-0 px-3.5 pt-2.5 pb-1 text-[10px] font-bold text-text-muted uppercase tracking-wider">People</p>
+                    {results.map((u) => (
+                      <div key={u._id} className="flex items-center gap-2.5 px-3.5 py-2.5 border-b border-divider">
+                        <Link to={`/profile/${u._id}`} onClick={closeAndClear}
+                          className="flex items-center gap-2.5 flex-1 no-underline">
+                          {u.avatarUrl
+                            ? <img src={u.avatarUrl} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
+                            : <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-xs font-bold" style={{ background: `hsl(${[...u.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)` }}>
+                                {u.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)}
+                              </div>
+                          }
+                          <div>
+                            <p className="m-0 text-[13px] font-semibold text-text-primary">{u.name}</p>
+                            <p className="m-0 text-[11px] text-text-muted">@{u.username || u.email?.split('@')[0]}</p>
+                          </div>
+                        </Link>
+                        <FriendButton user={u} />
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {postResults.length > 0 && (
+                  <>
+                    <p className="m-0 px-3.5 pt-2.5 pb-1 text-[10px] font-bold text-text-muted uppercase tracking-wider">Posts &amp; Projects</p>
+                    {postResults.map((p) => (
+                      <Link
+                        key={p._id}
+                        to={`/explore?q=${encodeURIComponent(p.title)}`}
+                        onClick={closeAndClear}
+                        className="flex items-center gap-2.5 px-3.5 py-2.5 border-b border-divider no-underline hover:bg-hover"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-surface-2 flex items-center justify-center shrink-0 text-text-muted">
+                          {p.type === 'collab' ? <Users2 size={14} /> : <Search size={14} />}
                         </div>
-                    }
-                    <div>
-                      <p className="m-0 text-[13px] font-semibold text-text-primary">{u.name}</p>
-                      <p className="m-0 text-[11px] text-text-muted">@{u.username || u.email?.split('@')[0]}</p>
-                    </div>
-                  </Link>
-                  <FriendButton user={u} />
-                </div>
-              ))
+                        <div className="flex-1 min-w-0">
+                          <p className="m-0 text-[13px] font-semibold text-text-primary truncate">{p.title}</p>
+                          <p className="m-0 text-[11px] text-text-muted">by {p.author?.name} · {p.domain}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </>
+                )}
+              </>
             )}
           </motion.div>
         )}
@@ -284,6 +320,7 @@ function FriendRowWithId({ friend, onRemove, onNavigate, compact }) {
 const NAV_TABS = [
   { to: '/explore',  label: 'Explore',  icon: Compass       },
   { to: '/collab',   label: 'Collab',   icon: Users2        },
+  { to: '/jobs',     label: 'Jobs',     icon: Briefcase     },
 ];
 
 export default function Navbar() {
