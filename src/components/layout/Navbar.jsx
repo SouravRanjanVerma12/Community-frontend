@@ -3,7 +3,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LogIn, UserPlus, Zap, Compass, Users2, Briefcase,
-  Search, MessageSquare, X, UserCheck, Bell, Users, Menu,
+  Search, MessageSquare, X, UserCheck, Bell, Users, Menu, LayoutDashboard,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useSocketStore } from '../../stores/socketStore';
@@ -12,6 +12,7 @@ import api from '../../api/axiosInstance';
 import Button from '../ui/Button';
 import NotificationBell from './NotificationBell';
 import { useFriends, usePendingRequests, useFriendStatus, invalidateFriends } from '../../hooks/useFriends';
+import { useMyWorkspaces } from '../../hooks/useWorkspace';
 
 function Avatar({ name, src, size = 34 }) {
   const initials = name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -317,6 +318,90 @@ function FriendRowWithId({ friend, onRemove, onNavigate, compact }) {
   );
 }
 
+/* ── Active workspaces dropdown ── */
+function WorkspacesDropdown() {
+  const [open, setOpen] = useState(false);
+  const { user } = useAuthStore();
+  const { workspaces, isLoading } = useMyWorkspaces(user?._id);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title="Your workspaces"
+        className={`flex items-center bg-none border-none cursor-pointer p-0 transition-colors duration-150 ${open ? 'text-accent' : 'text-text-muted'}`}
+      >
+        <LayoutDashboard size={18} />
+        {workspaces.length > 0 && (
+          <span className={`ml-[3px] text-[11px] font-bold ${open ? 'text-accent' : 'text-text-muted'}`}>
+            {workspaces.length}
+          </span>
+        )}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-[calc(100%+12px)] -right-2 z-500 bg-card border border-card-border rounded-2xl shadow-popup w-[min(300px,90vw)] overflow-hidden"
+          >
+            <div className="px-4 pt-[13px] pb-[11px] border-b border-divider flex items-center justify-between">
+              <span className="text-sm font-bold text-text-primary">Your workspaces</span>
+              {!isLoading && (
+                <span className="text-xs text-text-muted">
+                  {workspaces.length} active
+                </span>
+              )}
+            </div>
+
+            {isLoading ? (
+              <div className="py-7 flex justify-center">
+                <div className="w-5 h-5 rounded-full border-2 border-border border-t-accent animate-spin" />
+              </div>
+            ) : workspaces.length === 0 ? (
+              <div className="py-7 px-4 text-center">
+                <LayoutDashboard size={28} color="var(--text-muted)" className="mb-2.5" />
+                <p className="text-[13px] text-text-muted m-0">No active workspaces</p>
+                <p className="text-xs text-text-faint mt-1 mb-0">Create or join a collab project to get one</p>
+              </div>
+            ) : (
+              <div className="max-h-[380px] overflow-y-auto">
+                {workspaces.map((w) => (
+                  <Link
+                    key={w.id} to={`/project/${w.id}`} onClick={() => setOpen(false)}
+                    className="flex items-center justify-between gap-2.5 px-4 py-2.5 no-underline border-b border-divider last:border-b-0 transition-colors duration-150 hover:bg-surface-2"
+                  >
+                    <span className="text-[13px] font-medium text-text-primary truncate">{w.title}</span>
+                    <span
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                      style={{
+                        background: w.role === 'Lead' ? 'var(--accent-bg)' : 'rgba(34,197,94,0.1)',
+                        color: w.role === 'Lead' ? 'var(--accent)' : '#16a34a',
+                      }}
+                    >
+                      {w.role}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 const NAV_TABS = [
   { to: '/explore',  label: 'Explore',  icon: Compass       },
   { to: '/collab',   label: 'Collab',   icon: Users2        },
@@ -395,6 +480,7 @@ export default function Navbar() {
               <Link to="/messages" className="flex text-text-muted no-underline" title="Messages">
                 <MessageSquare size={18} />
               </Link>
+              <WorkspacesDropdown />
               <FriendsDropdown />
               <FriendBell />
               <NotificationBell />
@@ -489,6 +575,11 @@ export default function Navbar() {
                       className="flex items-center gap-3 px-4 py-3 no-underline text-sm font-medium text-text-secondary">
                       <MessageSquare size={18} /> Messages
                     </Link>
+
+                    <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary">
+                      <span className="flex items-center gap-3"><LayoutDashboard size={18} /> Your workspaces</span>
+                      <WorkspacesDropdown />
+                    </div>
 
                     <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary">
                       <span className="flex items-center gap-3"><Users size={18} /> Friends</span>
