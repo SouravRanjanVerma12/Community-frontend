@@ -63,3 +63,40 @@ export function useWorkspaceTasks(postId) {
 export function invalidateWorkspace(postId) {
   queryClient.invalidateQueries({ queryKey: ['workspace', postId] });
 }
+
+/* Projects the user leads or has been accepted into — same query keys as
+   CollabPage's Workspace tab, so the navbar dropdown and that tab share
+   one cache instead of double-fetching. */
+export function useMyWorkspaces(userId) {
+  const requestsQuery = useQuery({
+    queryKey: ['my-collab-requests-workspace'],
+    queryFn: async () => {
+      const { data } = await api.get('/collab-requests/my');
+      return data.requests;
+    },
+    enabled: !!userId,
+  });
+
+  const postsQuery = useQuery({
+    queryKey: ['my-collab-posts-ws', userId],
+    queryFn: async () => {
+      const { data } = await api.get('/posts', { params: { type: 'collab', author: userId, limit: 20 } });
+      return data.posts;
+    },
+    enabled: !!userId,
+  });
+
+  const accepted = (requestsQuery.data ?? []).filter((r) => r.status === 'accepted' && r.post);
+  const myPosts  = postsQuery.data ?? [];
+
+  const workspaces = [
+    ...myPosts.map((p) => ({ id: p._id, title: p.projectName || p.title, role: 'Lead', domain: p.domain })),
+    ...accepted.map((r) => ({ id: r.post._id, title: r.post.projectName || r.post.title, role: 'Member', domain: r.post.domain })),
+  ];
+
+  return {
+    workspaces,
+    isLoading: requestsQuery.isLoading || postsQuery.isLoading,
+    isError: requestsQuery.isError || postsQuery.isError,
+  };
+}

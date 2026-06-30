@@ -8,6 +8,8 @@ import ProjectCard from '../components/collab/ProjectCard';
 import Button from '../components/ui/Button';
 import { useAuthStore } from '../stores/authStore';
 import api from '../api/axiosInstance';
+import { queryClient } from '../api/queryClient';
+import { useMyWorkspaces } from '../hooks/useWorkspace';
 
 const CC = '#3a3d4a';
 
@@ -276,53 +278,25 @@ function WorkspaceTab() {
   const { user } = useAuthStore();
   const navigate  = useNavigate();
 
-  const {
-    data: myRequests = [], isLoading, isError: reqsError, refetch: refetchReqs,
-  } = useQuery({
-    queryKey: ['my-collab-requests-workspace'],
-    queryFn: async () => {
-      const { data } = await api.get('/collab-requests/my');
-      return data.requests;
-    },
-    enabled: !!user,
-  });
-
-  const accepted = myRequests.filter(r => r.status === 'accepted' && r.post);
-
-  /* Also fetch collab posts I created */
-  const {
-    data: myPosts = [], isLoading: loadingPosts, isError: postsError, refetch: refetchPosts,
-  } = useQuery({
-    queryKey: ['my-collab-posts-ws', user?._id],
-    queryFn: async () => {
-      const { data } = await api.get('/posts', { params: { type: 'collab', author: user._id, limit: 20 } });
-      return data.posts;
-    },
-    enabled: !!user,
-  });
+  const { workspaces: allProjects, isLoading, isError } = useMyWorkspaces(user?._id);
 
   if (!user) return <p className="text-text-muted text-center p-10">Log in to access your workspace.</p>;
 
-  if (isLoading || loadingPosts) return (
+  if (isLoading) return (
     <div className="flex justify-center p-15">
       <Loader2 size={28} color={CC} className="animate-spin" />
     </div>
   );
 
-  if (reqsError || postsError) return (
+  if (isError) return (
     <div className="text-center px-5 py-15 text-text-muted">
       <p className="text-[15px] font-semibold text-error mb-1.5">Couldn't load your workspaces</p>
       <p className="text-[13px] mb-4">Your session may have expired. Try refreshing, or log in again.</p>
-      <Button size="sm" onClick={() => { refetchReqs(); refetchPosts(); }}>
+      <Button size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['my-collab-requests-workspace'] })}>
         Retry
       </Button>
     </div>
   );
-
-  const allProjects = [
-    ...myPosts.map(p => ({ id: p._id, title: p.projectName || p.title, role: 'Lead', domain: p.domain })),
-    ...accepted.map(r => ({ id: r.post._id, title: r.post.projectName || r.post.title, role: 'Member', domain: r.post.domain })),
-  ];
 
   if (allProjects.length === 0) return (
     <div className="text-center p-15 text-text-muted">

@@ -90,7 +90,7 @@ export default function RegisterForm() {
     setConfirmError('');
     if (password !== confirm)     { setConfirmError('Passwords do not match.'); return; }
     if (password.length < 6)      { setConfirmError('Password must be at least 6 characters.'); return; }
-    if (usernameStatus !== 'available') return;
+    if (username && usernameStatus !== 'available') return;
     const ok = await register(name, email, password, username);
     if (ok) navigate('/explore');
   };
