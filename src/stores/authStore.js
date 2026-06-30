@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
 import { API_URL } from '../config';
+import api from '../api/axiosInstance';
 
 const BASE = `${API_URL}/api`;
 
@@ -52,13 +53,14 @@ export const useAuthStore = create(
         }
       },
 
+      // Uses the shared `api` instance (not raw axios) so an expired access
+      // token transparently refreshes via the response interceptor instead
+      // of immediately logging the user out.
       fetchMe: async () => {
         const { accessToken } = get();
         if (!accessToken) return;
         try {
-          const { data } = await axios.get(`${BASE}/users/profile`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          });
+          const { data } = await api.get('/users/profile');
           set({ user: data.user });
         } catch {
           set({ user: null, accessToken: null, refreshToken: null });
