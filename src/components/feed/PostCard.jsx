@@ -169,7 +169,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
       await api.post(`/posts/${post._id}/bookmark`);
     } catch {
       toggleCachedBookmark(post, !next); // revert on error
-      toast.error('Failed to update bookmark');
+      toast.error('Failed to update saved posts');
     }
   };
 

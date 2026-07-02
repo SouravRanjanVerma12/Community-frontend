@@ -149,10 +149,10 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
         exit={{ opacity: 0, y: 16, scale: 0.97 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[580px] bg-card rounded-2xl border border-card-border shadow-popup overflow-hidden"
+        className="w-full max-w-[620px] max-h-[88vh] bg-card rounded-2xl border border-card-border shadow-popup overflow-hidden flex flex-col"
       >
         {/* Modal header */}
-        <div className="flex items-center justify-between pt-4.5 px-5.5">
+        <div className="flex items-center justify-between pt-4.5 pb-3.5 px-5.5 shrink-0">
           <h2 className="text-base font-bold text-text-primary tracking-[-0.2px]">
             Create a post
           </h2>
@@ -166,7 +166,7 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
 
         {/* Author row */}
         {user && (
-          <div className="flex items-center gap-2.5 px-5.5 pt-3.5">
+          <div className="flex items-center gap-2.5 px-5.5 pb-3.5 shrink-0">
             <div
               className="w-9.5 h-9.5 rounded-full shrink-0 text-white flex items-center justify-center text-sm font-bold"
               style={{ background: `hsl(${[...user.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)` }}
@@ -180,7 +180,10 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="px-5.5 pt-4 pb-5.5 flex flex-col gap-3 max-h-[70vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+
+        {/* Scrollable fields — shrink-0 on every child keeps inputs at full size and lets this area scroll instead of squashing them */}
+        <div className="px-5.5 py-4 flex flex-col gap-3.5 flex-1 min-h-0 overflow-y-auto *:shrink-0">
 
           {/* Type tabs + domain */}
           <div className="flex gap-1.5 flex-wrap items-center">
@@ -274,25 +277,25 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
 
           {error && <p className="text-[13px] text-error m-0">{error}</p>}
 
-          <div className="h-px bg-divider" />
+        </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-2">
-            <button
-              type="button" onClick={onClose}
-              className="min-h-11 px-4.5 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-text-secondary text-sm font-medium cursor-pointer"
-            >
-              Cancel
-            </button>
-            <motion.button
-              type="submit" whileTap={{ scale: 0.97 }} disabled={!title.trim() || submitting}
-              className={`flex items-center gap-[7px] min-h-11 px-5.5 py-2 rounded-[9px] border-none text-white text-sm font-semibold transition-colors duration-200 ${title.trim() && !submitting ? 'cursor-pointer' : 'cursor-not-allowed'}`}
-              style={{ background: !title.trim() ? 'var(--accent-dim)' : isCollab ? COLLAB_COLOR : 'var(--accent)' }}
-            >
-              {submitting ? <Loader2 size={14} className="animate-spin" /> : isCollab ? <Users2 size={14} /> : <Send size={14} />}
-              {submitting ? 'Posting…' : isCollab ? 'Post Collab' : 'Publish post'}
-            </motion.button>
-          </div>
+        {/* Actions — pinned outside the scroll area so they're always reachable */}
+        <div className="flex justify-end gap-2 px-5.5 py-4 border-t border-divider shrink-0">
+          <button
+            type="button" onClick={onClose}
+            className="min-h-11 px-4.5 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-text-secondary text-sm font-medium cursor-pointer"
+          >
+            Cancel
+          </button>
+          <motion.button
+            type="submit" whileTap={{ scale: 0.97 }} disabled={!title.trim() || submitting}
+            className={`flex items-center gap-[7px] min-h-11 px-5.5 py-2 rounded-[9px] border-none text-white text-sm font-semibold transition-colors duration-200 ${title.trim() && !submitting ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+            style={{ background: !title.trim() ? 'var(--accent-dim)' : isCollab ? COLLAB_COLOR : 'var(--accent)' }}
+          >
+            {submitting ? <Loader2 size={14} className="animate-spin" /> : isCollab ? <Users2 size={14} /> : <Send size={14} />}
+            {submitting ? 'Posting…' : isCollab ? 'Post Collab' : 'Publish post'}
+          </motion.button>
+        </div>
         </form>
       </motion.div>
     </motion.div>

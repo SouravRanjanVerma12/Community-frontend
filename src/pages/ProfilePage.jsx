@@ -89,7 +89,7 @@ const OWN_PROFILE_TABS = ["posts", "stats", "bookmarks", "friends", "about", "pr
 const TAB_LABELS = {
   posts: "Posts",
   stats: "Stats",
-  bookmarks: "Bookmarks",
+  bookmarks: "Saved",
   friends: "Friends",
   about: "About",
   projects: "Projects",
@@ -228,10 +228,10 @@ function BookmarksPanel() {
         <div className="text-center px-5 py-15 bg-card border border-card-border rounded-2xl">
           <Bookmark size={32} className="mb-3 opacity-40 text-text-muted mx-auto" />
           <p className="text-base font-semibold text-text-primary mb-1.5">
-            No bookmarks yet
+            No saved posts yet
           </p>
           <p className="text-sm text-text-muted">
-            Tap the bookmark icon on any post to save it for later.
+            Tap the bookmark icon on any post to add it to your saved posts.
           </p>
         </div>
       ) : (
