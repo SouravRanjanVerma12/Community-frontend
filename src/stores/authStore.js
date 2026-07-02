@@ -70,6 +70,8 @@ export const useAuthStore = create(
       updateFollowing: (followingArray) => {
         set((state) => ({ user: { ...state.user, following: followingArray } }));
       },
+
+      setUser: (user) => set({ user }),
     }),
     {
       name: 'auth',

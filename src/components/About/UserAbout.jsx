@@ -43,7 +43,7 @@ function EmptySection({ icon: Icon, title, description, action, actionLabel }) {
 }
 
 /* --- Skill input (editable) --- */
-function SkillInput({ skills, onAdd, onRemove }) {
+export function SkillInput({ skills, onAdd, onRemove }) {
   const [input, setInput] = useState("");
 
   const handleKeyDown = (e) => {
@@ -227,8 +227,121 @@ function EducationSection({ educations, isEditing, onAdd, onEdit, onRemove }) {
   );
 }
 
+/* --- Shared small-modal shell (used by Experience/Education editors) --- */
+const fieldCls = 'px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-primary outline-none transition-colors duration-150 focus:border-accent-border w-full';
+
+function EntryModal({ title, onSave, onCancel, children }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onCancel}
+      className="fixed inset-0 z-200 bg-black/35 backdrop-blur-xs flex items-center justify-center p-5"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 32, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.97 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-[480px] max-h-[88vh] bg-card rounded-2xl border border-card-border shadow-popup overflow-hidden flex flex-col"
+      >
+        <div className="flex items-center justify-between pt-4.5 pb-3.5 px-5.5 shrink-0">
+          <h2 className="text-base font-bold text-text-primary tracking-[-0.2px]">{title}</h2>
+          <button
+            onClick={onCancel}
+            className="w-9 h-9 rounded-full border-none bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary transition-colors duration-150 hover:bg-surface-3"
+          >
+            <X size={14} />
+          </button>
+        </div>
+        <div className="px-5.5 py-4 flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto *:shrink-0">
+          {children}
+        </div>
+        <div className="flex justify-end gap-2 px-5.5 py-4 border-t border-divider shrink-0">
+          <button
+            type="button" onClick={onCancel}
+            className="min-h-10 px-4 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-text-secondary text-sm font-medium cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button" onClick={onSave}
+            className="min-h-10 px-4.5 py-2 rounded-[9px] border-none text-white text-sm font-semibold cursor-pointer bg-(image:--btn-grad) shadow-btn"
+          >
+            Save
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* --- Experience add/edit modal --- */
+function ExperienceModal({ data, onChange, onSave, onCancel }) {
+  const set = (key) => (e) => onChange({ ...data, [key]: e.target.value });
+  return (
+    <EntryModal title={data._isNew ? 'Add experience' : 'Edit experience'} onSave={onSave} onCancel={onCancel}>
+      <input value={data.title} onChange={set('title')} placeholder="Job title" className={fieldCls} />
+      <input value={data.company} onChange={set('company')} placeholder="Company" className={fieldCls} />
+      <div className="flex gap-2">
+        <input value={data.startDate} onChange={set('startDate')} placeholder="Start (YYYY-MM)" className={fieldCls} />
+        <input value={data.endDate} onChange={set('endDate')} placeholder="End (or leave blank)" className={fieldCls} />
+      </div>
+      <textarea value={data.description} onChange={set('description')} rows={3} placeholder="Description…" className={`${fieldCls} resize-y font-[inherit]`} />
+    </EntryModal>
+  );
+}
+
+/* --- Education add/edit modal --- */
+function EducationModal({ data, onChange, onSave, onCancel }) {
+  const set = (key) => (e) => onChange({ ...data, [key]: e.target.value });
+  return (
+    <EntryModal title={data._isNew ? 'Add education' : 'Edit education'} onSave={onSave} onCancel={onCancel}>
+      <input value={data.institution} onChange={set('institution')} placeholder="Institution" className={fieldCls} />
+      <div className="flex gap-2">
+        <input value={data.degree} onChange={set('degree')} placeholder="Degree" className={fieldCls} />
+        <input value={data.field} onChange={set('field')} placeholder="Field of study" className={fieldCls} />
+      </div>
+      <input value={data.graduationYear} onChange={set('graduationYear')} placeholder="Graduation year" className={fieldCls} />
+    </EntryModal>
+  );
+}
+
+export const ROLE_OPTIONS = ['Student', 'Job Seeker', 'Collaborator', 'Recruiter', 'Mentor'];
+
+/* --- Role picker (multi-select toggle chips) --- */
+export function RolePicker({ roles, isEditing, onToggle }) {
+  if (!isEditing && roles.length === 0) {
+    return <span className="text-[13px] text-text-muted">Not specified</span>;
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {(isEditing ? ROLE_OPTIONS : roles).map((r) => {
+        const active = roles.includes(r);
+        if (!isEditing) {
+          return (
+            <span key={r} className="px-3 py-1 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border">
+              {r}
+            </span>
+          );
+        }
+        return (
+          <button
+            key={r} type="button" onClick={() => onToggle(r)}
+            className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors duration-150 ${active ? 'bg-accent-bg text-accent border border-accent-border' : 'bg-transparent text-text-secondary border border-border'}`}
+          >
+            {r}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /* --- Social Links --- */
-function SocialLinks({ links, isEditing, onChange }) {
+export function SocialLinks({ links, isEditing, onChange }) {
   const socialFields = [
     { key: 'github', icon: Code, label: 'GitHub', placeholder: 'https://github.com/username' },
     { key: 'linkedin', icon: User, label: 'LinkedIn', placeholder: 'https://linkedin.com/in/username' },
@@ -334,6 +447,7 @@ export default function UserAbout({ profile, isOwnProfile }) {
   const [experiences, setExperiences] = useState([]);
   const [educations, setEducations] = useState([]);
   const [socialLinks, setSocialLinks] = useState({});
+  const [roles, setRoles] = useState([]);
   const [learningPaths, setLearningPaths] = useState([]);
   const [contributionScore, setContributionScore] = useState(0);
 
@@ -344,6 +458,7 @@ export default function UserAbout({ profile, isOwnProfile }) {
       setExperiences(profile.experience || []);
       setEducations(profile.education || []);
       setSocialLinks(profile.socialLinks || {});
+      setRoles(profile.roles || []);
       setLearningPaths(profile.learningPaths || []);
       setContributionScore(profile.contributionScore || 0);
     }
@@ -359,6 +474,7 @@ export default function UserAbout({ profile, isOwnProfile }) {
         experience: experiences,
         education: educations,
         socialLinks,
+        roles,
       });
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -376,45 +492,39 @@ export default function UserAbout({ profile, isOwnProfile }) {
     setExperiences(profile.experience || []);
     setEducations(profile.education || []);
     setSocialLinks(profile.socialLinks || {});
+    setRoles(profile.roles || []);
     setIsEditing(false);
     setSaveError("");
   };
 
+  const toggleRole = (role) => {
+    setRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
+  };
+
+  // Add/edit modal state — { idx: number|null, data } — idx null means "adding new"
+  const [expModal, setExpModal] = useState(null);
+  const [eduModal, setEduModal] = useState(null);
+
   // Child section callbacks
   const addExperience = () => {
-    const newExp = {
-      company: "",
-      title: "",
-      startDate: "",
-      endDate: "",
-      description: "",
-    };
-    setExperiences([...experiences, newExp]);
+    setExpModal({ idx: null, data: { _isNew: true, company: "", title: "", startDate: "", endDate: "", description: "" } });
   };
 
   const editExperience = (idx) => {
-    const exp = experiences[idx];
-    const newCompany = prompt("Company:", exp.company);
-    if (newCompany !== null) {
-      const newTitle = prompt("Title:", exp.title);
-      const newStart = prompt("Start Date (YYYY-MM-DD):", exp.startDate);
-      const newEnd = prompt(
-        "End Date (YYYY-MM-DD) or leave empty for Present:",
-        exp.endDate,
-      );
-      const newDesc = prompt("Description:", exp.description);
-      const updated = {
-        ...exp,
-        company: newCompany || "",
-        title: newTitle || "",
-        startDate: newStart || "",
-        endDate: newEnd || "",
-        description: newDesc || "",
-      };
+    setExpModal({ idx, data: { ...experiences[idx] } });
+  };
+
+  const saveExperience = () => {
+    const { idx, data } = expModal;
+    const { _isNew, ...entry } = data;
+    if (idx === null) {
+      setExperiences([...experiences, entry]);
+    } else {
       const newList = [...experiences];
-      newList[idx] = updated;
+      newList[idx] = entry;
       setExperiences(newList);
     }
+    setExpModal(null);
   };
 
   const removeExperience = async (idx) => {
@@ -424,33 +534,24 @@ export default function UserAbout({ profile, isOwnProfile }) {
   };
 
   const addEducation = () => {
-    const newEdu = {
-      institution: "",
-      degree: "",
-      field: "",
-      graduationYear: "",
-    };
-    setEducations([...educations, newEdu]);
+    setEduModal({ idx: null, data: { _isNew: true, institution: "", degree: "", field: "", graduationYear: "" } });
   };
 
   const editEducation = (idx) => {
-    const edu = educations[idx];
-    const newInst = prompt("Institution:", edu.institution);
-    if (newInst !== null) {
-      const newDegree = prompt("Degree:", edu.degree);
-      const newField = prompt("Field of Study:", edu.field);
-      const newYear = prompt("Graduation Year:", edu.graduationYear);
-      const updated = {
-        ...edu,
-        institution: newInst || "",
-        degree: newDegree || "",
-        field: newField || "",
-        graduationYear: newYear || "",
-      };
+    setEduModal({ idx, data: { ...educations[idx] } });
+  };
+
+  const saveEducation = () => {
+    const { idx, data } = eduModal;
+    const { _isNew, ...entry } = data;
+    if (idx === null) {
+      setEducations([...educations, entry]);
+    } else {
       const newList = [...educations];
-      newList[idx] = updated;
+      newList[idx] = entry;
       setEducations(newList);
     }
+    setEduModal(null);
   };
 
   const removeEducation = async (idx) => {
@@ -574,6 +675,14 @@ export default function UserAbout({ profile, isOwnProfile }) {
         )}
       </div>
 
+      {/* Roles */}
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          I am a…
+        </h3>
+        <RolePicker roles={roles} isEditing={isEditing} onToggle={toggleRole} />
+      </div>
+
       {/* Experience */}
       <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
         <h3 className="text-[15px] font-bold text-text-primary mb-3">
@@ -621,6 +730,25 @@ export default function UserAbout({ profile, isOwnProfile }) {
           onChange={updateSocialLink}
         />
       </div>
+
+      <AnimatePresence>
+        {expModal && (
+          <ExperienceModal
+            data={expModal.data}
+            onChange={(data) => setExpModal({ ...expModal, data })}
+            onSave={saveExperience}
+            onCancel={() => setExpModal(null)}
+          />
+        )}
+        {eduModal && (
+          <EducationModal
+            data={eduModal.data}
+            onChange={(data) => setEduModal({ ...eduModal, data })}
+            onSave={saveEducation}
+            onCancel={() => setEduModal(null)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

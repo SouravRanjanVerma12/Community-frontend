@@ -2,6 +2,7 @@ import { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import ConfirmDialogHost from "./components/ui/ConfirmDialog";
+import OnboardingGate from "./components/onboarding/OnboardingGate";
 import Spinner from "./components/ui/Spinner";
 import { useAuthStore } from "./stores/authStore";
 import { useThemeStore } from "./stores/themeStore";
@@ -88,6 +89,7 @@ export default function App() {
         }}
       />
       <ConfirmDialogHost />
+      <OnboardingGate />
       <AuthHydrator>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
