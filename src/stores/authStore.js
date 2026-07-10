@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware';
 import axios from 'axios';
 import { API_URL } from '../config';
 import api from '../api/axiosInstance';
+import { getCachedFcmToken, clearCachedFcmToken } from '../firebase/messaging';
+import { signInWithGoogle } from '../firebase/auth';
 
 const BASE = `${API_URL}/api`;
 
@@ -34,6 +36,29 @@ export const useAuthStore = create(
         }
       },
 
+      loginWithGoogle: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const idToken = await signInWithGoogle();
+          const { data } = await axios.post(`${BASE}/auth/google`, { idToken });
+          set({
+            user: data.user,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            isLoading: false,
+          });
+          return true;
+        } catch (err) {
+          // Not an error worth surfacing — the user just dismissed the popup.
+          if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+            set({ isLoading: false });
+            return false;
+          }
+          set({ error: err.response?.data?.message ?? 'Google sign-in failed.', isLoading: false });
+          return false;
+        }
+      },
+
       register: async (name, email, password, username) => {
         set({ isLoading: true, error: null });
         try {
@@ -47,6 +72,12 @@ export const useAuthStore = create(
 
       logout: async () => {
         const { refreshToken } = get();
+        const fcmToken = getCachedFcmToken();
+        if (fcmToken) {
+          // Must fire before clearing accessToken below — the endpoint requires auth.
+          api.delete('/users/fcm-token', { data: { token: fcmToken } }).catch(() => {});
+          clearCachedFcmToken();
+        }
         set({ user: null, accessToken: null, refreshToken: null });
         if (refreshToken) {
           axios.post(`${BASE}/auth/logout`, { refreshToken }).catch(() => {});

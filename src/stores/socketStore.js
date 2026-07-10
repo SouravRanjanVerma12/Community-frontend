@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 import { create } from 'zustand';
-import toast from 'react-hot-toast';
+import { showNotificationToast } from '../components/ui/NotificationToast';
 import { API_URL } from '../config';
 
 let socket = null;
@@ -79,7 +79,7 @@ export const useSocketStore = create((set, get) => ({
         notifications: [notification, ...s.notifications],
         unreadCount: s.unreadCount + 1,
       }));
-      toast(notification.text, { icon: '🔔' });
+      showNotificationToast(notification.text);
     });
   },
 

@@ -7,6 +7,7 @@ import Spinner from "./components/ui/Spinner";
 import { useAuthStore } from "./stores/authStore";
 import { useThemeStore } from "./stores/themeStore";
 import { useSocketStore } from "./stores/socketStore";
+import { useFcmToken } from "./hooks/useFcmToken";
 import api from "./api/axiosInstance";
 
 const AuthPage           = lazy(() => import("./pages/AuthPage"));
@@ -44,6 +45,8 @@ function ThemeApplier() {
 function AuthHydrator({ children }) {
   const { accessToken, fetchMe, user } = useAuthStore();
   const { connect, disconnect, setMyId, seedNotifications } = useSocketStore();
+
+  useFcmToken(!!(accessToken && user));
 
   useEffect(() => {
     if (accessToken) fetchMe();

@@ -21,10 +21,23 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const TwitterIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.22-6.83-5.97 6.83H1.65l7.73-8.84L1.23 2.25h6.83l4.72 6.24 5.46-6.24zm-1.16 17.52h1.83L7.03 4.13H5.06l11.98 15.64z" />
+  </svg>
+);
+
 const socialBtnClasses = [
-  'flex-1 min-h-11 px-3.5 py-2.5 rounded-[10px] bg-input border-[1.5px] border-input-border',
+  'flex-1 min-w-[90px] min-h-11 px-3 py-2.5 rounded-[10px] bg-input border-[1.5px] border-input-border',
   'text-text-secondary text-[13px] font-medium cursor-not-allowed opacity-65',
   'flex items-center justify-center gap-2 transition-[opacity,transform] duration-150',
+  'focus-visible:shadow-[0_0_0_3px_var(--accent-border)] outline-none',
+].join(' ');
+
+const googleBtnClasses = [
+  'flex-1 min-w-[90px] min-h-11 px-3 py-2.5 rounded-[10px] bg-input border-[1.5px] border-input-border',
+  'text-text-secondary text-[13px] font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-65',
+  'flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 hover:bg-hover',
   'focus-visible:shadow-[0_0_0_3px_var(--accent-border)] outline-none',
 ].join(' ');
 
@@ -33,13 +46,19 @@ const authLinkClasses = 'cursor-pointer rounded-md outline-none transition-opaci
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, loginWithGoogle, isLoading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     clearError();
     const ok = await login(email, password);
+    if (ok) navigate('/explore');
+  };
+
+  const handleGoogleLogin = async () => {
+    clearError();
+    const ok = await loginWithGoogle();
     if (ok) navigate('/explore');
   };
 
@@ -103,12 +122,15 @@ export default function LoginForm() {
       </div>
 
       {/* Social buttons */}
-      <div className="flex gap-2.5">
+      <div className="flex flex-wrap gap-2.5">
+        <button type="button" onClick={handleGoogleLogin} disabled={isLoading} className={googleBtnClasses}>
+          <GoogleIcon /> Google
+        </button>
         <button type="button" disabled aria-disabled="true" title="Coming soon" className={socialBtnClasses}>
           <GithubIcon /> GitHub
         </button>
         <button type="button" disabled aria-disabled="true" title="Coming soon" className={socialBtnClasses}>
-          <GoogleIcon /> Google
+          <TwitterIcon /> Twitter
         </button>
       </div>
 
