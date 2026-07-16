@@ -34,6 +34,7 @@ export default function OnboardingModal() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bio, setBio]             = useState('');
   const [location, setLocation]   = useState('');
+  const [age, setAge]             = useState('');
   const [skills, setSkills]       = useState([]);
   const [experience, setExperience] = useState({ company: '', title: '', startDate: '', endDate: '', description: '' });
   const [education, setEducation]   = useState({ institution: '', degree: '', field: '', graduationYear: '' });
@@ -73,6 +74,8 @@ export default function OnboardingModal() {
     if (avatarUrl) payload.avatarUrl = avatarUrl;
     if (bio.trim()) payload.bio = bio.trim();
     if (location.trim()) payload.location = location.trim();
+    const ageNum = Number(age);
+    if (age && Number.isFinite(ageNum) && ageNum >= 13 && ageNum <= 120) payload.age = ageNum;
     if (skills.length) payload.skills = skills;
     if (experience.company.trim() || experience.title.trim()) payload.experience = [experience];
     if (education.institution.trim() || education.degree.trim()) payload.education = [education];
@@ -170,10 +173,22 @@ export default function OnboardingModal() {
                   placeholder="Tell the community about yourself…"
                   className={textareaCls}
                 />
-                <input
-                  value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, Country"
-                  className={inputCls}
-                />
+                <div className="flex gap-2">
+                  <input
+                    value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, Country"
+                    className={inputCls}
+                  />
+                  <input
+                    value={age}
+                    onChange={(e) => setAge(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
+                    placeholder="Age"
+                    inputMode="numeric"
+                    className={`${inputCls} max-w-[90px]`}
+                  />
+                </div>
+                <p className="text-xs text-text-muted m-0">
+                  Location and age help us recommend posts from people near you and around your age.
+                </p>
               </>
             )}
 

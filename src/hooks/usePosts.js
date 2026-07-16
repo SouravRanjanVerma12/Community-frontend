@@ -7,13 +7,15 @@ const PAGE_SIZE = 20;
 /* Ranked, paginated Explore feed. `asOf` freezes the ranking reference point
    for the whole scroll session (see backend/utils/buildFeedPipeline.js) —
    the server sets it on the first page and every subsequent page echoes it
-   back so results stay stable as new posts land mid-session. */
-export function usePostFeed({ domain = 'all', search = '' } = {}) {
+   back so results stay stable as new posts land mid-session.
+   `sort`: 'foryou' (ranked) | 'following' (ranked, followed authors only) |
+   'latest' (chronological). */
+export function usePostFeed({ domain = 'all', search = '', sort = 'foryou' } = {}) {
   return useInfiniteQuery({
-    queryKey: ['posts', domain, search],
+    queryKey: ['posts', domain, search, sort],
     initialPageParam: { page: 1, asOf: null },
     queryFn: async ({ pageParam }) => {
-      const params = { page: pageParam.page, limit: PAGE_SIZE };
+      const params = { page: pageParam.page, limit: PAGE_SIZE, sort };
       if (domain !== 'all') params.domain = domain;
       if (search) params.search = search;
       if (pageParam.asOf) params.asOf = pageParam.asOf;
@@ -126,10 +128,10 @@ export function removeCachedPost(postId) {
 }
 
 /* Prepends a freshly created post to the front of page 1 of a specific feed
-   (domain/search) cache — called when the user clicks the "N new posts"
+   (domain/search/sort) cache — called when the user clicks the "N new posts"
    banner in PostFeed.jsx. */
-export function prependCachedPost(domain, search, post) {
-  queryClient.setQueryData(['posts', domain, search], (old) => {
+export function prependCachedPost(domain, search, sort, post) {
+  queryClient.setQueryData(['posts', domain, search, sort], (old) => {
     if (!old || !Array.isArray(old.pages) || old.pages.length === 0) return old;
     const [firstPage, ...rest] = old.pages;
     return { ...old, pages: [{ ...firstPage, posts: [post, ...firstPage.posts] }, ...rest] };
