@@ -11,9 +11,8 @@ import CollabRequesters from './CollabRequesters';
 import { confirm } from '../ui/ConfirmDialog';
 import { DOMAINS } from '../../data/mockPosts';
 import { useAuthStore } from '../../stores/authStore';
-import { getSocket, useSocketStore } from '../../stores/socketStore';
 import api from '../../api/axiosInstance';
-import { useComments, appendCachedComment, removeCachedComment } from '../../hooks/useComments';
+import { useComments, removeCachedComment } from '../../hooks/useComments';
 import { updateCachedPost, removeCachedPost, useBookmarkedPosts, toggleCachedBookmark } from '../../hooks/usePosts';
 
 function Avatar({ name, src, size = 36 }) {
@@ -73,7 +72,10 @@ function CodeBlock({ code, language }) {
 
 export default function PostCard({ post: initialPost, index = 0 }) {
   const { user } = useAuthStore();
-  const [post, setPost] = useState(initialPost);
+  // `post` is just the current prop — no local shadow copy. Live updates (likes,
+  // comments, edits, deletes) come in via socketStore's centralized listeners
+  // writing into the react-query cache, which flows back down as a fresh prop.
+  const post = initialPost;
   const [showComments, setShowComments] = useState(false);
   const { data: comments = [], isLoading: commentsLoading } = useComments(post._id, showComments);
   const [newComment, setNewComment] = useState('');
@@ -81,7 +83,6 @@ export default function PostCard({ post: initialPost, index = 0 }) {
   const { data: bookmarkedPosts = [] } = useBookmarkedPosts(!!user);
   const isBookmarked = bookmarkedPosts.some((p) => p._id === post._id);
 
-  const connected = useSocketStore((s) => s.connected);
   const domain   = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
   const isCollab = post.type === 'collab';
   const COLLAB_COLOR = '#3a3d4a';
@@ -103,53 +104,12 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Resync the optimistic like-toggle when the post prop changes for a reason
+  // other than this user's own click (e.g. someone else's like arriving via
+  // socketStore -> react-query cache -> fresh prop).
   useEffect(() => {
-    const socket = getSocket();
-    if (!socket || !connected) return;
-
-    const onUpdated = (data) => {
-      if (data.postId === post._id) {
-        setPost((p) => ({ ...p, likes: data.likes }));
-        setLiked(data.likes.includes(user?._id));
-      }
-    };
-
-    const onCommented = (data) => {
-      if (data.postId === post._id) {
-        setPost((p) => ({ ...p, commentCount: data.commentCount }));
-        appendCachedComment(post._id, data.comment);
-      }
-    };
-
-    const onEdited = (data) => {
-      if (data.postId === post._id) setPost(data.post);
-    };
-
-    const onDeleted = (data) => {
-      if (data.postId === post._id) setDeleted(true);
-    };
-
-    const onCommentDeleted = (data) => {
-      if (data.postId === post._id) {
-        setPost((p) => ({ ...p, commentCount: data.commentCount }));
-        removeCachedComment(post._id, data.commentId);
-      }
-    };
-
-    socket.on('post:updated', onUpdated);
-    socket.on('post:commented', onCommented);
-    socket.on('post:edited', onEdited);
-    socket.on('post:deleted', onDeleted);
-    socket.on('post:commentDeleted', onCommentDeleted);
-
-    return () => {
-      socket.off('post:updated', onUpdated);
-      socket.off('post:commented', onCommented);
-      socket.off('post:edited', onEdited);
-      socket.off('post:deleted', onDeleted);
-      socket.off('post:commentDeleted', onCommentDeleted);
-    };
-  }, [post._id, user?._id, connected]);
+    setLiked(post.likes?.includes(user?._id));
+  }, [post.likes, user?._id]);
 
   const toggleLike = async () => {
     if (!user) return;
@@ -208,7 +168,6 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         ? { title: editTitle.trim(), codeSnippet: editBody }
         : { title: editTitle.trim(), body: editBody };
       const { data } = await api.patch(`/posts/${post._id}`, payload);
-      setPost(data.post);
       updateCachedPost(post._id, data.post);
       setEditing(false);
       toast.success('Post updated');
@@ -237,7 +196,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     try {
       const { data } = await api.delete(`/posts/${post._id}/comments/${commentId}`);
       removeCachedComment(post._id, commentId);
-      setPost((p) => ({ ...p, commentCount: data.commentCount }));
+      updateCachedPost(post._id, { ...post, commentCount: data.commentCount });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to delete comment');
     }

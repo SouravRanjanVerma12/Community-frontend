@@ -2,6 +2,8 @@ import { io } from 'socket.io-client';
 import { create } from 'zustand';
 import { showNotificationToast } from '../components/ui/NotificationToast';
 import { API_URL } from '../config';
+import { patchCachedPost, updateCachedPost, removeCachedPost } from '../hooks/usePosts';
+import { appendCachedComment, removeCachedComment } from '../hooks/useComments';
 
 let socket = null;
 
@@ -80,6 +82,34 @@ export const useSocketStore = create((set, get) => ({
         unreadCount: s.unreadCount + 1,
       }));
       showNotificationToast(notification.text);
+    });
+
+    // Centralized post cache sync — previously each mounted PostCard ran its
+    // own copy of these listeners against local component state; now one
+    // listener per event writes into the react-query cache, so every list
+    // (feed, bookmarks, profile) stays live including off-screen cards.
+    // post:created is intentionally NOT handled here — only PostFeed knows
+    // the active domain/search filter needed to decide feed relevance.
+    socket.on('post:updated', ({ postId, likes }) => {
+      patchCachedPost(postId, { likes });
+    });
+
+    socket.on('post:commented', ({ postId, comment, commentCount }) => {
+      patchCachedPost(postId, { commentCount });
+      appendCachedComment(postId, comment);
+    });
+
+    socket.on('post:commentDeleted', ({ postId, commentId, commentCount }) => {
+      patchCachedPost(postId, { commentCount });
+      removeCachedComment(postId, commentId);
+    });
+
+    socket.on('post:edited', ({ postId, post }) => {
+      updateCachedPost(postId, post);
+    });
+
+    socket.on('post:deleted', ({ postId }) => {
+      removeCachedPost(postId);
     });
   },
 
