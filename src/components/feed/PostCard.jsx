@@ -223,7 +223,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         </Link>
         <div className="flex-1 min-w-0">
           <Link to={`/profile/${post.author._id}`} className="no-underline">
-            <p className="text-sm font-semibold text-text-primary m-0 inline transition-colors duration-[120ms] hover:text-accent">
+            <p className="text-sm font-semibold text-text-primary m-0 inline transition-colors duration-120 hover:text-accent">
               {post.author.name}
             </p>
           </Link>
@@ -515,9 +515,9 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         {joinModalOpen && (
           <JoinProjectModal
             post={post}
-            onClose={() => {
+            onClose={(success) => {
               setJoinModalOpen(false);
-              setRequested(true);
+              if (success) setRequested(true);
             }}
           />
         )}
@@ -614,7 +614,7 @@ function ActionBtn({ icon, label, onClick, active, activeColor }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-[5px] px-2.5 py-[5px] rounded-lg border-none bg-transparent text-[13px] font-medium transition-colors duration-[120ms] hover:bg-hover ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`flex items-center gap-[5px] px-2.5 py-[5px] rounded-lg border-none bg-transparent text-[13px] font-medium transition-colors duration-120 hover:bg-hover ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
       style={{ color: active ? activeColor : 'var(--text-muted)' }}
     >
       {icon}

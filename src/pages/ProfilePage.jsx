@@ -52,14 +52,14 @@ const domainLabel = (key) => DOMAINS.find((d) => d.value === key)?.label ?? key;
 async function uploadBlob(blob, endpoint) {
   const fd = new FormData();
   fd.append("file", blob, "upload.jpg");
-  const { data } = await api.post(`/upload/${endpoint}`, fd);
-  const url = data.url;
+  const { data: uploadData } = await api.post(`/upload/${endpoint}`, fd);
+  const url = uploadData.url;
 
   // persist the URL back to the user's profile
   const field = endpoint === "avatar" ? "avatarUrl" : "bannerUrl";
-  await api.patch("/users/profile", { [field]: url });
+  const { data: profileData } = await api.patch("/users/profile", { [field]: url });
 
-  return url;
+  return { url, user: profileData.user };
 }
 
 /* ── sub-components ── */
@@ -253,12 +253,15 @@ function SettingsPanel({ profile }) {
 
   const { theme, setTheme } = useThemeStore();
 
+  const setUser = useAuthStore((s) => s.setUser);
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError("");
     try {
-      await api.patch("/users/profile", { name, bio, location, website });
+      const { data } = await api.patch("/users/profile", { name, bio, location, website });
+      setUser(data.user);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
@@ -438,7 +441,7 @@ function SettingsPanel({ profile }) {
 ───────────────────────────────────────── */
 export default function ProfilePage() {
   const { userId } = useParams();
-  const { user: me, updateFollowing } = useAuthStore();
+  const { user: me, updateFollowing, setUser } = useAuthStore();
 
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
@@ -527,8 +530,9 @@ export default function ProfilePage() {
 
     setUploading(true);
     try {
-      const url = await uploadBlob(blob, endpoint);
+      const { url, user: updatedUser } = await uploadBlob(blob, endpoint);
       setUrl(url);
+      setUser(updatedUser);
     } catch {
       setUploadError(
         `${endpoint === "avatar" ? "Profile photo" : "Banner"} upload failed. Please try again.`,
@@ -668,7 +672,7 @@ export default function ProfilePage() {
                 style={{ backgroundImage: `radial-gradient(circle, ${dc}22 1px, transparent 1px)`, backgroundSize: '24px 24px' }}
               />
               <div
-                className="absolute bottom-4 right-5 text-[11px] font-bold tracking-[0.1em] uppercase"
+                className="absolute bottom-4 right-5 text-[11px] font-bold tracking-widest uppercase"
                 style={{ color: `${dc}60` }}
               >
                 {domainLabel(profile.domain)}
@@ -749,7 +753,7 @@ export default function ProfilePage() {
 
               {/* camera overlay */}
               {isOwnProfile && (
-                <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center gap-[3px] bg-black/0 text-white opacity-0 transition-[opacity,background-color] duration-[180ms] pointer-events-none group-hover:opacity-100 group-hover:bg-black/48">
+                <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center gap-[3px] bg-black/0 text-white opacity-0 transition-[opacity,background-color] duration-180 pointer-events-none group-hover:opacity-100 group-hover:bg-black/48">
                   {uploadingAvatar ? (
                     <Loader2 size={20} className="animate-spin" />
                   ) : (

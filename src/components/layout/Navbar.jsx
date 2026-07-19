@@ -116,7 +116,7 @@ function GlobalSearch() {
   };
 
   return (
-    <div ref={wrapRef} className="relative flex-1 max-w-[340px] ml-3">
+    <div ref={wrapRef} className="relative w-full">
       <div className="flex items-center gap-2 px-3 rounded-[10px] border-[1.5px] border-border bg-input transition-colors duration-150">
         <Search size={14} color="var(--text-muted)" />
         <input
@@ -463,9 +463,9 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Search — desktop/tablet */}
+        {/* Search — perfectly centered on screen */}
         {user && (
-          <div className="hidden lg:flex flex-1 max-w-[340px] ml-3">
+          <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 w-full max-w-[380px] z-10">
             <GlobalSearch />
           </div>
         )}

@@ -36,20 +36,20 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onCancel}
-      className="fixed inset-0 z-300 bg-black/70 backdrop-blur-md flex items-center justify-center p-5"
+      className="fixed inset-0 z-300 bg-black/60 backdrop-blur-md flex items-center justify-center p-5"
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+        transition={{ type: 'spring', stiffness: 120, damping: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[520px] bg-card rounded-[18px] shadow-[0_24px_80px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col"
+        className="w-full max-w-[520px] bg-card rounded-[24px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)] border border-border/50 overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-divider">
+        <div className="flex items-center justify-between px-5.5 py-4 border-b border-border/40">
           <div>
-            <h3 className="text-[15px] font-bold text-text-primary m-0">
+            <h3 className="text-lg font-semibold tracking-tight text-text-primary m-0">
               Adjust {label}
             </h3>
             <p className="text-xs text-text-muted m-0 mt-0.5">
@@ -58,9 +58,9 @@ export default function ImageCropper({ file, aspect, shape, label, onComplete, o
           </div>
           <button
             onClick={onCancel}
-            className="w-[30px] h-[30px] rounded-full border-none bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary"
+            className="w-8 h-8 rounded-full border border-border/50 bg-surface-1 hover:bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary transition-colors"
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
 

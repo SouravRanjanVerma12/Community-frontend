@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Users2, Compass, Briefcase, LayoutDashboard, Loader2, PenSquare, Sliders, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Users2, Compass, Briefcase, LayoutDashboard, Loader2, PenSquare, Sliders, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '../components/layout/Navbar';
 import ProjectCard from '../components/collab/ProjectCard';
@@ -284,13 +284,13 @@ function WorkspaceTab() {
 
   if (isLoading) return (
     <div className="flex justify-center p-15">
-      <Loader2 size={28} color={CC} className="animate-spin" />
+      <Loader2 size={28} className="animate-spin text-accent" />
     </div>
   );
 
   if (isError) return (
     <div className="text-center px-5 py-15 text-text-muted">
-      <p className="text-[15px] font-semibold text-error mb-1.5">Couldn't load your workspaces</p>
+      <p className="text-[15px] font-semibold text-red-500 mb-1.5">Couldn't load your workspaces</p>
       <p className="text-[13px] mb-4">Your session may have expired. Try refreshing, or log in again.</p>
       <Button size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['my-collab-requests-workspace'] })}>
         Retry
@@ -300,33 +300,72 @@ function WorkspaceTab() {
 
   if (allProjects.length === 0) return (
     <div className="text-center p-15 text-text-muted">
-      <LayoutDashboard size={40} color="var(--text-faint)" className="mb-3" />
+      <LayoutDashboard size={40} className="mb-3 mx-auto opacity-40 text-text-muted" />
       <p className="text-[15px] font-semibold text-text-primary mb-1.5">No active workspaces</p>
       <p className="text-[13px]">Create a collab project or get accepted into one to access the task board.</p>
     </div>
   );
 
   return (
-    <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-      {allProjects.map(proj => (
+    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      {allProjects.map((proj, i) => (
         <motion.div
-          key={proj.id} whileHover={{ y: -2, boxShadow: `0 8px 24px ${CC}18` }}
-          className="bg-card rounded-2xl p-5 flex flex-col gap-3 shadow-sm transition-shadow duration-200"
-          style={{ border: `1px solid ${CC}25` }}
+          key={proj.id} 
+          onClick={() => navigate(`/project/${proj.id}`)}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: i * 0.05, type: 'spring', stiffness: 100, damping: 20 }}
+          whileHover="hover"
+          whileTap={{ scale: 0.98 }}
+          className="group relative bg-card/90 backdrop-blur-sm rounded-4xl p-7 md:p-8 cursor-pointer overflow-hidden shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] transition-all duration-300 border border-border/40"
         >
-          <div className="flex items-start justify-between gap-2">
+          {/* Subtle live status pulse */}
+          <div className="absolute top-8 right-8 flex items-center justify-center">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent"></span>
+            </span>
+          </div>
+
+          <div className="flex flex-col h-full justify-between gap-10">
             <div>
-              <p className="text-[15px] font-bold text-text-primary mb-1">{proj.title}</p>
-              <div className="flex gap-1.5">
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold" style={{ background: proj.role === 'Lead' ? `${CC}14` : 'rgba(34,197,94,0.1)', color: proj.role === 'Lead' ? CC : '#16a34a' }}>{proj.role}</span>
-                {proj.domain && <span className="px-2 py-0.5 rounded-full text-[11px] text-text-muted bg-surface-2">{proj.domain}</span>}
+              <motion.div 
+                className="w-12 h-12 rounded-[14px] bg-accent/10 flex items-center justify-center mb-6 border border-accent/20"
+                variants={{
+                  hover: { scale: 1.05, rotate: -5, backgroundColor: 'var(--accent-light)', borderColor: 'transparent' }
+                }}
+              >
+                <LayoutDashboard size={22} className="text-accent group-hover:text-white transition-colors" />
+              </motion.div>
+              
+              <h3 className="text-xl font-bold tracking-tight text-text-primary mb-3 pr-8 leading-snug">{proj.title}</h3>
+              
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 rounded-full text-[12px] font-semibold bg-accent/10 text-accent border border-accent/20">
+                  {proj.role}
+                </span>
+                {proj.domain && (
+                  <span className="px-3 py-1 rounded-full text-[12px] text-text-secondary bg-surface-2 border border-border/50">
+                    {proj.domain}
+                  </span>
+                )}
               </div>
             </div>
-            <LayoutDashboard size={18} color={CC} className="shrink-0 mt-0.5" />
+
+            <div className="flex items-end justify-between mt-auto pt-2">
+              <span className="text-[14px] font-semibold text-text-muted transition-colors group-hover:text-text-primary">
+                Open Task Board
+              </span>
+              <motion.div 
+                variants={{
+                  hover: { x: 5, scale: 1.1, backgroundColor: 'var(--accent)', color: '#fff', borderColor: 'transparent' }
+                }}
+                className="w-10 h-10 rounded-full bg-surface-1 border border-border/60 flex items-center justify-center text-text-secondary transition-colors"
+              >
+                <ArrowRight size={18} />
+              </motion.div>
+            </div>
           </div>
-          <Button size="sm" fullWidth onClick={() => navigate(`/project/${proj.id}`)}>
-            Open Task Board →
-          </Button>
         </motion.div>
       ))}
     </div>

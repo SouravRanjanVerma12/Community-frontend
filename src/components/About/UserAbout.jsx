@@ -464,18 +464,21 @@ export default function UserAbout({ profile, isOwnProfile }) {
     }
   }, [profile]);
 
+  const setUser = useAuthStore((s) => s.setUser);
+
   // Save all changes
   const handleSave = async () => {
     setSaving(true);
     setSaveError("");
     try {
-      await api.patch("/users/profile", {
+      const { data } = await api.patch("/users/profile", {
         skills,
         experience: experiences,
         education: educations,
         socialLinks,
         roles,
       });
+      setUser(data.user);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
       setIsEditing(false);

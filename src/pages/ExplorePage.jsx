@@ -140,33 +140,33 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 z-200 bg-black/35 backdrop-blur-xs flex items-center justify-center p-5"
+      className="fixed inset-0 z-300 bg-black/60 backdrop-blur-md flex items-center justify-center p-5"
     >
       {/* Modal card */}
       <motion.div
-        initial={{ opacity: 0, y: 32, scale: 0.97 }}
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 16, scale: 0.97 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+        transition={{ type: 'spring', stiffness: 120, damping: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[620px] max-h-[88vh] bg-card rounded-2xl border border-card-border shadow-popup overflow-hidden flex flex-col"
+        className="w-full max-w-[620px] max-h-[88vh] bg-card rounded-[24px] border border-border/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col"
       >
         {/* Modal header */}
-        <div className="flex items-center justify-between pt-4.5 pb-3.5 px-5.5 shrink-0">
-          <h2 className="text-base font-bold text-text-primary tracking-[-0.2px]">
+        <div className="flex items-center justify-between pt-5 pb-3.5 px-6 shrink-0 border-b border-border/40">
+          <h2 className="text-lg font-semibold tracking-tight text-text-primary">
             Create a post
           </h2>
           <button
             onClick={onClose}
-            className="w-11 h-11 rounded-full border-none bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary transition-colors duration-150 hover:bg-surface-3"
+            className="w-8 h-8 rounded-full border border-border/50 bg-surface-1 hover:bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary transition-colors duration-150"
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Author row */}
         {user && (
-          <div className="flex items-center gap-2.5 px-5.5 pb-3.5 shrink-0">
+          <div className="flex items-center gap-2.5 px-6 pt-4 pb-1 shrink-0">
             <div
               className="w-9.5 h-9.5 rounded-full shrink-0 text-white flex items-center justify-center text-sm font-bold"
               style={{ background: `hsl(${[...user.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)` }}
@@ -183,7 +183,7 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
 
         {/* Scrollable fields — shrink-0 on every child keeps inputs at full size and lets this area scroll instead of squashing them */}
-        <div className="px-5.5 py-4 flex flex-col gap-3.5 flex-1 min-h-0 overflow-y-auto *:shrink-0">
+        <div className="px-6 py-4 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-none *:shrink-0">
 
           {/* Type tabs + domain */}
           <div className="flex gap-1.5 flex-wrap items-center">
@@ -200,13 +200,15 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
                     color: active ? (value === 'collab' ? '#fff' : 'var(--accent)') : 'var(--text-secondary)',
                   }}
                 >
-                  <Icon size={13} /> {label}
+                  <Icon size={14} />
+                  {label}
                 </button>
               );
             })}
+
             <select
               value={domain} onChange={(e) => setDomain(e.target.value)}
-              className="ml-auto px-2.5 py-1.5 rounded-lg border-[1.5px] border-border text-[13px] text-text-secondary bg-card cursor-pointer outline-none"
+              className="ml-auto px-3.5 py-1.5 rounded-lg border border-border text-[13px] text-text-secondary bg-card cursor-pointer outline-none focus:border-accent"
             >
               {DOMAINS.filter((d) => d.value !== 'all').map((d) => (
                 <option key={d.value} value={d.value}>{d.label}</option>

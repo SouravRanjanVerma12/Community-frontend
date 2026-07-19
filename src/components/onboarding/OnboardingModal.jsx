@@ -105,14 +105,14 @@ export default function OnboardingModal() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-200 bg-black/35 backdrop-blur-xs flex items-center justify-center p-5"
+        className="fixed inset-0 z-300 bg-black/60 backdrop-blur-md flex items-center justify-center p-5"
       >
         <motion.div
-          initial={{ opacity: 0, y: 32, scale: 0.97 }}
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 16, scale: 0.97 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-[560px] max-h-[88vh] bg-card rounded-2xl border border-card-border shadow-popup overflow-hidden flex flex-col"
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+          className="w-full max-w-[560px] max-h-[88vh] bg-card rounded-[24px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)] border border-border/50 overflow-hidden flex flex-col"
         >
           {/* Header */}
           <div className="flex items-center justify-between pt-4.5 pb-3.5 px-5.5 shrink-0">
@@ -134,7 +134,7 @@ export default function OnboardingModal() {
           </div>
 
           {/* Scrollable body */}
-          <div className="px-5.5 py-4 flex flex-col gap-3.5 flex-1 min-h-0 overflow-y-auto *:shrink-0">
+          <div className="px-5.5 py-4 flex flex-col gap-3.5 flex-1 min-h-0 overflow-y-auto scrollbar-none *:shrink-0">
             <div>
               <h2 className="text-lg font-bold text-text-primary tracking-[-0.2px] mb-1">{current.title}</h2>
               <p className="text-[13px] text-text-muted">{current.subtitle}</p>

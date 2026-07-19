@@ -1,16 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users2, Clock, ClipboardList, CheckCircle } from 'lucide-react';
+import { Users2, Clock, ClipboardList, CheckCircle, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import JoinProjectModal from '../feed/JoinProjectModal';
-import Button from '../ui/Button';
 
-const CC = '#3a3d4a';
-const DOMAIN_COLORS = {
-  webdev: '#2563eb', backend: '#059669', devops: '#d97706',
-  aiml: '#7c3aed', mobile: '#db2777', oss: '#0891b2',
-};
+
 
 function Avatar({ name, src, size = 32 }) {
   const initials = (name ?? 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -33,42 +28,46 @@ export default function ProjectCard({ post, index = 0, showReviewLink = false })
   const [requested,  setRequested]  = useState(false);
 
   const isOwn       = user?._id === post.author?._id;
-  const domainColor = DOMAIN_COLORS[post.domain] ?? CC;
   const filled      = post.membersNeeded > 0 && (post.memberCount ?? 0) >= post.membersNeeded;
   const unlimited   = post.membersNeeded === 0;
 
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        whileHover={{ y: -3, boxShadow: `0 8px 32px ${CC}18, 0 2px 8px rgba(0,0,0,0.08)` }}
-        className="bg-card rounded-2xl p-5 flex flex-col gap-3.5 shadow-sm transition-[box-shadow,transform] duration-200 cursor-default"
-        style={{ border: `1px solid ${CC}28` }}
+        transition={{ delay: index * 0.05, duration: 0.4, type: 'spring', stiffness: 100, damping: 20 }}
+        whileHover="hover"
+        whileTap={{ scale: 0.98 }}
+        className="group relative bg-card/90 backdrop-blur-sm rounded-[24px] p-5 flex flex-col gap-3 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] transition-all duration-300 border border-border/40 cursor-pointer overflow-hidden"
+        onClick={() => navigate(`/project/${post._id}`)}
       >
+        {/* Subtle background glow */}
+        <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -z-10 bg-accent/5 group-hover:bg-accent/10 transition-colors duration-300" />
+
         {/* Top: domain badge + time */}
         <div className="flex items-center justify-between">
-          <span className="px-2.5 py-[3px] rounded-full text-[11px] font-semibold" style={{ background: `${domainColor}14`, color: domainColor }}>
+          <span className="px-3 py-1 rounded-full text-[11px] font-semibold border bg-accent/10 text-accent border-accent/20">
             {post.domain}
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-text-muted">
+          <span className="flex items-center gap-1 text-[11px] font-medium text-text-muted">
             <Clock size={11} /> {timeAgo(post.createdAt)}
           </span>
         </div>
 
         {/* Title + project name */}
-        <div>
+        <div className="mt-1">
           {post.projectName && (
-            <p className="text-xs font-bold mb-1 flex items-center gap-1" style={{ color: CC }}>
-              🚀 {post.projectName}
+            <p className="text-[13px] font-bold mb-1.5 flex items-center gap-1.5 text-accent">
+              <span className="w-5 h-5 rounded-md bg-accent/10 flex items-center justify-center border border-accent/20">🚀</span>
+              {post.projectName}
             </p>
           )}
-          <h3 className="text-[15px] font-bold text-text-primary leading-[1.4] tracking-[-0.2px]">
+          <h3 className="text-[16px] font-bold text-text-primary leading-snug tracking-tight group-hover:text-accent transition-colors">
             {post.title}
           </h3>
           {post.body && (
-            <p className="text-[13px] text-text-secondary leading-[1.6] mt-1.5 line-clamp-2">
+            <p className="text-[13px] text-text-secondary leading-relaxed mt-2.5 line-clamp-2">
               {post.body}
             </p>
           )}
@@ -76,74 +75,79 @@ export default function ProjectCard({ post, index = 0, showReviewLink = false })
 
         {/* Tech stack */}
         {post.techStack?.length > 0 && (
-          <div className="flex flex-wrap gap-[5px]">
+          <div className="flex flex-wrap gap-1.5 mt-1">
             {post.techStack.map(t => (
-              <span key={t} className="px-2.5 py-[3px] rounded-md bg-surface-2 text-text-secondary text-[11px] font-medium font-mono">{t}</span>
+              <span key={t} className="px-2.5 py-[3px] rounded-md bg-surface-1 border border-border/40 text-text-secondary text-[11px] font-medium font-mono">{t}</span>
             ))}
           </div>
         )}
 
         {/* Roles needed */}
         {post.rolesNeeded?.length > 0 && (
-          <div className="flex flex-wrap gap-[5px]">
+          <div className="flex flex-wrap gap-1.5 mt-0.5">
             {post.rolesNeeded.map(r => (
-              <span key={r} className="px-2.5 py-[3px] rounded-full text-[11px] font-semibold" style={{ background: `${CC}14`, color: CC, border: `1px solid ${CC}25` }}>{r}</span>
+              <span key={r} className="px-3 py-1 rounded-full text-[11px] font-semibold bg-surface-2 text-text-secondary border border-border/60">{r}</span>
             ))}
           </div>
         )}
 
-        {/* Divider */}
-        <div className="h-px bg-divider" />
-
-        {/* Footer: author + stats + action */}
-        <div className="flex items-center gap-2.5">
+        {/* Footer */}
+        <div className="flex items-center gap-2 mt-auto pt-3 border-t border-border/40">
           {/* Author */}
-          <Link to={`/profile/${post.author?._id}`} className="flex items-center gap-1.5 no-underline shrink-0">
+          <Link to={`/profile/${post.author?._id}`} className="flex items-center gap-1.5 no-underline shrink-0 group/avatar z-10" onClick={(e) => e.stopPropagation()}>
             <Avatar name={post.author?.name} src={post.author?.avatarUrl} size={24} />
-            <span className="text-xs text-text-muted font-medium">{post.author?.name}</span>
+            <span className="text-[12px] text-text-muted font-medium group-hover/avatar:text-text-primary transition-colors">{post.author?.name}</span>
           </Link>
 
           <div className="flex-1" />
 
           {/* Member progress */}
-          <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: filled ? '#16a34a' : CC }}>
-            <Users2 size={12} />
-            {unlimited ? `${post.memberCount ?? 0} joined` : `${post.memberCount ?? 0}/${post.membersNeeded}`}
-            {filled && ' • Full'}
+          <div className="flex items-center gap-1 text-[11px] font-semibold shrink-0 whitespace-nowrap" style={{ color: filled ? '#10b981' : 'var(--text-muted)' }}>
+            <Users2 size={13} className={filled ? 'text-green-500' : 'text-text-muted'} />
+            <span className={filled ? 'text-green-500' : 'text-text-primary'}>
+              {unlimited ? `${post.memberCount ?? 0} joined` : `${post.memberCount ?? 0}/${post.membersNeeded}`}
+            </span>
+            {filled && <span className="text-green-500 ml-0.5">• Full</span>}
           </div>
 
-          {/* Interest count */}
-          {(post.requestCount ?? 0) > 0 && (
-            <span className="text-[11px] font-semibold text-[#d97706]">🔥 {post.requestCount}</span>
-          )}
-
           {/* Action button */}
-          {isOwn ? (
-            showReviewLink && (post.requestCount ?? 0) > 0 ? (
-              <Link to={`/collab/${post._id}/requests`} className="no-underline">
-                <Button size="sm" style={{ padding: '6px 12px', fontSize: '12px', minHeight: 'auto' }}>
-                  <ClipboardList size={12} /> Review ({post.requestCount})
-                </Button>
-              </Link>
+          <div className="z-10 shrink-0 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+            {isOwn ? (
+              showReviewLink && (post.requestCount ?? 0) > 0 ? (
+                <Link to={`/collab/${post._id}/requests`} className="no-underline block">
+                  <motion.div 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-xl bg-accent text-white shadow-sm shadow-accent/20"
+                  >
+                    <ClipboardList size={14} /> Review ({post.requestCount})
+                  </motion.div>
+                </Link>
+              ) : (
+                <span className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg text-accent bg-accent/10 border border-accent/20">Your project</span>
+              )
+            ) : requested ? (
+              <span className="flex items-center gap-1 text-xs font-semibold text-green-500 bg-green-500/10 px-2.5 py-1.5 rounded-lg">
+                <CheckCircle size={13} /> Requested
+              </span>
+            ) : !filled ? (
+              <motion.button 
+                onClick={() => setJoinOpen(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1.5 text-[12px] font-semibold px-3.5 py-1.5 rounded-xl bg-text-primary text-card hover:bg-accent hover:text-white transition-colors shadow-sm"
+              >
+                Join <ArrowRight size={14} />
+              </motion.button>
             ) : (
-              <span className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg" style={{ color: CC, background: `${CC}10`, border: `1px solid ${CC}25` }}>Your project</span>
-            )
-          ) : requested ? (
-            <span className="flex items-center gap-1 text-xs font-semibold text-[#16a34a]">
-              <CheckCircle size={13} /> Requested
-            </span>
-          ) : !filled ? (
-            <Button size="sm" onClick={() => setJoinOpen(true)} style={{ padding: '6px 14px', fontSize: '12px', minHeight: 'auto' }}>
-              <Users2 size={12} /> Join
-            </Button>
-          ) : (
-            <span className="text-[11px] font-medium text-text-muted">Team full</span>
-          )}
+              <span className="text-[11px] font-medium text-text-muted bg-surface-2 px-2.5 py-1.5 rounded-lg">Team full</span>
+            )}
+          </div>
         </div>
       </motion.div>
 
       {joinOpen && (
-        <JoinProjectModal post={post} onClose={() => { setJoinOpen(false); setRequested(true); }} />
+        <JoinProjectModal post={post} onClose={(success) => { setJoinOpen(false); if (success) setRequested(true); }} />
       )}
     </>
   );

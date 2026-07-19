@@ -1,13 +1,15 @@
-import { useEffect, lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState, lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import ConfirmDialogHost from "./components/ui/ConfirmDialog";
 import OnboardingGate from "./components/onboarding/OnboardingGate";
-import Spinner from "./components/ui/Spinner";
+import GlobalLoader from "./components/ui/GlobalLoader";
+import NavProgressRunner from "./components/ui/NavProgressRunner";
 import { useAuthStore } from "./stores/authStore";
 import { useThemeStore } from "./stores/themeStore";
 import { useSocketStore } from "./stores/socketStore";
 import { useFcmToken } from "./hooks/useFcmToken";
+import { useDeviceLocation } from "./hooks/useDeviceLocation";
 import api from "./api/axiosInstance";
 
 const AuthPage           = lazy(() => import("./pages/AuthPage"));
@@ -20,11 +22,50 @@ const WorkspacePage      = lazy(() => import("./pages/WorkspacePage"));
 const JobsPage           = lazy(() => import("./pages/JobsPage"));
 const JobApplicantsPage  = lazy(() => import("./pages/JobApplicantsPage"));
 
+function NavigationLoaders() {
+  const location = useLocation();
+  const [isFinished, setIsFinished] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsFinished(false);
+    setIsVisible(true);
+    
+    // Simulate loading for 500ms
+    const timer = setTimeout(() => {
+      setIsFinished(true); // Trigger 100% completion and fade out
+      
+      // Wait 500ms for CSS fade out transitions to complete before unmounting
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 500);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  if (!isVisible) return null;
+
+  return (
+    <>
+      <NavProgressRunner isFinished={isFinished} />
+      <div 
+        className={`fixed inset-0 z-9998 flex items-center justify-center bg-bg/80 backdrop-blur-sm transition-opacity duration-400 ${isFinished ? 'opacity-0' : 'opacity-100'}`}
+      >
+        <GlobalLoader isFinished={isFinished} />
+      </div>
+    </>
+  );
+}
+
 function RouteFallback() {
   return (
-    <div className="flex items-center justify-center min-h-svh">
-      <Spinner size="lg" color="var(--accent)" />
-    </div>
+    <>
+      <NavProgressRunner isFinished={false} />
+      <div className="fixed inset-0 z-9998 flex items-center justify-center bg-bg/80 backdrop-blur-sm">
+        <GlobalLoader isFinished={false} />
+      </div>
+    </>
   );
 }
 
@@ -47,6 +88,7 @@ function AuthHydrator({ children }) {
   const { connect, disconnect, setMyId, seedNotifications } = useSocketStore();
 
   useFcmToken(!!(accessToken && user));
+  useDeviceLocation(!!(accessToken && user));
 
   useEffect(() => {
     if (accessToken) fetchMe();
@@ -94,6 +136,7 @@ export default function App() {
       <ConfirmDialogHost />
       <OnboardingGate />
       <AuthHydrator>
+        <NavigationLoaders />
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<AuthPage />} />
