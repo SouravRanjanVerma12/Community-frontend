@@ -4,7 +4,7 @@ import axios from 'axios';
 import { API_URL } from '../config';
 import api from '../api/axiosInstance';
 import { getCachedFcmToken, clearCachedFcmToken } from '../firebase/messaging';
-import { signInWithGoogle } from '../firebase/auth';
+import { openLinkedinPopup } from '../api/linkedinPopup';
 
 const BASE = `${API_URL}/api`;
 
@@ -36,36 +36,23 @@ export const useAuthStore = create(
         }
       },
 
-      loginWithGoogle: async () => {
+      loginWithLinkedin: async () => {
         set({ isLoading: true, error: null });
         try {
-          const idToken = await signInWithGoogle();
-          const { data } = await axios.post(`${BASE}/auth/google`, { idToken });
+          const payload = await openLinkedinPopup(API_URL);
           set({
-            user: data.user,
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
+            user: payload.user,
+            accessToken: payload.accessToken,
+            refreshToken: payload.refreshToken,
             isLoading: false,
           });
           return true;
         } catch (err) {
-          // Not an error worth surfacing — the user just dismissed the popup.
-          if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+          if (err.message === 'Popup closed by user') {
             set({ isLoading: false });
             return false;
           }
-          set({ error: err.response?.data?.message ?? 'Google sign-in failed.', isLoading: false });
-          return false;
-        }
-      },
-
-      register: async (name, email, password, username) => {
-        set({ isLoading: true, error: null });
-        try {
-          await axios.post(`${BASE}/auth/register`, { name, email, password, username });
-          return await get().login(email, password);
-        } catch (err) {
-          set({ error: err.response?.data?.message ?? 'Registration failed.', isLoading: false });
+          set({ error: err.response?.data?.message ?? err.message ?? 'LinkedIn sign-in failed.', isLoading: false });
           return false;
         }
       },

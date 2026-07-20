@@ -432,6 +432,72 @@ function SettingsPanel({ profile }) {
           })}
         </div>
       </div>
+
+      {/* Security */}
+      {profile?.authProvider === 'linkedin' && (
+        <div className="bg-surface-1 border border-border rounded-2xl px-6 py-5.5">
+          <h3 className="text-[15px] font-bold text-text-primary mb-1.5 flex items-center gap-2">
+            <Lock size={16} className="text-text-muted" /> Security
+          </h3>
+          <p className="text-[13px] text-text-muted mb-4.5">
+            Since you signed up with LinkedIn, you can set a password to log in with your email address.
+          </p>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const fd = new FormData(e.target);
+              const password = fd.get('password');
+              const confirmPassword = fd.get('confirmPassword');
+              if (password.length < 6) {
+                alert('Password must be at least 6 characters.');
+                return;
+              }
+              if (password !== confirmPassword) {
+                alert('Passwords do not match.');
+                return;
+              }
+              try {
+                await api.post('/auth/set-password', { password });
+                alert('Password set successfully!');
+                e.target.reset();
+              } catch (err) {
+                alert(err.response?.data?.message || 'Failed to set password');
+              }
+            }}
+            className="flex flex-col gap-3.5 max-w-[400px]"
+          >
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-text-secondary">New Password</label>
+              <input
+                type="password"
+                name="password"
+                required
+                placeholder="At least 6 characters"
+                className="px-3.5 py-2.5 min-h-11 box-border rounded-[10px] border-[1.5px] border-border bg-input text-base text-text-primary outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent-border focus:shadow-[0_0_0_3px_var(--accent-dim)]"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-text-secondary">Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                required
+                placeholder="Re-enter your password"
+                className="px-3.5 py-2.5 min-h-11 box-border rounded-[10px] border-[1.5px] border-border bg-input text-base text-text-primary outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent-border focus:shadow-[0_0_0_3px_var(--accent-dim)]"
+              />
+            </div>
+            <div className="flex items-center gap-2.5 mt-1">
+              <motion.button
+                type="submit"
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center justify-center px-5.5 py-2.5 min-h-11 box-border rounded-[9px] border-none bg-(image:--btn-grad) text-white shadow-btn text-sm font-semibold cursor-pointer transition-[opacity] duration-200 hover:opacity-90"
+              >
+                Set password
+              </motion.button>
+            </div>
+          </form>
+        </div>
+      )}
     </motion.div>
   );
 }
