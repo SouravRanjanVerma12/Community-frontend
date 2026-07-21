@@ -1,10 +1,11 @@
 // src/components/profile/UserAbout.jsx
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 import {
   Briefcase, GraduationCap, GitBranch, Globe,
   Edit3, Save, X, Plus, Trash2, Link2, Calendar,
-  CheckCircle, AlertCircle, Loader2, Users, Star, Award,
+  CheckCircle, Loader2, Users, Star, Award,
   // Use these instead:
   Code, User, Share2,
 } from 'lucide-react';
@@ -440,7 +441,6 @@ export default function UserAbout({ profile, isOwnProfile }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState("");
 
   // Local state for all editable fields
   const [skills, setSkills] = useState([]);
@@ -469,8 +469,8 @@ export default function UserAbout({ profile, isOwnProfile }) {
   // Save all changes
   const handleSave = async () => {
     setSaving(true);
-    setSaveError("");
     try {
+      const wasIncomplete = !profile?.linkedinImported && !profile?.profileCompleted;
       const { data } = await api.patch("/users/profile", {
         skills,
         experience: experiences,
@@ -482,8 +482,11 @@ export default function UserAbout({ profile, isOwnProfile }) {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
       setIsEditing(false);
+      if (wasIncomplete && data.user?.profileCompleted) {
+        toast.success("Profile complete — you can now post, apply, and join collabs.");
+      }
     } catch (err) {
-      setSaveError(err.response?.data?.message || "Failed to save profile.");
+      toast.error(err.response?.data?.message || "Failed to save profile.");
     } finally {
       setSaving(false);
     }
@@ -497,7 +500,6 @@ export default function UserAbout({ profile, isOwnProfile }) {
     setSocialLinks(profile.socialLinks || {});
     setRoles(profile.roles || []);
     setIsEditing(false);
-    setSaveError("");
   };
 
   const toggleRole = (role) => {
@@ -612,21 +614,6 @@ export default function UserAbout({ profile, isOwnProfile }) {
               <Edit3 size={14} /> Edit Profile
             </Button>
           )}
-        </div>
-      )}
-
-      {saveError && (
-        <div className="px-3.5 py-2.5 rounded-lg bg-error-bg border border-error-border text-error text-[13px] flex items-center justify-between">
-          <span>
-            <AlertCircle size={14} className="inline mr-2" />
-            {saveError}
-          </span>
-          <button
-            onClick={() => setSaveError("")}
-            className="bg-none border-none cursor-pointer text-error text-lg leading-none"
-          >
-            ×
-          </button>
         </div>
       )}
 

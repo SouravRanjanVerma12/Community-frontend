@@ -148,7 +148,7 @@ function DiscoverTab() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center px-5 py-15 text-text-muted">
-          <Users2 size={40} color="var(--text-faint)" className="mb-3" />
+          <Users2 size={40} color="var(--text-faint)" className="mb-3 mx-auto" />
           <p className="text-[15px] font-semibold text-text-primary mb-1.5">No projects found</p>
           <p className="text-[13px]">Try different filters, or create the first one!</p>
         </div>
