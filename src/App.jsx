@@ -3,12 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { Toaster } from "react-hot-toast";
 import ConfirmDialogHost from "./components/ui/ConfirmDialog";
 import OnboardingGate from "./components/onboarding/OnboardingGate";
-<<<<<<< HEAD
-import Spinner from "./components/ui/Spinner";
-=======
 import GlobalLoader from "./components/ui/GlobalLoader";
 import NavProgressRunner from "./components/ui/NavProgressRunner";
->>>>>>> 9dbb3e209ff6acead00615f90812ec48c7f88f27
 import { useAuthStore } from "./stores/authStore";
 import { useThemeStore } from "./stores/themeStore";
 import { useSocketStore } from "./stores/socketStore";
