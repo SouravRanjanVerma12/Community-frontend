@@ -12,12 +12,12 @@ const FEED_TABS = [
   { id: 'latest', label: 'Latest' },
 ];
 
-export default function PostFeed({ domain, search }) {
+export default function PostFeed({ domain, search, authorDomain = null }) {
   const { user } = useAuthStore();
   const [sort, setSort] = useState('foryou');
   const {
     data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage,
-  } = usePostFeed({ domain, search, sort });
+  } = usePostFeed({ domain, search, sort, authorDomain });
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
 
@@ -45,7 +45,7 @@ export default function PostFeed({ domain, search }) {
 
     socket.on('post:created', onCreated);
     return () => socket.off('post:created', onCreated);
-  }, [domain, search, sort, user?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [domain, search, sort, authorDomain, user?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showPendingPosts = () => {
     pendingPosts.forEach((post) => prependCachedPost(domain, search, sort, post));

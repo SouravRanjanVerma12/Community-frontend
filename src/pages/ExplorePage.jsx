@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, PenSquare, X, Type, Code2, Video, Send, ChevronDown, Users2, Plus, Loader2 } from 'lucide-react';
+import { Search, PenSquare, X, Type, Code2, Video, Send, ChevronDown, Users2, Plus, Loader2, Compass, SlidersHorizontal, Handshake } from 'lucide-react';
 import MembersSlider from '../components/feed/MembersSlider';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
@@ -10,7 +10,7 @@ import LeftSidebar from '../components/layout/LeftSidebar';
 import PostFeed from '../components/feed/PostFeed';
 import CreatePost from '../components/feed/CreatePost';
 import { useAuthStore } from '../stores/authStore';
-import { DOMAINS } from '../data/mockPosts';
+import { DEV_DOMAINS } from '../data/profileOptions';
 import { queryClient } from '../api/queryClient';
 import api from '../api/axiosInstance';
 
@@ -34,14 +34,14 @@ function SearchBar({ value, onChange }) {
   );
 }
 
-const COLLAB_COLOR = '#3a3d4a';
-const PRESET_ROLES = ['Frontend Dev', 'Backend Dev', 'Full Stack', 'Designer', 'DevOps', 'ML Engineer', 'Mobile Dev', 'QA'];
+const COLLAB_COLOR = '#6366f1';
+const PRESET_ROLES = DEV_DOMAINS.map((d) => d.label);
 
 const POST_TYPES = [
   { value: 'text',   label: 'Text',   icon: Type   },
   { value: 'code',   label: 'Code',   icon: Code2  },
-  { value: 'video',  label: 'Video',  icon: Video  },
-  { value: 'collab', label: 'Collab', icon: Users2 },
+  // { value: 'video',  label: 'Video',  icon: Video  },
+  { value: 'collab', label: 'Collab', icon: Handshake },
 ];
 
 function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
@@ -90,7 +90,7 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [type, setType]       = useState(initialType);
-  const [domain, setDomain]   = useState('webdev');
+  const [domain, setDomain]   = useState(() => user?.domain?.[0] || DEV_DOMAINS[0].value);
   const [title, setTitle]     = useState('');
   const [body, setBody]       = useState('');
   const [code, setCode]       = useState('');
@@ -167,12 +167,20 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
         {/* Author row */}
         {user && (
           <div className="flex items-center gap-2.5 px-6 pt-4 pb-1 shrink-0">
-            <div
-              className="w-9.5 h-9.5 rounded-full shrink-0 text-white flex items-center justify-center text-sm font-bold"
-              style={{ background: `hsl(${[...user.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)` }}
-            >
-              {user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
-            </div>
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.name}
+                className="w-9.5 h-9.5 rounded-full object-cover shrink-0 border border-border/50"
+              />
+            ) : (
+              <div
+                className="w-9.5 h-9.5 rounded-full shrink-0 text-white flex items-center justify-center text-sm font-bold"
+                style={{ background: `hsl(${[...user.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)` }}
+              >
+                {user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
+              </div>
+            )}
             <div>
               <p className="text-sm font-semibold text-text-primary">{user.name}</p>
               <p className="text-xs text-text-muted">Posting to the community</p>
@@ -210,7 +218,7 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
               value={domain} onChange={(e) => setDomain(e.target.value)}
               className="ml-auto px-3.5 py-1.5 rounded-lg border border-border text-[13px] text-text-secondary bg-card cursor-pointer outline-none focus:border-accent"
             >
-              {DOMAINS.filter((d) => d.value !== 'all').map((d) => (
+              {DEV_DOMAINS.map((d) => (
                 <option key={d.value} value={d.value}>{d.label}</option>
               ))}
             </select>
@@ -220,21 +228,24 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
           {isCollab && (
             <>
               <div className="px-3.5 py-2.5 rounded-[10px] flex items-center gap-2" style={{ background: `${COLLAB_COLOR}0d`, border: `1px solid ${COLLAB_COLOR}30` }}>
-                <Users2 size={14} color={COLLAB_COLOR} />
+                <Handshake size={14} color={COLLAB_COLOR} />
                 <span className="text-[13px] font-semibold" style={{ color: COLLAB_COLOR }}>Collab Post — looking for collaborators</span>
               </div>
-              <input
-                value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="Project name (optional)"
-                className="px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-primary outline-none transition-colors duration-150 focus:border-[#3a3d4a]"
-              />
+              <div className="flex flex-col gap-0.5">
+                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-0.5">What do you want to collab on?</label>
+                <input
+                  value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. An open-source CLI tool, a SaaS side project… (optional)"
+                  className="px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-primary outline-none transition-colors duration-150 focus:border-indigo-400"
+                />
+              </div>
             </>
           )}
 
           {/* Title */}
           <input
             value={title} onChange={(e) => setTitle(e.target.value)} autoFocus required
-            placeholder={isCollab ? 'What are you building? What help do you need?' : 'Post title…'}
-            className={`px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-[15px] font-medium text-text-primary outline-none transition-colors duration-150 ${isCollab ? 'focus:border-[#3a3d4a]' : 'focus:border-accent-border'}`}
+            placeholder={isCollab ? 'Describe what you need help with or are looking to build together…' : 'Post title…'}
+            className={`px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-[15px] font-medium text-text-primary outline-none transition-colors duration-150 ${isCollab ? 'focus:border-indigo-400' : 'focus:border-accent-border'}`}
           />
 
           {/* Body */}
@@ -304,6 +315,8 @@ function CreatePostModal({ onClose, initialType = 'text' }) {
   );
 }
 
+
+
 const DOMAIN_LABELS = {
   all: 'Explore', webdev: 'Web Dev', backend: 'Backend',
   devops: 'DevOps', aiml: 'AI / ML', mobile: 'Mobile',
@@ -313,6 +326,7 @@ const DOMAIN_LABELS = {
 export default function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeDomain, setActiveDomain] = useState('all');
+  const [authorDomain, setAuthorDomain] = useState(null);
   const [search, setSearch]             = useState('');
   const [modalOpen, setModalOpen]       = useState(false);
   const [filtersOpen, setFiltersOpen]   = useState(false);
@@ -341,6 +355,14 @@ export default function ExplorePage() {
       next.delete('q');
       setSearchParams(next, { replace: true });
     }
+
+    const dom = searchParams.get('domain');
+    if (dom) {
+      setActiveDomain(dom);
+      const next = new URLSearchParams(searchParams);
+      next.delete('domain');
+      setSearchParams(next, { replace: true });
+    }
   }, [searchParams, setSearchParams]);
 
   return (
@@ -350,6 +372,8 @@ export default function ExplorePage() {
         <TopicTabBar
           activeDomain={activeDomain}
           onSelect={setActiveDomain}
+          authorDomain={authorDomain}
+          onChangeAuthorDomain={setAuthorDomain}
           onHide={() => setFiltersOpen(false)}
         />
       )}
@@ -363,49 +387,73 @@ export default function ExplorePage() {
         {/* Main feed column */}
         <main className="min-w-0">
           {/* Heading row */}
-          <div className="flex items-center gap-2.5 mb-3">
-            <h1 className="text-lg font-bold text-text-primary tracking-[-0.3px] flex-1">
-              {DOMAIN_LABELS[activeDomain] ?? 'Explore'}
-            </h1>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 p-4 rounded-2xl bg-card border border-card-border/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-accent-dim text-accent flex items-center justify-center shrink-0 shadow-xs">
+                <Compass size={20} />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-bold text-text-primary tracking-tight m-0 truncate">
+                    {DOMAIN_LABELS[activeDomain] ?? 'Explore Community'}
+                  </h1>
+                  {activeDomain !== 'all' && (
+                    <span className="text-[10px] font-bold text-accent bg-accent-dim px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                      {activeDomain}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-text-muted m-0 mt-0.5 truncate">
+                  Discover discussions, code snippets & collaboration projects
+                </p>
+              </div>
+            </div>
 
-            {/* Show filters button — only when bar is hidden */}
-            {!filtersOpen && (
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Toggle Filters button */}
               <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setFiltersOpen(true)}
-                title="Show filters"
-                className="flex items-center gap-[5px] min-h-11 px-3 py-1.5 rounded-full border-[1.5px] border-border bg-card text-text-secondary text-[13px] font-medium cursor-pointer shrink-0"
+                onClick={() => setFiltersOpen((prev) => !prev)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-200 border ${
+                  filtersOpen
+                    ? 'border-accent bg-accent/15 text-accent shadow-[0_2px_10px_rgba(30,157,241,0.15)]'
+                    : 'border-border bg-surface-1 hover:bg-hover text-text-secondary hover:text-text-primary'
+                }`}
               >
-                <ChevronDown size={13} /> Filters
+                <SlidersHorizontal size={14} className={filtersOpen ? 'text-accent' : 'text-text-muted'} />
+                <span>Filters</span>
+                <ChevronDown
+                  size={13}
+                  className={`transition-transform duration-200 ${filtersOpen ? 'rotate-180 text-accent' : ''}`}
+                />
               </motion.button>
-            )}
 
-            {/* Create post button */}
-            <motion.button
-              whileHover={{ boxShadow: 'var(--btn-grad-shadow-hover)' }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setModalOpen(true)}
-              className="flex items-center gap-[7px] min-h-11 px-4 py-2 rounded-[9px] border-none bg-(image:--btn-grad) text-white text-[13px] font-semibold cursor-pointer shrink-0 transition-shadow duration-200 shadow-btn"
-            >
-              <PenSquare size={14} />
-              Create post
-            </motion.button>
+              {/* Create post button */}
+              <motion.button
+                whileHover={{ scale: 1.02, boxShadow: '0 6px 20px rgba(30,157,241,0.35)' }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border-none bg-(image:--btn-grad) text-white text-xs font-bold cursor-pointer transition-all duration-200 shadow-[0_4px_14px_rgba(30,157,241,0.25)]"
+              >
+                <Plus size={15} strokeWidth={2.5} />
+                <span>Create post</span>
+              </motion.button>
+            </div>
           </div>
 
-          {/* Search */}
+          {/* Search
           <div className="mb-4">
             <SearchBar value={search} onChange={setSearch} />
           </div>
+          */}
 
           {/* Quick composer */}
           <div className="mb-4">
-            <CreatePost />
+            <CreatePost onOpenModal={(type) => { setCreateType(type); setModalOpen(true); }} />
           </div>
 
           {/* Feed */}
-          <PostFeed domain={activeDomain} search={search} />
+          <PostFeed domain={activeDomain} search={search} authorDomain={authorDomain} />
         </main>
 
         {/* Right sidebar */}

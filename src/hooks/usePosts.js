@@ -10,14 +10,15 @@ const PAGE_SIZE = 20;
    back so results stay stable as new posts land mid-session.
    `sort`: 'foryou' (ranked) | 'following' (ranked, followed authors only) |
    'latest' (chronological). */
-export function usePostFeed({ domain = 'all', search = '', sort = 'foryou' } = {}) {
+export function usePostFeed({ domain = 'all', search = '', sort = 'foryou', authorDomain = null } = {}) {
   return useInfiniteQuery({
-    queryKey: ['posts', domain, search, sort],
+    queryKey: ['posts', domain, search, sort, authorDomain],
     initialPageParam: { page: 1, asOf: null },
     queryFn: async ({ pageParam }) => {
       const params = { page: pageParam.page, limit: PAGE_SIZE, sort };
       if (domain !== 'all') params.domain = domain;
       if (search) params.search = search;
+      if (authorDomain) params.authorDomain = authorDomain;
       if (pageParam.asOf) params.asOf = pageParam.asOf;
       const { data } = await api.get('/posts', { params });
       return data; // { posts, hasMore, asOf }
@@ -54,6 +55,16 @@ export function useTrendingTags() {
     queryFn: async () => {
       const { data } = await api.get('/posts/trending-tags');
       return data.tags;
+    },
+  });
+}
+
+export function useOpenCollabPosts(limit = 5) {
+  return useQuery({
+    queryKey: ['collab-posts-widget', limit],
+    queryFn: async () => {
+      const { data } = await api.get('/posts', { params: { type: 'collab', limit } });
+      return data.posts;
     },
   });
 }

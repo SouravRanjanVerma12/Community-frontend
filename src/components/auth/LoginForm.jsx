@@ -7,10 +7,18 @@ import InputField from '../ui/InputField';
 import Button from '../ui/Button';
 
 import { LinkedInIcon } from '../icons/LinkedInIcon';
+import { GoogleIcon } from '../icons/GoogleIcon';
 
 const linkedinBtnClasses = [
   'flex-1 min-w-[90px] min-h-11 px-3 py-2.5 rounded-[10px] bg-[#0A66C2] border border-[#0A66C2]',
   'text-white text-[13px] font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-65',
+  'flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 hover:opacity-90',
+  'focus-visible:shadow-[0_0_0_3px_var(--accent-border)] outline-none',
+].join(' ');
+
+const googleBtnClasses = [
+  'flex-1 min-w-[90px] min-h-11 px-3 py-2.5 rounded-[10px] bg-white border border-[#dadce0]',
+  'text-[#3c4043] text-[13px] font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-65',
   'flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 hover:opacity-90',
   'focus-visible:shadow-[0_0_0_3px_var(--accent-border)] outline-none',
 ].join(' ');
@@ -20,7 +28,7 @@ const authLinkClasses = 'cursor-pointer rounded-md outline-none transition-opaci
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, loginWithLinkedin, isLoading, error, clearError } = useAuthStore();
+  const { login, loginWithLinkedin, loginWithGoogle, isLoading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -33,6 +41,12 @@ export default function LoginForm() {
   const handleLinkedinLogin = async () => {
     clearError();
     const ok = await loginWithLinkedin();
+    if (ok) navigate('/explore');
+  };
+
+  const handleGoogleLogin = async () => {
+    clearError();
+    const ok = await loginWithGoogle();
     if (ok) navigate('/explore');
   };
 
@@ -96,7 +110,10 @@ export default function LoginForm() {
       </div>
 
       {/* Social buttons */}
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5 sm:flex-row">
+        <button type="button" onClick={handleGoogleLogin} disabled={isLoading} className={googleBtnClasses}>
+          <GoogleIcon className="w-4 h-4" /> Continue with Google
+        </button>
         <button type="button" onClick={handleLinkedinLogin} disabled={isLoading} className={linkedinBtnClasses}>
           <LinkedInIcon className="w-4 h-4" /> Continue with LinkedIn
         </button>
@@ -104,9 +121,9 @@ export default function LoginForm() {
 
       <p className="text-center text-sm text-text-muted m-0 leading-relaxed">
         New here?{' '}
-        <button type="button" onClick={handleLinkedinLogin} className={`${authLinkClasses} text-accent font-medium bg-transparent border-none p-0`}>
-          Create an account with LinkedIn
-        </button>
+        <Link to="/register" className={`${authLinkClasses} text-accent font-medium`}>
+          Create an account
+        </Link>
       </p>
     </form>
   );

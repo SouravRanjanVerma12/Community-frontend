@@ -15,18 +15,22 @@ async function reverseGeocode(latitude, longitude) {
   return city && d.countryName ? `${city}, ${d.countryName}` : '';
 }
 
-// Free, keyless IP-based lookup — city-level accuracy, used when the user
-// denies (or the device lacks) precise geolocation.
+// IP-based lookup — city-level accuracy, used when the user denies (or the
+// device lacks) precise geolocation. Runs through the backend (GET
+// /users/geo-lookup) rather than calling the third-party provider directly
+// from the browser — a client-side call to that provider is subject to its
+// CORS/rate-limit behavior per browser, which shows up as a confusing
+// "blocked by CORS policy" console error even though the real cause is
+// usually the provider's rate limit, not an actual cross-origin block.
 async function ipLookup() {
-  const res = await fetch('https://ipapi.co/json/');
-  if (!res.ok) return null;
-  const d = await res.json();
-  if (typeof d.latitude !== 'number' || typeof d.longitude !== 'number') return null;
-  return {
-    latitude: d.latitude,
-    longitude: d.longitude,
-    label: d.city && d.country_name ? `${d.city}, ${d.country_name}` : '',
-  };
+  try {
+    const { data, status } = await api.get('/users/geo-lookup', { validateStatus: () => true });
+    if (status !== 200) return null;
+    if (typeof data.latitude !== 'number' || typeof data.longitude !== 'number') return null;
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 /* Captures the device's location after login and syncs it to the backend for

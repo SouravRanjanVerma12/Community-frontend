@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import api from '../../api/axiosInstance';
 import { useAuthStore } from '../../stores/authStore';
-import { SkillInput } from '../About/UserAbout';
+import { SkillInput, DomainPicker } from '../About/UserAbout';
 import Button from '../ui/Button';
 
 const EXPORT_STEPS = [
@@ -109,6 +109,7 @@ function ManualFillForm({ onClose, onBack }) {
   const [eduDegree, setEduDegree] = useState('');
   const [eduField, setEduField] = useState('');
   const [skills, setSkills] = useState(user?.skills ?? []);
+  const [domain, setDomain] = useState(user?.domain ?? []);
   const [saving, setSaving] = useState(false);
 
   const percent = useMemo(() => {
@@ -131,7 +132,7 @@ function ManualFillForm({ onClose, onBack }) {
         ? [...(user?.education ?? []), { institution: eduInstitution.trim(), degree: eduDegree.trim(), field: eduField.trim(), graduationYear: '' }]
         : (user?.education ?? []);
 
-      const { data } = await api.patch('/users/profile', { bio, experience, education, skills });
+      const { data } = await api.patch('/users/profile', { bio, experience, education, skills, domain });
       setUser(data.user);
 
       if (data.user?.profileCompleted) {
@@ -204,6 +205,17 @@ function ManualFillForm({ onClose, onBack }) {
             skills={skills}
             onAdd={(s) => setSkills((prev) => (prev.includes(s) ? prev : [...prev, s]))}
             onRemove={(s) => setSkills((prev) => prev.filter((x) => x !== s))}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-semibold text-text-secondary">
+            Domain <span className="text-text-muted font-normal">(optional — you can add this later in your profile)</span>
+          </label>
+          <DomainPicker
+            domain={domain}
+            isEditing
+            onToggle={(d) => setDomain((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]))}
           />
         </div>
       </div>

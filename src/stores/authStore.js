@@ -5,6 +5,7 @@ import { API_URL } from '../config';
 import api from '../api/axiosInstance';
 import { getCachedFcmToken, clearCachedFcmToken } from '../firebase/messaging';
 import { openLinkedinPopup } from '../api/linkedinPopup';
+import { signInWithGoogle } from '../firebase/auth';
 
 const BASE = `${API_URL}/api`;
 
@@ -32,6 +33,45 @@ export const useAuthStore = create(
           return true;
         } catch (err) {
           set({ error: err.response?.data?.message ?? 'Login failed.', isLoading: false });
+          return false;
+        }
+      },
+
+      register: async (name, email, password, username) => {
+        set({ isLoading: true, error: null });
+        try {
+          const { data } = await axios.post(`${BASE}/auth/register`, { name, email, password, username });
+          set({
+            user: data.user,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            isLoading: false,
+          });
+          return true;
+        } catch (err) {
+          set({ error: err.response?.data?.message ?? 'Registration failed.', isLoading: false });
+          return false;
+        }
+      },
+
+      loginWithGoogle: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const idToken = await signInWithGoogle();
+          const { data } = await axios.post(`${BASE}/auth/google`, { idToken });
+          set({
+            user: data.user,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            isLoading: false,
+          });
+          return true;
+        } catch (err) {
+          if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+            set({ isLoading: false });
+            return false;
+          }
+          set({ error: err.response?.data?.message ?? err.message ?? 'Google sign-in failed.', isLoading: false });
           return false;
         }
       },

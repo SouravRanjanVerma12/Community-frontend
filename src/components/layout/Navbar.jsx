@@ -2,14 +2,17 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LogOut, LogIn, UserPlus, Zap, Compass, Users2, Briefcase,
+  LogOut, LogIn, UserPlus, Zap, Compass, Users2, Briefcase, Handshake,
   Search, MessageSquare, X, UserCheck, Bell, Users, Menu, LayoutDashboard,
+  Sun, Moon,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { useSocketStore } from '../../stores/socketStore';
 import { FriendRow } from '../friends/FriendsList';
 import api from '../../api/axiosInstance';
 import Button from '../ui/Button';
+import Logo from '../ui/Logo';
 import NotificationBell from './NotificationBell';
 import { useFriends, usePendingRequests, useFriendStatus, invalidateFriends } from '../../hooks/useFriends';
 import { useMyWorkspaces } from '../../hooks/useWorkspace';
@@ -185,7 +188,7 @@ function GlobalSearch() {
                         className="flex items-center gap-2.5 px-3.5 py-2.5 border-b border-divider no-underline hover:bg-hover"
                       >
                         <div className="w-8 h-8 rounded-lg bg-surface-2 flex items-center justify-center shrink-0 text-text-muted">
-                          {p.type === 'collab' ? <Users2 size={14} /> : <Search size={14} />}
+                          {p.type === 'collab' ? <Handshake size={14} className="text-indigo-500" /> : <Search size={14} />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="m-0 text-[13px] font-semibold text-text-primary truncate">{p.title}</p>
@@ -403,13 +406,14 @@ function WorkspacesDropdown() {
 }
 
 const NAV_TABS = [
-  { to: '/explore',  label: 'Explore',  icon: Compass       },
-  { to: '/collab',   label: 'Collab',   icon: Users2        },
-  { to: '/jobs',     label: 'Jobs',     icon: Briefcase     },
+  { to: '/explore',  label: 'Explore',  icon: Compass,    activeColor: null            },
+  { to: '/collab',   label: 'Collab',   icon: Handshake,  activeColor: '#818cf8'       },
+  { to: '/jobs',     label: 'Jobs',     icon: Briefcase,  activeColor: null            },
 ];
 
 export default function Navbar() {
   const { user, logout } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -439,23 +443,22 @@ export default function Navbar() {
       <nav className="sticky top-0 z-100 h-15 bg-nav border-b border-nav-border flex items-center px-5 gap-3 transition-colors duration-250">
         {/* Logo */}
         <Link to="/explore" className="flex items-center gap-2 no-underline shrink-0 mr-2">
-          <div className="w-[30px] h-[30px] rounded-lg bg-(image:--btn-grad) flex items-center justify-center">
-            <Zap size={16} color="#fff" fill="#fff" />
-          </div>
-          <span className="hidden sm:inline text-base font-bold text-text-primary tracking-[-0.3px]">
-            Prograstic
-          </span>
+          <Logo size={28} showText={true} />
         </Link>
 
         {/* Center tabs — desktop/tablet */}
         <div className="hidden lg:flex items-stretch h-full gap-0.5">
-          {NAV_TABS.map(({ to, label, icon: Icon }) => (
+          {NAV_TABS.map(({ to, label, icon: Icon, activeColor }) => (
             <NavLink key={to} to={to}
               className={({ isActive }) => [
                 'flex items-center gap-1.5 px-3.5 no-underline whitespace-nowrap text-sm',
                 'transition-colors duration-150 border-b-2',
-                isActive ? 'border-accent text-accent font-semibold' : 'border-transparent text-text-secondary font-medium',
+                isActive ? 'font-semibold' : 'border-transparent text-text-secondary font-medium',
               ].join(' ')}
+              style={({ isActive }) => isActive
+                ? { borderBottomColor: activeColor ?? 'var(--accent)', color: activeColor ?? 'var(--accent)' }
+                : {}
+              }
             >
               <Icon size={15} />
               <span className="hidden sm:inline">{label}</span>
@@ -490,6 +493,13 @@ export default function Navbar() {
                   {user.name.split(' ')[0]}
                 </span>
               </Link>
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center"
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-500" />}
+              </button>
               <Button variant="ghost" size="sm" onClick={handleLogout} title="Log out">
                 <LogOut size={14} />
                 <span className="hidden sm:inline">Log out</span>
@@ -497,6 +507,13 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center mr-1"
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-500" />}
+              </button>
               <Link to="/" className="px-3.5 py-[7px] rounded-lg border-[1.5px] border-border text-text-secondary text-[13px] font-medium flex items-center gap-1.5 no-underline">
                 <LogIn size={14} /> Log in
               </Link>
@@ -558,12 +575,16 @@ export default function Navbar() {
 
               {/* Nav links */}
               <div className="flex flex-col py-2">
-                {NAV_TABS.map(({ to, label, icon: Icon }) => (
+                {NAV_TABS.map(({ to, label, icon: Icon, activeColor }) => (
                   <NavLink key={to} to={to} onClick={closeDrawer}
                     className={({ isActive }) => [
                       'flex items-center gap-3 px-4 py-3 no-underline text-sm font-medium',
-                      isActive ? 'text-accent bg-accent-bg' : 'text-text-secondary',
+                      isActive ? 'bg-accent-bg' : 'text-text-secondary',
                     ].join(' ')}
+                    style={({ isActive }) => isActive
+                      ? { color: activeColor ?? 'var(--accent)' }
+                      : {}
+                    }
                   >
                     <Icon size={18} /> {label}
                   </NavLink>
@@ -600,7 +621,18 @@ export default function Navbar() {
               </div>
 
               {/* Footer action */}
-              <div className="mt-auto p-3 border-t border-divider shrink-0">
+              <div className="mt-auto p-3 border-t border-divider shrink-0 flex flex-col gap-2">
+                <button
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-2 transition-colors border-none bg-transparent cursor-pointer w-full"
+                >
+                  <span className="flex items-center gap-2">
+                    {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-500" />}
+                    Theme Mode
+                  </span>
+                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-surface-2 font-semibold uppercase text-text-muted">{theme}</span>
+                </button>
+
                 {user ? (
                   <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full justify-center">
                     <LogOut size={14} />

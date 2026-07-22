@@ -1,5 +1,5 @@
 export const DOMAINS = [
-  { value: 'all',     label: 'All',          color: '#e8eaf0' },
+  { value: 'all',     label: 'All',          color: 'var(--accent)' },
   { value: 'webdev',  label: 'Web Dev',       color: '#2563eb' },
   { value: 'backend', label: 'Backend',       color: '#059669' },
   { value: 'devops',  label: 'DevOps',        color: '#d97706' },

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   Heart, MessageCircle, Share2, Copy, Check, Send, Users2, CheckCircle, ClipboardList,
-  MoreHorizontal, Pencil, Trash2, X as XIcon, Bookmark,
+  MoreHorizontal, Pencil, Trash2, X as XIcon, Bookmark, Handshake,
 } from 'lucide-react';
 import JoinProjectModal from './JoinProjectModal';
 import CollabRequesters from './CollabRequesters';
@@ -85,7 +85,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
 
   const domain   = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
   const isCollab = post.type === 'collab';
-  const COLLAB_COLOR = '#3a3d4a';
+  const COLLAB_COLOR = '#6366f1';
   const isOwnPost = user && post.author._id === user._id;
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [requested, setRequested]         = useState(false);
@@ -234,10 +234,11 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         {/* Collab badge OR domain badge */}
         {isCollab ? (
           <span
-            className="px-2.5 py-[3px] rounded-full text-xs font-semibold flex items-center gap-1 shrink-0"
-            style={{ background: `${COLLAB_COLOR}18`, color: COLLAB_COLOR }}
+            className="px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-2xs border border-indigo-500/30"
+            style={{ background: 'rgba(99, 102, 241, 0.12)', color: '#6366f1' }}
           >
-            <Users2 size={11} /> Collab
+            <Handshake size={13} className="text-indigo-500 shrink-0" />
+            <span>Collab</span>
           </span>
         ) : (
           <span
@@ -345,12 +346,15 @@ export default function PostCard({ post: initialPost, index = 0 }) {
           className="mt-3.5 px-4 py-3.5 rounded-xl flex flex-col gap-3"
           style={{ background: `${COLLAB_COLOR}0a`, border: `1px solid ${COLLAB_COLOR}25` }}
         >
-          {/* Project name + member progress */}
+          {/* Collab context + member progress */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
             {post.projectName && (
-              <p className="text-[13px] font-bold m-0" style={{ color: COLLAB_COLOR }}>
-                🚀 {post.projectName}
-              </p>
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider m-0">Looking to collab on</p>
+                <p className="text-[13px] font-bold m-0 truncate" style={{ color: COLLAB_COLOR }}>
+                  {post.projectName}
+                </p>
+              </div>
             )}
             {post.membersNeeded === 0 ? (
               /* Unlimited */

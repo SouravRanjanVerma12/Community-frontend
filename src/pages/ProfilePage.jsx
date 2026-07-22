@@ -98,7 +98,7 @@ const TAB_LABELS = {
 const TAB_SOON = [""]; // Settings unlocked for own profile
 
 /* ── Stats panel ── */
-const TYPE_COLORS = { text: '#1e9df1', code: '#8b5cf6', video: '#ec4899', collab: '#3a3d4a' };
+const TYPE_COLORS = { text: '#1e9df1', code: '#8b5cf6', video: '#ec4899', collab: '#6366f1' };
 const TYPE_LABELS = { text: 'Text', code: 'Code', video: 'Video', collab: 'Collab' };
 
 function lastSixMonths() {
