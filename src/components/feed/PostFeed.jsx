@@ -81,7 +81,7 @@ export default function PostFeed({ domain, search, authorDomain = null }) {
         >
           {t.label}
         </button>
-      ))}``
+      ))}
     </div>
   );
 
