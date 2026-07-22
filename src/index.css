@@ -385,3 +385,56 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 }
+
+/* Global Geo Runner Loader */
+@layer components {
+  .geo-runner {
+    position: relative; width: 60px; height: 80px;
+    animation: smooth-bounce 0.6s ease-in-out infinite alternate;
+  }
+  .geo-head {
+    position: absolute; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; top: 0; left: 22px;
+  }
+  .geo-torso {
+    position: absolute; width: 6px; height: 32px; background: var(--text); top: 18px; left: 27px; border-radius: 3px;
+    transform: rotate(15deg);
+  }
+  .geo-leg {
+    position: absolute; width: 6px; height: 24px; background: var(--accent); border-radius: 3px; top: 48px; left: 27px;
+    transform-origin: top center;
+  }
+  .geo-leg.front { animation: leg-swing-f 0.6s ease-in-out infinite alternate; background: var(--accent-light); }
+  .geo-leg.back { animation: leg-swing-b 0.6s ease-in-out infinite alternate; z-index: -1; }
+  .geo-arm {
+    position: absolute; width: 6px; height: 24px; background: var(--text); border-radius: 3px; top: 22px; left: 27px;
+    transform-origin: top center;
+  }
+  .geo-arm.front { animation: arm-swing-f 0.6s ease-in-out infinite alternate; }
+  .geo-arm.back { animation: arm-swing-b 0.6s ease-in-out infinite alternate; z-index: -1; background: var(--text-muted); }
+  
+  @keyframes smooth-bounce { from { transform: translateY(0) rotate(5deg); } to { transform: translateY(-8px) rotate(-2deg); } }
+  @keyframes leg-swing-f { from { transform: rotate(-50deg); } to { transform: rotate(60deg); } }
+  @keyframes leg-swing-b { from { transform: rotate(60deg); } to { transform: rotate(-50deg); } }
+  @keyframes arm-swing-f { from { transform: rotate(70deg); } to { transform: rotate(-40deg); } }
+  @keyframes arm-swing-b { from { transform: rotate(-40deg); } to { transform: rotate(70deg); } }
+
+  .geo-floor {
+    position: absolute; bottom: -10px; left: -20px; width: 100px; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  }
+  .geo-dash {
+    position: absolute; width: 12px; height: 2px; background: var(--text); bottom: 10px; left: 80px; border-radius: 2px;
+    animation: fly-by 0.8s linear infinite;
+  }
+  .geo-dash:nth-child(2) { bottom: 40px; animation-duration: 0.5s; animation-delay: 0.2s; opacity: 0.5; width: 24px; }
+  @keyframes fly-by { from { transform: translateX(40px); } to { transform: translateX(-120px); } }
+}
+
+/* ── Modal Input Overrides ── */
+[class*="bg-card"] input,
+[class*="bg-card"] textarea,
+[class*="bg-card"] select {
+  --input-bg: var(--bg);
+  --input-bg-focus: var(--bg);
+}
+

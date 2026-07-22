@@ -250,12 +250,12 @@ export default function JobApplicantsPage() {
           </div>
         ) : error ? (
           <div className="text-center p-15 text-error text-sm">
-            <AlertTriangle size={32} className="mb-2" />
+            <AlertTriangle size={32} className="mb-2 mx-auto" />
             <p className="m-0 text-sm leading-relaxed">{error}</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center p-15 text-text-muted">
-            <Briefcase size={40} color="var(--text-faint)" className="mb-3" />
+            <Briefcase size={40} color="var(--text-faint)" className="mb-3 mx-auto" />
             <p className="text-[15px] font-semibold text-text-primary mb-1.5">
               {tab === 'all' ? 'No applications yet' : `No ${tab} applications`}
             </p>

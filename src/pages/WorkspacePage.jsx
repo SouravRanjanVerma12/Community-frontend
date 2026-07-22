@@ -583,72 +583,82 @@ function Members({ postId, isOwner }) {
       )}
 
       {/* Invite Modal */}
-      {isInviteModalOpen && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-9999 p-4"
-          onClick={() => setIsInviteModalOpen(false)}
-        >
-          <div
-            className="bg-card rounded-2xl max-w-[460px] w-full px-8 py-7 border border-border shadow-[0_25px_50px_rgba(0,0,0,0.5)]"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {isInviteModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => setIsInviteModalOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-300 p-4"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-text-primary">
-                Invite Member
-              </h2>
-              <button
-                onClick={() => setIsInviteModalOpen(false)}
-                aria-label="Close"
-                className="bg-none border-none text-text-muted cursor-pointer w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-150 hover:bg-surface-2 hover:text-text-primary"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
-                  Email or Username <span className="text-[#ef4444]">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="Enter email or username..."
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleInvite(); }}
-                  className={fieldClasses}
-                />
-                <p className="text-[11px] text-text-muted mt-1">
-                  Enter the email address or username of the person you want to invite.
-                </p>
-              </div>
-
-              <div>
-                <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
-                  Role
-                </label>
-                <select
-                  value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value)}
-                  className={`${fieldClasses} cursor-pointer`}
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card rounded-[24px] max-w-[460px] w-full px-7 py-6 border border-border/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)]"
+            >
+              <div className="flex justify-between items-center mb-5">
+                <h2 className="text-lg font-semibold tracking-tight text-text-primary">
+                  Invite Member
+                </h2>
+                <button
+                  onClick={() => setIsInviteModalOpen(false)}
+                  aria-label="Close"
+                  className="w-8 h-8 rounded-full border border-border/50 bg-surface-1 hover:bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary transition-colors"
                 >
-                  <option value="Contributor">Contributor – Can create and update tasks</option>
-                  <option value="Viewer">Viewer – Can only view tasks and discussions</option>
-                </select>
+                  <X size={16} />
+                </button>
               </div>
 
-              <div className="flex gap-3 justify-end border-t border-border pt-5">
-                <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleInvite} disabled={!inviteEmail.trim() || inviting} isLoading={inviting}>
-                  {inviting ? 'Sending...' : 'Send Invite'}
-                </Button>
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
+                    Email or Username <span className="text-[#ef4444]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="Enter email or username..."
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleInvite(); }}
+                    className={fieldClasses}
+                  />
+                  <p className="text-[11px] text-text-muted mt-1">
+                    Enter the email address or username of the person you want to invite.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
+                    Role
+                  </label>
+                  <select
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value)}
+                    className={`${fieldClasses} cursor-pointer`}
+                  >
+                    <option value="Contributor">Contributor – Can create and update tasks</option>
+                    <option value="Viewer">Viewer – Can only view tasks and discussions</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-3 justify-end border-t border-border/40 pt-5 mt-2">
+                  <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleInvite} disabled={!inviteEmail.trim() || inviting} isLoading={inviting}>
+                    {inviting ? 'Sending...' : 'Send Invite'}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -752,7 +762,7 @@ function Discussion({ postId, leadId }) {
       <div className="flex-1 overflow-y-auto flex flex-col gap-2 pb-3">
         {messages.length === 0 ? (
           <div className="text-center p-10 text-text-muted">
-            <MessageSquare size={32} className="mb-2 opacity-50" />
+            <MessageSquare size={32} className="mx-auto mb-2 opacity-50" />
             <p className="text-sm">No messages yet. Start the discussion!</p>
           </div>
         ) : messages.map((msg, i) => {
@@ -778,7 +788,7 @@ function Discussion({ postId, leadId }) {
                   </span>
                 )}
                 <div
-                  className={`px-3.5 py-2.5 text-sm leading-[1.5] break-word text-text-primary ${isMe ? 'rounded-[16px_16px_4px_16px]' : 'rounded-[16px_16px_16px_4px]'} ${!isMe && isLead ? 'font-medium' : 'font-normal'}`}
+                  className={`px-3.5 py-2.5 text-sm leading-normal break-word text-text-primary ${isMe ? 'rounded-[16px_16px_4px_16px]' : 'rounded-[16px_16px_16px_4px]'} ${!isMe && isLead ? 'font-medium' : 'font-normal'}`}
                   style={{
                     background: isMe ? CC : isLead ? `${CC}14` : 'var(--surface-2)',
                     color: isMe ? '#fff' : 'var(--text-primary)',
@@ -1105,101 +1115,111 @@ function Resources({ postId, isOwner }) {
       )}
 
       {/* Add/Edit Modal */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-9999 p-4"
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div
-            className="bg-card rounded-2xl max-w-[520px] w-full px-8 py-7 border border-border shadow-[0_25px_50px_rgba(0,0,0,0.5)]"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => setIsModalOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-300 p-4"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-text-primary">
-                {editingId ? 'Edit Resource' : 'Add Resource'}
-              </h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                aria-label="Close"
-                className="bg-none border-none text-text-muted cursor-pointer w-9 h-9 flex items-center justify-center rounded-lg transition-colors duration-150 hover:bg-surface-2 hover:text-text-primary"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
-                  Resource Name <span className="text-[#ef4444]">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
-                  placeholder="e.g., Backend API Docs"
-                  className={fieldClasses}
-                />
-              </div>
-
-              <div>
-                <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
-                  URL <span className="text-[#ef4444]">*</span>
-                </label>
-                <input
-                  type="url"
-                  value={form.url}
-                  onChange={(e) => setForm(f => ({ ...f, url: e.target.value }))}
-                  placeholder="https://github.com/your-repo"
-                  className={fieldClasses}
-                />
-              </div>
-
-              <div>
-                <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
-                  Type
-                </label>
-                <select
-                  value={form.type}
-                  onChange={(e) => setForm(f => ({ ...f, type: e.target.value }))}
-                  className={`${fieldClasses} cursor-pointer`}
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card rounded-[24px] max-w-[520px] w-full px-7 py-6 border border-border/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)]"
+            >
+              <div className="flex justify-between items-center mb-5">
+                <h2 className="text-lg font-semibold tracking-tight text-text-primary">
+                  {editingId ? 'Edit Resource' : 'Add Resource'}
+                </h2>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  aria-label="Close"
+                  className="w-8 h-8 rounded-full border border-border/50 bg-surface-1 hover:bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary transition-colors"
                 >
-                  <option value="github">GitHub</option>
-                  <option value="figma">Figma</option>
-                  <option value="docs">Docs</option>
-                  <option value="deploy">Deploy</option>
-                  <option value="other">Other</option>
-                </select>
+                  <X size={16} />
+                </button>
               </div>
 
-              <div>
-                <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
-                  Description (optional)
-                </label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
-                  placeholder="Brief description of this resource..."
-                  rows={2}
-                  className={`${fieldClasses} resize-y`}
-                />
-              </div>
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
+                    Resource Name <span className="text-[#ef4444]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
+                    placeholder="e.g., Backend API Docs"
+                    className={fieldClasses}
+                  />
+                </div>
 
-              <div className="flex gap-3 justify-end border-t border-border pt-5">
-                <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={editingId ? updateResource : addResource}
-                  disabled={!form.title.trim() || !form.url.trim() || saving}
-                  isLoading={saving}
-                >
-                  {saving ? 'Saving...' : (editingId ? 'Update Resource' : 'Add Resource')}
-                </Button>
+                <div>
+                  <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
+                    URL <span className="text-[#ef4444]">*</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={form.url}
+                    onChange={(e) => setForm(f => ({ ...f, url: e.target.value }))}
+                    placeholder="https://github.com/your-repo"
+                    className={fieldClasses}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
+                    Type
+                  </label>
+                  <select
+                    value={form.type}
+                    onChange={(e) => setForm(f => ({ ...f, type: e.target.value }))}
+                    className={`${fieldClasses} cursor-pointer`}
+                  >
+                    <option value="github">GitHub</option>
+                    <option value="figma">Figma</option>
+                    <option value="docs">Docs</option>
+                    <option value="deploy">Deploy</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
+                    Description (optional)
+                  </label>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
+                    placeholder="Brief description of this resource..."
+                    rows={2}
+                    className={`${fieldClasses} resize-y`}
+                  />
+                </div>
+
+                <div className="flex gap-3 justify-end border-t border-border/40 pt-5 mt-2">
+                  <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={editingId ? updateResource : addResource}
+                    disabled={!form.title.trim() || !form.url.trim() || saving}
+                    isLoading={saving}
+                  >
+                    {saving ? 'Saving...' : (editingId ? 'Update Resource' : 'Add Resource')}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -2282,7 +2302,7 @@ export default function WorkspacePage() {
             return (
               <motion.button
                 key={id} onClick={() => setSection(id)} whileTap={{ scale: 0.97 }}
-                className={`relative flex items-center gap-2.5 p-2.5 min-h-11 box-border rounded-[9px] border-none cursor-pointer text-left w-full text-sm transition-colors duration-[120ms] ${active ? 'font-bold' : 'font-medium'}`}
+                className={`relative flex items-center gap-2.5 p-2.5 min-h-11 box-border rounded-[9px] border-none cursor-pointer text-left w-full text-sm transition-colors duration-120 ${active ? 'font-bold' : 'font-medium'}`}
                 style={{ background: active ? `${CC}14` : 'transparent', color: active ? CC : 'var(--text-secondary)' }}
               >
                 <Icon size={15} strokeWidth={active ? 2.5 : 2} />
@@ -2300,7 +2320,7 @@ export default function WorkspacePage() {
             return (
               <button
                 key={id} onClick={() => setSection(id)}
-                className={`flex items-center gap-1.5 shrink-0 px-3.5 py-2.5 min-h-11 box-border rounded-[9px] border-none cursor-pointer whitespace-nowrap text-[13px] transition-colors duration-[120ms] ${active ? 'font-bold' : 'font-medium'}`}
+                className={`flex items-center gap-1.5 shrink-0 px-3.5 py-2.5 min-h-11 box-border rounded-[9px] border-none cursor-pointer whitespace-nowrap text-[13px] transition-colors duration-120 ${active ? 'font-bold' : 'font-medium'}`}
                 style={{ background: active ? `${CC}14` : 'transparent', color: active ? CC : 'var(--text-secondary)' }}
               >
                 <Icon size={15} strokeWidth={active ? 2.5 : 2} />

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '../stores/authStore';
 import AuthBrandPanel from '../components/auth/AuthBrandPanel';
 import RegisterForm from '../components/auth/RegisterForm';
+import Logo from '../components/ui/Logo';
 
 const cardThemeVars = {
   '--input-bg': 'rgba(255, 255, 255, 0.05)',
@@ -82,9 +83,8 @@ export default function RegisterPage() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Logo */}
-            <div className="flex items-center gap-2.5 mb-[26px]">
-              <div className="w-[34px] h-[34px] rounded-full shrink-0 bg-[radial-gradient(circle_at_35%_35%,#fff_0%,#a5b4fc_42%,#4338ca_100%)] shadow-[0_0_16px_rgba(165,180,252,0.45)]" />
-              <span className="font-[Outfit,system-ui,sans-serif]! font-bold text-lg text-white tracking-[-0.3px]">Prograstic</span>
+            <div className="mb-[26px]">
+              <Logo size={34} showText={true} variant="dark" />
             </div>
 
             {/* Heading */}

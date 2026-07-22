@@ -37,6 +37,7 @@ export default function NotificationBell() {
     }
     setOpen(false);
     if (notification.post) navigate(`/project/${notification.post}`);
+    else if (['message', 'friend_request', 'friend_accepted'].includes(notification.type)) navigate('/messages');
   };
 
   const handleMarkAllRead = () => {

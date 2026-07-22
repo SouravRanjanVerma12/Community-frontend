@@ -36,9 +36,14 @@ function DiscoverTab() {
   const [search,         setSearch]         = useState('');
   const [workMode,       setWorkMode]       = useState('');
   const [employmentType, setEmploymentType] = useState('');
+  const [location,       setLocation]       = useState('');
   const [showFilters,    setShowFilters]    = useState(false);
 
-  const { data: jobs = [], isLoading } = useJobs({ workMode, employmentType, search });
+  const { user } = useAuthStore();
+  const { data: applications = [] } = useMyApplications(!!user);
+  const { data: jobs = [], isLoading } = useJobs({ workMode, employmentType, location, search });
+
+  const appliedJobIds = new Set(applications.map((a) => a.job?._id));
 
   return (
     <div>
@@ -60,7 +65,7 @@ function DiscoverTab() {
             color: showFilters ? JC : 'var(--text-secondary)',
           }}
         >
-          <Sliders size={14} /> Filters {(workMode || employmentType) && '•'}
+          <Sliders size={14} /> Filters {(workMode || employmentType || location) && '•'}
         </button>
       </div>
 
@@ -125,13 +130,13 @@ function DiscoverTab() {
         </div>
       ) : jobs.length === 0 ? (
         <div className="text-center px-5 py-15 text-text-muted">
-          <Briefcase size={40} color="var(--text-faint)" className="mb-3" />
+          <Briefcase size={40} color="var(--text-faint)" className="mb-3 mx-auto" />
           <p className="text-[15px] font-semibold text-text-primary mb-1.5">No jobs found</p>
           <p className="text-[13px]">Try different filters, or post the first opening!</p>
         </div>
       ) : (
         <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-          {jobs.map((j, i) => <JobCard key={j._id} job={j} index={i} />)}
+          {jobs.map((j, i) => <JobCard key={j._id} job={j} index={i} applied={appliedJobIds.has(j._id)} />)}
         </div>
       )}
     </div>
@@ -175,27 +180,37 @@ function MyApplicationsTab() {
 
   if (applications.length === 0) return (
     <div className="text-center px-5 py-15 text-text-muted">
-      <ClipboardCheck size={40} color="var(--text-faint)" className="mb-3" />
+      <ClipboardCheck size={40} color="var(--text-faint)" className="mb-3 mx-auto" />
       <p className="text-[15px] font-semibold text-text-primary mb-1.5">No applications yet</p>
       <p className="text-[13px]">Browse Discover and apply to a job that fits you.</p>
     </div>
   );
 
   return (
-    <div className="flex flex-col gap-2.5">
-      {applications.map((a) => {
+    <div className="flex flex-col gap-4">
+      {applications.map((a, i) => {
         const s = APPLICATION_STATUS_STYLES[a.status];
         const Icon = s.icon;
         return (
-          <div key={a._id} className="bg-card border border-card-border rounded-xl px-4 py-3.5 flex items-center gap-3">
-            <div className="flex-1">
-              <p className="text-sm font-bold text-text-primary mb-0.5">{a.job?.title}</p>
-              <p className="text-xs text-text-muted">{a.job?.company} {a.job?.location && `· ${a.job.location}`}</p>
+          <motion.div 
+            key={a._id} 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05, duration: 0.4, type: 'spring', stiffness: 100, damping: 20 }}
+            whileHover={{ scale: 1.01 }}
+            className="group bg-card/90 backdrop-blur-sm border border-border/40 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.08)] transition-all cursor-pointer"
+          >
+            <div className="w-11 h-11 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-colors">
+              <ClipboardCheck size={20} />
             </div>
-            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold" style={{ background: s.bg, color: s.color }}>
-              <Icon size={12} /> {s.label}
+            <div className="flex-1">
+              <p className="text-[16px] font-bold text-text-primary tracking-tight mb-0.5 group-hover:text-accent transition-colors">{a.job?.title}</p>
+              <p className="text-[13px] text-text-muted font-medium">{a.job?.company} {a.job?.location && <span className="opacity-60">· {a.job.location}</span>}</p>
+            </div>
+            <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold" style={{ background: `${s.bg}90`, color: s.color, border: `1px solid ${s.color}25` }}>
+              <Icon size={14} /> {s.label}
             </span>
-          </div>
+          </motion.div>
         );
       })}
     </div>

@@ -24,8 +24,15 @@ blob-report
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# AI/Agent config
+.claude/
+
+# Vercel deployments
+.vercel/

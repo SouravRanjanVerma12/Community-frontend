@@ -4,16 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   Heart, MessageCircle, Share2, Copy, Check, Send, Users2, CheckCircle, ClipboardList,
-  MoreHorizontal, Pencil, Trash2, X as XIcon, Bookmark,
+  MoreHorizontal, Pencil, Trash2, X as XIcon, Bookmark, Handshake,
 } from 'lucide-react';
 import JoinProjectModal from './JoinProjectModal';
 import CollabRequesters from './CollabRequesters';
 import { confirm } from '../ui/ConfirmDialog';
 import { DOMAINS } from '../../data/mockPosts';
 import { useAuthStore } from '../../stores/authStore';
-import { getSocket, useSocketStore } from '../../stores/socketStore';
 import api from '../../api/axiosInstance';
-import { useComments, appendCachedComment, removeCachedComment } from '../../hooks/useComments';
+import { useComments, removeCachedComment } from '../../hooks/useComments';
 import { updateCachedPost, removeCachedPost, useBookmarkedPosts, toggleCachedBookmark } from '../../hooks/usePosts';
 
 function Avatar({ name, src, size = 36 }) {
@@ -73,7 +72,10 @@ function CodeBlock({ code, language }) {
 
 export default function PostCard({ post: initialPost, index = 0 }) {
   const { user } = useAuthStore();
-  const [post, setPost] = useState(initialPost);
+  // `post` is just the current prop — no local shadow copy. Live updates (likes,
+  // comments, edits, deletes) come in via socketStore's centralized listeners
+  // writing into the react-query cache, which flows back down as a fresh prop.
+  const post = initialPost;
   const [showComments, setShowComments] = useState(false);
   const { data: comments = [], isLoading: commentsLoading } = useComments(post._id, showComments);
   const [newComment, setNewComment] = useState('');
@@ -81,10 +83,9 @@ export default function PostCard({ post: initialPost, index = 0 }) {
   const { data: bookmarkedPosts = [] } = useBookmarkedPosts(!!user);
   const isBookmarked = bookmarkedPosts.some((p) => p._id === post._id);
 
-  const connected = useSocketStore((s) => s.connected);
   const domain   = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
   const isCollab = post.type === 'collab';
-  const COLLAB_COLOR = '#3a3d4a';
+  const COLLAB_COLOR = '#6366f1';
   const isOwnPost = user && post.author._id === user._id;
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [requested, setRequested]         = useState(false);
@@ -103,53 +104,12 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Resync the optimistic like-toggle when the post prop changes for a reason
+  // other than this user's own click (e.g. someone else's like arriving via
+  // socketStore -> react-query cache -> fresh prop).
   useEffect(() => {
-    const socket = getSocket();
-    if (!socket || !connected) return;
-
-    const onUpdated = (data) => {
-      if (data.postId === post._id) {
-        setPost((p) => ({ ...p, likes: data.likes }));
-        setLiked(data.likes.includes(user?._id));
-      }
-    };
-
-    const onCommented = (data) => {
-      if (data.postId === post._id) {
-        setPost((p) => ({ ...p, commentCount: data.commentCount }));
-        appendCachedComment(post._id, data.comment);
-      }
-    };
-
-    const onEdited = (data) => {
-      if (data.postId === post._id) setPost(data.post);
-    };
-
-    const onDeleted = (data) => {
-      if (data.postId === post._id) setDeleted(true);
-    };
-
-    const onCommentDeleted = (data) => {
-      if (data.postId === post._id) {
-        setPost((p) => ({ ...p, commentCount: data.commentCount }));
-        removeCachedComment(post._id, data.commentId);
-      }
-    };
-
-    socket.on('post:updated', onUpdated);
-    socket.on('post:commented', onCommented);
-    socket.on('post:edited', onEdited);
-    socket.on('post:deleted', onDeleted);
-    socket.on('post:commentDeleted', onCommentDeleted);
-
-    return () => {
-      socket.off('post:updated', onUpdated);
-      socket.off('post:commented', onCommented);
-      socket.off('post:edited', onEdited);
-      socket.off('post:deleted', onDeleted);
-      socket.off('post:commentDeleted', onCommentDeleted);
-    };
-  }, [post._id, user?._id, connected]);
+    setLiked(post.likes?.includes(user?._id));
+  }, [post.likes, user?._id]);
 
   const toggleLike = async () => {
     if (!user) return;
@@ -184,8 +144,14 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     await api.post(`/posts/${post._id}/comments`, { text: txt });
   };
 
-  const share = () => {
-    navigator.clipboard.writeText(window.location.href);
+  const share = async () => {
+    const url = `${window.location.origin}/explore?post=${post._id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Post link copied to clipboard.');
+    } catch {
+      toast.error('Could not copy link.');
+    }
   };
 
   const startEdit = () => {
@@ -208,7 +174,6 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         ? { title: editTitle.trim(), codeSnippet: editBody }
         : { title: editTitle.trim(), body: editBody };
       const { data } = await api.patch(`/posts/${post._id}`, payload);
-      setPost(data.post);
       updateCachedPost(post._id, data.post);
       setEditing(false);
       toast.success('Post updated');
@@ -237,7 +202,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     try {
       const { data } = await api.delete(`/posts/${post._id}/comments/${commentId}`);
       removeCachedComment(post._id, commentId);
-      setPost((p) => ({ ...p, commentCount: data.commentCount }));
+      updateCachedPost(post._id, { ...post, commentCount: data.commentCount });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to delete comment');
     }
@@ -264,7 +229,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         </Link>
         <div className="flex-1 min-w-0">
           <Link to={`/profile/${post.author._id}`} className="no-underline">
-            <p className="text-sm font-semibold text-text-primary m-0 inline transition-colors duration-[120ms] hover:text-accent">
+            <p className="text-sm font-semibold text-text-primary m-0 inline transition-colors duration-120 hover:text-accent">
               {post.author.name}
             </p>
           </Link>
@@ -275,10 +240,11 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         {/* Collab badge OR domain badge */}
         {isCollab ? (
           <span
-            className="px-2.5 py-[3px] rounded-full text-xs font-semibold flex items-center gap-1 shrink-0"
-            style={{ background: `${COLLAB_COLOR}18`, color: COLLAB_COLOR }}
+            className="px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-2xs border border-indigo-500/30"
+            style={{ background: 'rgba(99, 102, 241, 0.12)', color: '#6366f1' }}
           >
-            <Users2 size={11} /> Collab
+            <Handshake size={13} className="text-indigo-500 shrink-0" />
+            <span>Collab</span>
           </span>
         ) : (
           <span
@@ -386,12 +352,15 @@ export default function PostCard({ post: initialPost, index = 0 }) {
           className="mt-3.5 px-4 py-3.5 rounded-xl flex flex-col gap-3"
           style={{ background: `${COLLAB_COLOR}0a`, border: `1px solid ${COLLAB_COLOR}25` }}
         >
-          {/* Project name + member progress */}
+          {/* Collab context + member progress */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
             {post.projectName && (
-              <p className="text-[13px] font-bold m-0" style={{ color: COLLAB_COLOR }}>
-                🚀 {post.projectName}
-              </p>
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider m-0">Looking to collab on</p>
+                <p className="text-[13px] font-bold m-0 truncate" style={{ color: COLLAB_COLOR }}>
+                  {post.projectName}
+                </p>
+              </div>
             )}
             {post.membersNeeded === 0 ? (
               /* Unlimited */
@@ -556,9 +525,9 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         {joinModalOpen && (
           <JoinProjectModal
             post={post}
-            onClose={() => {
+            onClose={(success) => {
               setJoinModalOpen(false);
-              setRequested(true);
+              if (success) setRequested(true);
             }}
           />
         )}
@@ -655,7 +624,7 @@ function ActionBtn({ icon, label, onClick, active, activeColor }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-[5px] px-2.5 py-[5px] rounded-lg border-none bg-transparent text-[13px] font-medium transition-colors duration-[120ms] hover:bg-hover ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`flex items-center gap-[5px] px-2.5 py-[5px] rounded-lg border-none bg-transparent text-[13px] font-medium transition-colors duration-120 hover:bg-hover ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
       style={{ color: active ? activeColor : 'var(--text-muted)' }}
     >
       {icon}

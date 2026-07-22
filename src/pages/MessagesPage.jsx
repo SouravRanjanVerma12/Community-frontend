@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, Send, ArrowLeft,
@@ -232,7 +232,6 @@ function ChatWindow({ friend, onBack }) {
 /* ── Main Messages Page ── */
 export default function MessagesPage() {
   const { user } = useAuthStore();
-  const navigate = useNavigate();
   const [active, setActive] = useState(null); // friend object currently chatting
 
   const { data: friends = [], isLoading: friendsLoading } = useFriends();
@@ -241,7 +240,10 @@ export default function MessagesPage() {
 
   const { isOnline } = useSocketStore();
 
-  if (!user) { navigate('/'); return null; }
+  // `user` populates async after `accessToken` rehydrates from storage, so this is
+  // briefly true on every fresh load of this route — don't navigate() during render
+  // (that fired mid-render and raced with AuthPage's own redirect effect).
+  if (!user) return <div className="text-center p-15 text-text-muted">Log in to see your messages.</div>;
 
   const handleAccept = async (requestId) => {
     await api.post(`/friends/accept/${requestId}`);

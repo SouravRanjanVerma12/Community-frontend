@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Briefcase, MapPin, Clock, ClipboardList, CheckCircle, Wallet } from 'lucide-react';
+import { Briefcase, MapPin, Clock, ClipboardList, CheckCircle, Wallet, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import ApplyJobModal from './ApplyJobModal';
-import Button from '../ui/Button';
-
-const JC = '#1e9df1';
 
 const WORK_MODE_LABELS = { remote: 'Remote', onsite: 'On-site', hybrid: 'Hybrid' };
 const EMPLOYMENT_LABELS = { 'full-time': 'Full-time', 'part-time': 'Part-time', contract: 'Contract', internship: 'Internship' };
@@ -37,46 +34,52 @@ export default function JobCard({ job, index = 0, showReviewLink = false, applie
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        whileHover={{ y: -3, boxShadow: `0 8px 32px ${JC}18, 0 2px 8px rgba(0,0,0,0.08)` }}
-        className="bg-card rounded-2xl p-5 flex flex-col gap-3.5 shadow-sm transition-[box-shadow,transform] duration-200 cursor-default"
-        style={{ border: `1px solid ${JC}28` }}
+        transition={{ delay: index * 0.05, duration: 0.4, type: 'spring', stiffness: 100, damping: 20 }}
+        whileHover="hover"
+        whileTap={{ scale: 0.98 }}
+        className="group relative bg-card/90 backdrop-blur-sm rounded-[24px] p-5 flex flex-col gap-3 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] transition-all duration-300 border border-border/40 cursor-pointer overflow-hidden"
+        onClick={() => {
+          if (!isOwn && !hasApplied && !closed) setApplyOpen(true);
+        }}
       >
+        {/* Subtle background glow */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -z-10 group-hover:bg-accent/10 transition-colors" />
+
         {/* Top: work mode + employment type + time */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-1.5">
-            <span className="px-2.5 py-[3px] rounded-full text-[11px] font-semibold" style={{ background: `${JC}14`, color: JC }}>
+            <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-accent/10 text-accent border border-accent/20">
               {WORK_MODE_LABELS[job.workMode] ?? job.workMode}
             </span>
-            <span className="px-2.5 py-[3px] rounded-full text-[11px] font-semibold bg-surface-2 text-text-secondary">
+            <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-surface-2 text-text-secondary border border-border/50">
               {EMPLOYMENT_LABELS[job.employmentType] ?? job.employmentType}
             </span>
             {closed && (
-              <span className="px-2.5 py-[3px] rounded-full text-[11px] font-semibold bg-[rgba(239,68,68,0.1)] text-[#dc2626]">Closed</span>
+              <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-red-500/10 text-red-500 border border-red-500/20">Closed</span>
             )}
           </div>
-          <span className="flex items-center gap-1 text-[11px] text-text-muted">
+          <span className="flex items-center gap-1 text-[11px] font-medium text-text-muted">
             <Clock size={11} /> {timeAgo(job.createdAt)}
           </span>
         </div>
 
         {/* Title + company */}
-        <div>
-          <h3 className="text-[15px] font-bold text-text-primary leading-[1.4] tracking-[-0.2px]">
+        <div className="mt-1">
+          <h3 className="text-[16px] font-bold text-text-primary leading-snug tracking-tight group-hover:text-accent transition-colors">
             {job.title}
           </h3>
-          <p className="text-[13px] font-semibold mt-0.5" style={{ color: JC }}>
+          <p className="text-[13px] font-semibold mt-0.5 text-accent">
             {job.company}
           </p>
           {job.location && (
-            <p className="text-xs text-text-muted mt-1 flex items-center gap-1">
+            <p className="text-xs text-text-muted mt-1.5 flex items-center gap-1">
               <MapPin size={11} /> {job.location}
             </p>
           )}
           {job.description && (
-            <p className="text-[13px] text-text-secondary leading-[1.6] mt-1.5 line-clamp-2">
+            <p className="text-[13px] text-text-secondary leading-relaxed mt-2.5 line-clamp-2">
               {job.description}
             </p>
           )}
@@ -84,65 +87,73 @@ export default function JobCard({ job, index = 0, showReviewLink = false, applie
 
         {/* Skills */}
         {job.skills?.length > 0 && (
-          <div className="flex flex-wrap gap-[5px]">
+          <div className="flex flex-wrap gap-1.5 mt-1">
             {job.skills.map((s) => (
-              <span key={s} className="px-2.5 py-[3px] rounded-md bg-surface-2 text-text-secondary text-[11px] font-medium font-mono">{s}</span>
+              <span key={s} className="px-2.5 py-[3px] rounded-md bg-surface-1 text-text-secondary text-[11px] font-medium font-mono border border-border/40">{s}</span>
             ))}
           </div>
         )}
 
         {/* Salary */}
         {job.salaryRange && (
-          <p className="text-xs font-semibold text-text-secondary flex items-center gap-1">
-            <Wallet size={12} /> {job.salaryRange}
+          <p className="text-xs font-semibold text-text-secondary flex items-center gap-1.5 mt-1">
+            <Wallet size={12} className="text-accent" /> {job.salaryRange}
           </p>
         )}
 
-        {/* Divider */}
-        <div className="h-px bg-divider" />
-
-        {/* Footer: author + stats + action */}
-        <div className="flex items-center gap-2.5">
+        {/* Footer */}
+        <div className="flex items-center gap-2 mt-auto pt-3 border-t border-border/40">
           {/* Poster */}
-          <Link to={`/profile/${job.postedBy?._id}`} className="flex items-center gap-1.5 no-underline shrink-0">
+          <Link to={`/profile/${job.postedBy?._id}`} className="flex items-center gap-1.5 no-underline shrink-0 group/avatar z-10" onClick={(e) => e.stopPropagation()}>
             <Avatar name={job.postedBy?.name} src={job.postedBy?.avatarUrl} size={24} />
-            <span className="text-xs text-text-muted font-medium">{job.postedBy?.name}</span>
+            <span className="text-[12px] text-text-muted font-medium group-hover/avatar:text-text-primary transition-colors">{job.postedBy?.name}</span>
           </Link>
 
           <div className="flex-1" />
 
           {/* Applicant count */}
           {(job.applicantCount ?? 0) > 0 && (
-            <span className="text-[11px] font-semibold text-[#d97706]">🔥 {job.applicantCount} applied</span>
+            <span className="shrink-0 whitespace-nowrap text-[11px] font-semibold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full">🔥 {job.applicantCount} applied</span>
           )}
 
-          {/* Action button */}
-          {isOwn ? (
-            showReviewLink && (job.applicantCount ?? 0) > 0 ? (
-              <Link to={`/jobs/${job._id}/applicants`} className="no-underline">
-                <Button size="sm" style={{ padding: '6px 12px', fontSize: '12px', minHeight: 'auto' }}>
-                  <ClipboardList size={12} /> Review ({job.applicantCount})
-                </Button>
-              </Link>
+          {/* Action Area */}
+          <div className="z-10 shrink-0 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+            {isOwn ? (
+              showReviewLink && (job.applicantCount ?? 0) > 0 ? (
+                <Link to={`/jobs/${job._id}/applicants`} className="no-underline block">
+                  <motion.div 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-xl bg-accent text-white shadow-sm shadow-accent/20"
+                  >
+                    <ClipboardList size={14} /> Review
+                  </motion.div>
+                </Link>
+              ) : (
+                <span className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg text-accent bg-accent/10 border border-accent/20">Your posting</span>
+              )
+            ) : hasApplied ? (
+              <span className="flex items-center gap-1 text-xs font-semibold text-green-500 bg-green-500/10 px-2.5 py-1.5 rounded-lg">
+                <CheckCircle size={13} /> Applied
+              </span>
+            ) : closed ? (
+              <span className="text-[11px] font-medium text-text-muted bg-surface-2 px-2.5 py-1.5 rounded-lg">Closed</span>
             ) : (
-              <span className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg" style={{ color: JC, background: `${JC}10`, border: `1px solid ${JC}25` }}>Your posting</span>
-            )
-          ) : hasApplied ? (
-            <span className="flex items-center gap-1 text-xs font-semibold text-[#16a34a]">
-              <CheckCircle size={13} /> Applied
-            </span>
-          ) : closed ? (
-            <span className="text-[11px] font-medium text-text-muted">Closed</span>
-          ) : (
-            <Button size="sm" onClick={() => setApplyOpen(true)} style={{ padding: '6px 14px', fontSize: '12px', minHeight: 'auto' }}>
-              <Briefcase size={12} /> Apply
-            </Button>
-          )}
+              <motion.button 
+                onClick={() => setApplyOpen(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1.5 text-[12px] font-semibold px-3.5 py-1.5 rounded-xl bg-text-primary text-card hover:bg-accent hover:text-white transition-colors shadow-sm"
+              >
+                Apply <ArrowRight size={14} />
+              </motion.button>
+            )}
+          </div>
         </div>
       </motion.div>
 
       {applyOpen && (
-        <ApplyJobModal job={job} onClose={() => { setApplyOpen(false); setJustApplied(true); onApplied?.(); }} />
+        <ApplyJobModal job={job} onClose={(success) => { setApplyOpen(false); if (success) { setJustApplied(true); onApplied?.(); } }} />
       )}
     </>
   );

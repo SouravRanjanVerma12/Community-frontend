@@ -63,46 +63,71 @@ export default function PostJobModal({ onClose }) {
   };
 
   return createPortal(
-    <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      onClick={onClose}
-      className="fixed inset-0 z-300 bg-black/45 backdrop-blur-[5px] flex items-center justify-center p-5"
-    >
+    <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 28, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 16, scale: 0.97 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[560px] max-h-[90svh] overflow-y-auto bg-card rounded-[18px]"
-        style={{ border: `1px solid ${JC}35`, boxShadow: `0 24px 80px rgba(0,0,0,0.25), 0 0 0 1px ${JC}20` }}
+        key="backdrop"
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        onClick={onClose}
+        className="fixed inset-0 z-300 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
       >
+        <motion.div
+          key="modal-card"
+          layout
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+          onClick={(e) => e.stopPropagation()}
+          className="w-full max-w-[560px] max-h-[90svh] overflow-y-auto scrollbar-none bg-card rounded-[24px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)] border border-border/50"
+        >
         {/* Header */}
-        <div className="px-[22px] pt-5 flex items-start justify-between gap-3 sticky top-0 bg-card pb-3">
-          <div className="flex items-center gap-[7px]">
-            <Briefcase size={16} color={JC} />
-            <h2 className="text-base font-bold text-text-primary">Post a job</h2>
+        <motion.div layout="position" className="px-7 pt-7 pb-3 flex items-start justify-between gap-4 sticky top-0 bg-card z-10 border-b border-border/40">
+          <div className="flex items-center gap-2">
+            <Briefcase size={18} className="text-accent" />
+            <h2 className="text-lg font-semibold tracking-tight text-text-primary">Post a job</h2>
           </div>
-          <button onClick={onClose} className="w-7 h-7 rounded-full border-none bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary shrink-0">
-            <X size={14} />
+          <button 
+            onClick={onClose} 
+            className="w-8 h-8 rounded-full border border-border/50 bg-surface-1 hover:bg-surface-2 flex items-center justify-center cursor-pointer text-text-secondary shrink-0 transition-colors"
+          >
+            <X size={16} />
           </button>
-        </div>
+        </motion.div>
 
         {done ? (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="px-[22px] py-10 text-center">
-            <CheckCircle size={48} color="#22c55e" className="mb-4" />
-            <h3 className="text-lg font-bold text-text-primary mb-2">Job posted!</h3>
-            <p className="text-sm text-text-muted mb-6">
-              It's now live in the Jobs Discover tab.
+          <motion.div 
+            key="success-view"
+            layout="position"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+            className="px-7 py-16 flex flex-col items-center text-center"
+          >
+            <div className="w-20 h-20 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-6">
+              <motion.svg
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+                width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </motion.svg>
+            </div>
+            <h3 className="text-xl font-bold tracking-tight text-text-primary mb-2">Job Posted</h3>
+            <p className="text-[15px] text-text-muted max-w-[320px] mb-8 leading-relaxed">
+              Your job posting is now live in the Jobs Discover tab.
             </p>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={onClose}
-              className="px-7 py-2.5 rounded-[10px] border-none text-white text-sm font-semibold cursor-pointer"
-              style={{ background: JC }}
+              className="px-8 py-3 rounded-full bg-accent text-white text-[15px] font-medium shadow-[0_4px_12px_var(--accent-light)] hover:shadow-[0_6px_16px_var(--accent-light)] transition-shadow"
             >
               Done
-            </button>
+            </motion.button>
           </motion.div>
         ) : (
           <form onSubmit={handleSubmit} className="px-[22px] pt-1 pb-[22px] flex flex-col gap-3.5">
@@ -196,7 +221,8 @@ export default function PostJobModal({ onClose }) {
           </form>
         )}
       </motion.div>
-    </motion.div>,
+    </motion.div>
+    </AnimatePresence>,
     document.body
   );
 }

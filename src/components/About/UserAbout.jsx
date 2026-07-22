@@ -1,10 +1,11 @@
 // src/components/profile/UserAbout.jsx
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 import {
   Briefcase, GraduationCap, GitBranch, Globe,
   Edit3, Save, X, Plus, Trash2, Link2, Calendar,
-  CheckCircle, AlertCircle, Loader2, Users, Star, Award,
+  CheckCircle, Loader2, Users, Star, Award,
   // Use these instead:
   Code, User, Share2,
 } from 'lucide-react';
@@ -12,6 +13,7 @@ import { useAuthStore } from "../../stores/authStore";
 import api from "../../api/axiosInstance";
 import { confirm } from "../ui/ConfirmDialog";
 import Button from "../ui/Button";
+import { DEV_DOMAINS, EXPERIENCE_LEVELS, AVAILABILITY_OPTIONS, WORK_PREFERENCES } from "../../data/profileOptions";
 
 /* ── helpers ── */
 function formatDate(dateStr) {
@@ -340,6 +342,126 @@ export function RolePicker({ roles, isEditing, onToggle }) {
   );
 }
 
+/* --- Domain picker (multi-select toggle chips, dev-specific taxonomy) --- */
+export function DomainPicker({ domain, isEditing, onToggle }) {
+  if (!isEditing && domain.length === 0) {
+    return <span className="text-[13px] text-text-muted">Not specified</span>;
+  }
+  const options = isEditing ? DEV_DOMAINS : DEV_DOMAINS.filter((d) => domain.includes(d.value));
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map(({ value, label }) => {
+        const active = domain.includes(value);
+        if (!isEditing) {
+          return (
+            <span key={value} className="px-3 py-1 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border">
+              {label}
+            </span>
+          );
+        }
+        return (
+          <button
+            key={value} type="button" onClick={() => onToggle(value)}
+            className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors duration-150 ${active ? 'bg-accent-bg text-accent border border-accent-border' : 'bg-transparent text-text-secondary border border-border'}`}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* --- Experience level picker (single-select) --- */
+export function ExperienceLevelPicker({ experienceLevel, isEditing, onSelect }) {
+  if (!isEditing && !experienceLevel) {
+    return <span className="text-[13px] text-text-muted">Not specified</span>;
+  }
+  if (!isEditing) {
+    const label = EXPERIENCE_LEVELS.find((l) => l.value === experienceLevel)?.label ?? experienceLevel;
+    return (
+      <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border">
+        {label}
+      </span>
+    );
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {EXPERIENCE_LEVELS.map(({ value, label }) => {
+        const active = experienceLevel === value;
+        return (
+          <button
+            key={value} type="button" onClick={() => onSelect(active ? '' : value)}
+            className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors duration-150 ${active ? 'bg-accent-bg text-accent border border-accent-border' : 'bg-transparent text-text-secondary border border-border'}`}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* --- Availability picker (multi-select toggle chips) --- */
+export function AvailabilityPicker({ availability, isEditing, onToggle }) {
+  if (!isEditing && availability.length === 0) {
+    return <span className="text-[13px] text-text-muted">Not specified</span>;
+  }
+  const options = isEditing ? AVAILABILITY_OPTIONS : AVAILABILITY_OPTIONS.filter((a) => availability.includes(a.value));
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map(({ value, label }) => {
+        const active = availability.includes(value);
+        if (!isEditing) {
+          return (
+            <span key={value} className="px-3 py-1 rounded-full text-xs font-medium bg-success-bg text-success border border-success-border">
+              {label}
+            </span>
+          );
+        }
+        return (
+          <button
+            key={value} type="button" onClick={() => onToggle(value)}
+            className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors duration-150 ${active ? 'bg-success-bg text-success border border-success-border' : 'bg-transparent text-text-secondary border border-border'}`}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* --- Work preference picker (multi-select toggle chips) --- */
+export function WorkPreferencePicker({ workPreference, isEditing, onToggle }) {
+  if (!isEditing && workPreference.length === 0) {
+    return <span className="text-[13px] text-text-muted">Not specified</span>;
+  }
+  const options = isEditing ? WORK_PREFERENCES : WORK_PREFERENCES.filter((w) => workPreference.includes(w.value));
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map(({ value, label }) => {
+        const active = workPreference.includes(value);
+        if (!isEditing) {
+          return (
+            <span key={value} className="px-3 py-1 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border">
+              {label}
+            </span>
+          );
+        }
+        return (
+          <button
+            key={value} type="button" onClick={() => onToggle(value)}
+            className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors duration-150 ${active ? 'bg-accent-bg text-accent border border-accent-border' : 'bg-transparent text-text-secondary border border-border'}`}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /* --- Social Links --- */
 export function SocialLinks({ links, isEditing, onChange }) {
   const socialFields = [
@@ -440,7 +562,6 @@ export default function UserAbout({ profile, isOwnProfile }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState("");
 
   // Local state for all editable fields
   const [skills, setSkills] = useState([]);
@@ -448,6 +569,12 @@ export default function UserAbout({ profile, isOwnProfile }) {
   const [educations, setEducations] = useState([]);
   const [socialLinks, setSocialLinks] = useState({});
   const [roles, setRoles] = useState([]);
+  const [domain, setDomain] = useState([]);
+  const [experienceLevel, setExperienceLevel] = useState('');
+  const [availability, setAvailability] = useState([]);
+  const [primaryTechStack, setPrimaryTechStack] = useState([]);
+  const [workPreference, setWorkPreference] = useState([]);
+  const [languages, setLanguages] = useState([]);
   const [learningPaths, setLearningPaths] = useState([]);
   const [contributionScore, setContributionScore] = useState(0);
 
@@ -459,28 +586,46 @@ export default function UserAbout({ profile, isOwnProfile }) {
       setEducations(profile.education || []);
       setSocialLinks(profile.socialLinks || {});
       setRoles(profile.roles || []);
+      setDomain(profile.domain || []);
+      setExperienceLevel(profile.experienceLevel || '');
+      setAvailability(profile.availability || []);
+      setPrimaryTechStack(profile.primaryTechStack || []);
+      setWorkPreference(profile.workPreference || []);
+      setLanguages(profile.languages || []);
       setLearningPaths(profile.learningPaths || []);
       setContributionScore(profile.contributionScore || 0);
     }
   }, [profile]);
 
+  const setUser = useAuthStore((s) => s.setUser);
+
   // Save all changes
   const handleSave = async () => {
     setSaving(true);
-    setSaveError("");
     try {
-      await api.patch("/users/profile", {
+      const wasIncomplete = !profile?.linkedinImported && !profile?.profileCompleted;
+      const { data } = await api.patch("/users/profile", {
         skills,
         experience: experiences,
         education: educations,
         socialLinks,
         roles,
+        domain,
+        experienceLevel,
+        availability,
+        primaryTechStack,
+        workPreference,
+        languages,
       });
+      setUser(data.user);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
       setIsEditing(false);
+      if (wasIncomplete && data.user?.profileCompleted) {
+        toast.success("Profile complete — you can now post, apply, and join collabs.");
+      }
     } catch (err) {
-      setSaveError(err.response?.data?.message || "Failed to save profile.");
+      toast.error(err.response?.data?.message || "Failed to save profile.");
     } finally {
       setSaving(false);
     }
@@ -493,12 +638,45 @@ export default function UserAbout({ profile, isOwnProfile }) {
     setEducations(profile.education || []);
     setSocialLinks(profile.socialLinks || {});
     setRoles(profile.roles || []);
+    setDomain(profile.domain || []);
+    setExperienceLevel(profile.experienceLevel || '');
+    setAvailability(profile.availability || []);
+    setPrimaryTechStack(profile.primaryTechStack || []);
+    setWorkPreference(profile.workPreference || []);
+    setLanguages(profile.languages || []);
     setIsEditing(false);
-    setSaveError("");
   };
 
   const toggleRole = (role) => {
     setRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
+  };
+
+  const toggleDomain = (d) => {
+    setDomain((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
+  };
+
+  const toggleAvailability = (a) => {
+    setAvailability((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]));
+  };
+
+  const toggleWorkPreference = (w) => {
+    setWorkPreference((prev) => (prev.includes(w) ? prev.filter((x) => x !== w) : [...prev, w]));
+  };
+
+  const handleAddTech = (t) => {
+    if (!primaryTechStack.includes(t)) setPrimaryTechStack([...primaryTechStack, t]);
+  };
+
+  const handleRemoveTech = (t) => {
+    setPrimaryTechStack(primaryTechStack.filter((x) => x !== t));
+  };
+
+  const handleAddLanguage = (l) => {
+    if (!languages.includes(l)) setLanguages([...languages, l]);
+  };
+
+  const handleRemoveLanguage = (l) => {
+    setLanguages(languages.filter((x) => x !== l));
   };
 
   // Add/edit modal state — { idx: number|null, data } — idx null means "adding new"
@@ -612,21 +790,6 @@ export default function UserAbout({ profile, isOwnProfile }) {
         </div>
       )}
 
-      {saveError && (
-        <div className="px-3.5 py-2.5 rounded-lg bg-error-bg border border-error-border text-error text-[13px] flex items-center justify-between">
-          <span>
-            <AlertCircle size={14} className="inline mr-2" />
-            {saveError}
-          </span>
-          <button
-            onClick={() => setSaveError("")}
-            className="bg-none border-none cursor-pointer text-error text-lg leading-none"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
       {/* Contribution Score */}
       <div className="bg-card border border-card-border rounded-xl px-5 py-4 flex items-center gap-4">
         <Award size={32} color="var(--accent)" />
@@ -681,6 +844,82 @@ export default function UserAbout({ profile, isOwnProfile }) {
           I am a…
         </h3>
         <RolePicker roles={roles} isEditing={isEditing} onToggle={toggleRole} />
+      </div>
+
+      {/* Domain */}
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          Domain
+        </h3>
+        <DomainPicker domain={domain} isEditing={isEditing} onToggle={toggleDomain} />
+      </div>
+
+      {/* Experience Level */}
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          Experience Level
+        </h3>
+        <ExperienceLevelPicker experienceLevel={experienceLevel} isEditing={isEditing} onSelect={setExperienceLevel} />
+      </div>
+
+      {/* Availability */}
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          Availability
+        </h3>
+        <AvailabilityPicker availability={availability} isEditing={isEditing} onToggle={toggleAvailability} />
+      </div>
+
+      {/* Work Preference */}
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          Work Preference
+        </h3>
+        <WorkPreferencePicker workPreference={workPreference} isEditing={isEditing} onToggle={toggleWorkPreference} />
+      </div>
+
+      {/* Primary Tech Stack */}
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          Primary Tech Stack
+        </h3>
+        {isEditing ? (
+          <SkillInput skills={primaryTechStack} onAdd={handleAddTech} onRemove={handleRemoveTech} />
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {primaryTechStack.length === 0 ? (
+              <span className="text-text-muted text-[13px]">No primary tech stack added yet</span>
+            ) : (
+              primaryTechStack.map((t) => (
+                <span key={t} className="px-3 py-1 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border">
+                  {t}
+                </span>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Languages */}
+      <div className="bg-card border border-card-border rounded-xl px-5 py-4.5">
+        <h3 className="text-[15px] font-bold text-text-primary mb-3">
+          Languages
+        </h3>
+        {isEditing ? (
+          <SkillInput skills={languages} onAdd={handleAddLanguage} onRemove={handleRemoveLanguage} />
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {languages.length === 0 ? (
+              <span className="text-text-muted text-[13px]">No languages added yet</span>
+            ) : (
+              languages.map((l) => (
+                <span key={l} className="px-3 py-1 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border">
+                  {l}
+                </span>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {/* Experience */}

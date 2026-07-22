@@ -3,6 +3,9 @@ import { persist } from 'zustand/middleware';
 import axios from 'axios';
 import { API_URL } from '../config';
 import api from '../api/axiosInstance';
+import { getCachedFcmToken, clearCachedFcmToken } from '../firebase/messaging';
+import { openLinkedinPopup } from '../api/linkedinPopup';
+import { signInWithGoogle } from '../firebase/auth';
 
 const BASE = `${API_URL}/api`;
 
@@ -37,16 +40,71 @@ export const useAuthStore = create(
       register: async (name, email, password, username) => {
         set({ isLoading: true, error: null });
         try {
-          await axios.post(`${BASE}/auth/register`, { name, email, password, username });
-          return await get().login(email, password);
+          const { data } = await axios.post(`${BASE}/auth/register`, { name, email, password, username });
+          set({
+            user: data.user,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            isLoading: false,
+          });
+          return true;
         } catch (err) {
           set({ error: err.response?.data?.message ?? 'Registration failed.', isLoading: false });
           return false;
         }
       },
 
+      loginWithGoogle: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const idToken = await signInWithGoogle();
+          const { data } = await axios.post(`${BASE}/auth/google`, { idToken });
+          set({
+            user: data.user,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            isLoading: false,
+          });
+          return true;
+        } catch (err) {
+          if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+            set({ isLoading: false });
+            return false;
+          }
+          set({ error: err.response?.data?.message ?? err.message ?? 'Google sign-in failed.', isLoading: false });
+          return false;
+        }
+      },
+
+      loginWithLinkedin: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const payload = await openLinkedinPopup(API_URL);
+          set({
+            user: payload.user,
+            accessToken: payload.accessToken,
+            refreshToken: payload.refreshToken,
+            isLoading: false,
+          });
+          return true;
+        } catch (err) {
+          if (err.message === 'Popup closed by user') {
+            set({ isLoading: false });
+            return false;
+          }
+          set({ error: err.response?.data?.message ?? err.message ?? 'LinkedIn sign-in failed.', isLoading: false });
+          return false;
+        }
+      },
+
       logout: async () => {
         const { refreshToken } = get();
+        const fcmToken = getCachedFcmToken();
+        if (fcmToken) {
+          // Must fire before clearing accessToken below — the endpoint requires auth.
+          api.delete('/users/fcm-token', { data: { token: fcmToken } }).catch(() => {});
+          clearCachedFcmToken();
+        }
         set({ user: null, accessToken: null, refreshToken: null });
         if (refreshToken) {
           axios.post(`${BASE}/auth/logout`, { refreshToken }).catch(() => {});

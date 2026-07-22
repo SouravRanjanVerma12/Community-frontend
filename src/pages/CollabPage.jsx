@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Users2, Compass, Briefcase, LayoutDashboard, Loader2, PenSquare, Sliders, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Users2, Compass, Briefcase, LayoutDashboard, Loader2, Handshake, Sliders, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '../components/layout/Navbar';
 import ProjectCard from '../components/collab/ProjectCard';
@@ -10,8 +10,10 @@ import { useAuthStore } from '../stores/authStore';
 import api from '../api/axiosInstance';
 import { queryClient } from '../api/queryClient';
 import { useMyWorkspaces } from '../hooks/useWorkspace';
+import { DEV_DOMAINS } from '../data/profileOptions';
+import { Skeleton, ProjectCardSkeleton, WorkspaceCardSkeleton } from '../components/ui/Skeleton';
 
-const CC = '#3a3d4a';
+const CC = '#6366f1';
 
 const DOMAIN_FILTERS = [
   { value: '', label: 'All Domains' },
@@ -23,10 +25,7 @@ const DOMAIN_FILTERS = [
   { value: 'oss',     label: 'Open Source'  },
 ];
 
-const ROLE_FILTERS = [
-  'Frontend Dev', 'Backend Dev', 'Designer',
-  'DevOps', 'ML Engineer', 'Mobile Dev', 'Full Stack',
-];
+const ROLE_FILTERS = DEV_DOMAINS.map((d) => d.label);
 
 /* ── Discover tab ── */
 function DiscoverTab() {
@@ -49,28 +48,31 @@ function DiscoverTab() {
   const filtered = roleFilter
     ? posts.filter(p => p.rolesNeeded?.includes(roleFilter))
     : posts;
+  const hasFilters = domainFilter || roleFilter;
 
   return (
     <div>
       {/* Search + filter bar */}
-      <div className="flex gap-2.5 mb-4 flex-wrap">
-        <div className="flex-1 min-w-[200px] min-h-11 flex items-center gap-2 px-3.5 rounded-[10px] border-[1.5px] border-border bg-card transition-colors duration-150 focus-within:border-[#3a3d4a]">
+      <div className="flex gap-2.5 mb-3.5 flex-wrap">
+        <div className="flex-1 min-w-[200px] min-h-11 flex items-center gap-2 px-4 rounded-xl border border-border bg-card transition-all duration-150 focus-within:border-indigo-400">
           <Search size={14} color="var(--text-muted)" />
           <input
-            value={search} onChange={e => setSearch(e.target.value)} placeholder="Search projects, tech, roles…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search collabs, tech, roles…"
             className="flex-1 py-2.5 bg-transparent border-none outline-none text-sm text-text-primary"
           />
         </div>
         <button
           onClick={() => setShowFilters(v => !v)}
-          className="flex items-center gap-1.5 min-h-11 px-4 rounded-[10px] text-[13px] font-medium cursor-pointer transition-colors duration-150 whitespace-nowrap"
+          className="flex items-center gap-1.5 min-h-11 px-4 rounded-xl text-[13px] font-semibold cursor-pointer transition-all duration-150 whitespace-nowrap"
           style={{
-            border: `1.5px solid ${showFilters ? CC : 'var(--border)'}`,
-            background: showFilters ? `${CC}10` : 'var(--card-bg)',
-            color: showFilters ? CC : 'var(--text-secondary)',
+            background: showFilters ? 'rgba(99,102,241,0.12)' : 'var(--card-bg)',
+            border: `1.5px solid ${showFilters ? 'rgba(99,102,241,0.4)' : 'var(--border)'}`,
+            color: showFilters ? '#818cf8' : 'var(--text-secondary)',
           }}
         >
-          <Sliders size={14} /> Filters {(domainFilter || roleFilter) && '•'}
+          <Sliders size={14} /> Filters {hasFilters && <span className="ml-0.5 w-1.5 h-1.5 rounded-full bg-indigo-400 inline-block" />}
         </button>
       </div>
 
@@ -78,20 +80,20 @@ function DiscoverTab() {
       <AnimatePresence>
         {showFilters && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }} className="overflow-hidden mb-4">
-            <div className="bg-card border border-border rounded-xl px-4 py-3.5 flex flex-col gap-3">
-              {/* Domain */}
+            transition={{ duration: 0.18 }} className="overflow-hidden mb-4">
+            <div className="rounded-xl px-4 py-4 flex flex-col gap-4 bg-card border border-border">
               <div>
-                <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Domain</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.1em] mb-2.5 text-text-muted">Domain</p>
                 <div className="flex flex-wrap gap-1.5">
                   {DOMAIN_FILTERS.map(d => (
                     <button
-                      key={d.value} onClick={() => setDomainFilter(d.value)}
-                      className="px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all duration-120"
+                      key={d.value}
+                      onClick={() => setDomainFilter(d.value)}
+                      className="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all duration-120"
                       style={{
-                        border: `1.5px solid ${domainFilter === d.value ? CC : 'var(--border)'}`,
-                        background: domainFilter === d.value ? `${CC}14` : 'transparent',
-                        color: domainFilter === d.value ? CC : 'var(--text-secondary)',
+                        background: domainFilter === d.value ? 'rgba(99,102,241,0.12)' : 'transparent',
+                        border: `1.5px solid ${domainFilter === d.value ? 'rgba(99,102,241,0.45)' : 'var(--border)'}`,
+                        color: domainFilter === d.value ? '#818cf8' : 'var(--text-secondary)',
                       }}
                     >
                       {d.label}
@@ -99,34 +101,27 @@ function DiscoverTab() {
                   ))}
                 </div>
               </div>
-              {/* Role */}
               <div>
-                <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Looking for role</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.1em] mb-2.5 text-text-muted">Looking for role</p>
                 <div className="flex flex-wrap gap-1.5">
-                  <button
-                    onClick={() => setRoleFilter('')}
-                    className="px-3 py-1 rounded-full text-xs font-medium cursor-pointer"
-                    style={{
-                      border: `1.5px solid ${!roleFilter ? CC : 'var(--border)'}`,
-                      background: !roleFilter ? `${CC}14` : 'transparent',
-                      color: !roleFilter ? CC : 'var(--text-secondary)',
-                    }}
-                  >
-                    Any
-                  </button>
-                  {ROLE_FILTERS.map(r => (
-                    <button
-                      key={r} onClick={() => setRoleFilter(roleFilter === r ? '' : r)}
-                      className="px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all duration-120"
-                      style={{
-                        border: `1.5px solid ${roleFilter === r ? CC : 'var(--border)'}`,
-                        background: roleFilter === r ? `${CC}14` : 'transparent',
-                        color: roleFilter === r ? CC : 'var(--text-secondary)',
-                      }}
-                    >
-                      {r}
-                    </button>
-                  ))}
+                  {['Any', ...ROLE_FILTERS].map(r => {
+                    const isAny = r === 'Any';
+                    const active = isAny ? !roleFilter : roleFilter === r;
+                    return (
+                      <button
+                        key={r}
+                        onClick={() => setRoleFilter(isAny ? '' : roleFilter === r ? '' : r)}
+                        className="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all duration-120"
+                        style={{
+                          background: active ? 'rgba(99,102,241,0.12)' : 'transparent',
+                          border: `1.5px solid ${active ? 'rgba(99,102,241,0.45)' : 'var(--border)'}`,
+                          color: active ? '#818cf8' : 'var(--text-secondary)',
+                        }}
+                      >
+                        {r}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -136,30 +131,36 @@ function DiscoverTab() {
 
       {/* Results count */}
       {!isLoading && (
-        <p className="text-[13px] text-text-muted mb-3.5">
-          {filtered.length} project{filtered.length !== 1 ? 's' : ''} found
+        <p className="text-[12px] font-medium mb-4 text-text-muted">
+          {filtered.length} collab {filtered.length !== 1 ? 'opportunities' : 'opportunity'} found
         </p>
       )}
 
       {/* Grid */}
       {isLoading ? (
-        <div className="flex justify-center p-15">
-          <Loader2 size={28} color={CC} className="animate-spin" />
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(295px, 1fr))' }}>
+          {[...Array(6)].map((_, i) => <ProjectCardSkeleton key={i} />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center px-5 py-15 text-text-muted">
-          <Users2 size={40} color="var(--text-faint)" className="mb-3" />
-          <p className="text-[15px] font-semibold text-text-primary mb-1.5">No projects found</p>
-          <p className="text-[13px]">Try different filters, or create the first one!</p>
+        <div className="text-center px-5 py-20">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
+            style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}
+          >
+            <Handshake size={30} color="#818cf8" />
+          </div>
+          <p className="text-[16px] font-bold mb-1.5 text-text-primary">No collab opportunities yet</p>
+          <p className="text-[13px] text-text-muted">Try different filters, or be the first to post one!</p>
         </div>
       ) : (
-        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(295px, 1fr))' }}>
           {filtered.map((p, i) => <ProjectCard key={p._id} post={p} index={i} />)}
         </div>
       )}
     </div>
   );
 }
+
 
 /* ── My Projects tab ── */
 function MyProjectsTab() {
@@ -193,7 +194,16 @@ function MyProjectsTab() {
 
   if (!user) return <div className="text-center p-15 text-text-muted">Log in to see your projects.</div>;
 
-  if (isLoading) return <div className="flex justify-center p-15"><Loader2 size={28} color={CC} className="animate-spin" /></div>;
+  if (isLoading) return (
+    <div className="flex flex-col gap-7">
+      <section>
+        <Skeleton className="w-48 h-5 rounded-md mb-4" />
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+          {[...Array(3)].map((_, i) => <ProjectCardSkeleton key={i} />)}
+        </div>
+      </section>
+    </div>
+  );
 
   if (postsError || reqsError) return (
     <div className="text-center px-5 py-15 text-text-muted">
@@ -207,15 +217,15 @@ function MyProjectsTab() {
 
   return (
     <div className="flex flex-col gap-7">
-      {/* Projects I lead */}
+      {/* Collabs I lead */}
       <section>
         <h2 className="text-[15px] font-bold text-text-primary mb-3 flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full inline-block" style={{ background: CC }} />
-          Projects I Lead ({myPosts.length})
+          Collabs I Posted ({myPosts.length})
         </h2>
         {myPosts.length === 0 ? (
           <p className="text-[13px] text-text-muted p-5 bg-card border border-dashed border-border rounded-xl text-center">
-            You haven't created any collab projects yet. Go to Explore and create a Collab post!
+            You haven't posted any collab opportunities yet. Go to Explore and post a Collab!
           </p>
         ) : (
           <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
@@ -224,25 +234,28 @@ function MyProjectsTab() {
         )}
       </section>
 
-      {/* Projects I joined */}
+      {/* Collabs I joined */}
       <section>
         <h2 className="text-[15px] font-bold text-text-primary mb-3 flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full inline-block bg-[#22c55e]" />
-          Projects I Joined ({accepted.length})
+          Collabs I Joined ({accepted.length})
         </h2>
         {accepted.length === 0 ? (
           <p className="text-[13px] text-text-muted p-5 bg-card border border-dashed border-border rounded-xl text-center">
-            You haven't been accepted into a project yet. Browse Discover and apply!
+            You haven't been accepted into a collab yet. Browse Discover and apply!
           </p>
         ) : (
           <div className="flex flex-col gap-2.5">
             {accepted.map(r => (
-              <div key={r._id} className="bg-card border border-card-border rounded-xl px-4 py-3.5 flex items-center gap-3">
+              <div key={r._id} className="bg-card border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:border-indigo-300 dark:hover:border-indigo-500/40 transition-colors cursor-pointer" onClick={() => navigate(`/project/${r.post?._id}`)}>
                 <div className="flex-1">
                   <p className="text-sm font-bold text-text-primary mb-0.5">{r.post?.title}</p>
                   <p className="text-xs text-text-muted">{r.post?.projectName}</p>
                 </div>
-                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[rgba(34,197,94,0.1)] text-[#16a34a] text-xs font-semibold"><CheckCircle2 size={12} /> Accepted</span>
+                <span
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+                  style={{ color: '#16a34a', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)' }}
+                ><CheckCircle2 size={12} /> Accepted</span>
               </div>
             ))}
           </div>
@@ -258,12 +271,15 @@ function MyProjectsTab() {
           </h2>
           <div className="flex flex-col gap-2.5">
             {pending.map(r => (
-              <div key={r._id} className="bg-card border border-card-border rounded-xl px-4 py-3.5 flex items-center gap-3">
+              <div key={r._id} className="bg-card border border-border rounded-xl px-4 py-3.5 flex items-center gap-3">
                 <div className="flex-1">
                   <p className="text-sm font-bold text-text-primary mb-0.5">{r.post?.title}</p>
                   <p className="text-xs text-text-muted">{r.post?.projectName}</p>
                 </div>
-                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[rgba(245,158,11,0.1)] text-[#d97706] text-xs font-semibold"><Clock size={12} /> Pending</span>
+                <span
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+                  style={{ color: '#d97706', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}
+                ><Clock size={12} /> Pending</span>
               </div>
             ))}
           </div>
@@ -283,14 +299,14 @@ function WorkspaceTab() {
   if (!user) return <p className="text-text-muted text-center p-10">Log in to access your workspace.</p>;
 
   if (isLoading) return (
-    <div className="flex justify-center p-15">
-      <Loader2 size={28} color={CC} className="animate-spin" />
+    <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      {[...Array(3)].map((_, i) => <WorkspaceCardSkeleton key={i} />)}
     </div>
   );
 
   if (isError) return (
     <div className="text-center px-5 py-15 text-text-muted">
-      <p className="text-[15px] font-semibold text-error mb-1.5">Couldn't load your workspaces</p>
+      <p className="text-[15px] font-semibold text-red-500 mb-1.5">Couldn't load your workspaces</p>
       <p className="text-[13px] mb-4">Your session may have expired. Try refreshing, or log in again.</p>
       <Button size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['my-collab-requests-workspace'] })}>
         Retry
@@ -299,34 +315,90 @@ function WorkspaceTab() {
   );
 
   if (allProjects.length === 0) return (
-    <div className="text-center p-15 text-text-muted">
-      <LayoutDashboard size={40} color="var(--text-faint)" className="mb-3" />
-      <p className="text-[15px] font-semibold text-text-primary mb-1.5">No active workspaces</p>
-      <p className="text-[13px]">Create a collab project or get accepted into one to access the task board.</p>
+    <div className="text-center p-20">
+      <div
+        className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
+        style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}
+      >
+        <LayoutDashboard size={28} color="#6366f1" />
+      </div>
+      <p className="text-[16px] font-bold text-text-primary mb-1.5">No active workspaces</p>
+      <p className="text-[13px] text-text-muted">Post a collab or get accepted into one to access the task board.</p>
     </div>
   );
 
   return (
-    <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-      {allProjects.map(proj => (
+    <div className="grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      {allProjects.map((proj, i) => (
         <motion.div
-          key={proj.id} whileHover={{ y: -2, boxShadow: `0 8px 24px ${CC}18` }}
-          className="bg-card rounded-2xl p-5 flex flex-col gap-3 shadow-sm transition-shadow duration-200"
-          style={{ border: `1px solid ${CC}25` }}
+          key={proj.id} 
+          onClick={() => navigate(`/project/${proj.id}`)}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: i * 0.05, type: 'spring', stiffness: 120, damping: 22 }}
+          whileHover="hover"
+          whileTap={{ scale: 0.98 }}
+          className="group relative bg-card rounded-2xl p-6 cursor-pointer overflow-hidden border border-border transition-all duration-200 hover:border-indigo-300 dark:hover:border-indigo-500/40"
+          style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
         >
-          <div className="flex items-start justify-between gap-2">
+          {/* Hover glow overlay */}
+          <motion.div
+            className="absolute inset-0 rounded-2xl pointer-events-none"
+            variants={{ hover: { boxShadow: '0 0 0 1px rgba(99,102,241,0.3), 0 8px 28px rgba(99,102,241,0.08)' } }}
+            style={{ boxShadow: '0 0 0 0px transparent' }}
+            transition={{ duration: 0.18 }}
+          />
+
+          {/* Live status pulse — top right */}
+          <div className="absolute top-6 right-6 flex items-center justify-center">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#22c55e' }} />
+              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#22c55e' }} />
+            </span>
+          </div>
+
+          <div className="flex flex-col h-full justify-between gap-8">
             <div>
-              <p className="text-[15px] font-bold text-text-primary mb-1">{proj.title}</p>
-              <div className="flex gap-1.5">
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold" style={{ background: proj.role === 'Lead' ? `${CC}14` : 'rgba(34,197,94,0.1)', color: proj.role === 'Lead' ? CC : '#16a34a' }}>{proj.role}</span>
-                {proj.domain && <span className="px-2 py-0.5 rounded-full text-[11px] text-text-muted bg-surface-2">{proj.domain}</span>}
+              {/* Icon container with indigo gradient */}
+              <motion.div
+                className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
+                style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', boxShadow: '0 3px 10px rgba(99,102,241,0.25)' }}
+                variants={{ hover: { scale: 1.08, rotate: -5 } }}
+              >
+                <LayoutDashboard size={20} className="text-white" />
+              </motion.div>
+              
+              <h3 className="text-lg font-bold tracking-tight text-text-primary mb-3 pr-6 leading-snug">{proj.title}</h3>
+              
+              {/* Role + domain pills */}
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className="px-3 py-0.5 rounded-full text-[11px] font-semibold"
+                  style={{ color: '#6366f1', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.22)' }}
+                >
+                  {proj.role}
+                </span>
+                {proj.domain && (
+                  <span className="px-3 py-0.5 rounded-full text-[11px] font-medium text-text-secondary bg-surface-2 border border-border">
+                    {proj.domain}
+                  </span>
+                )}
               </div>
             </div>
-            <LayoutDashboard size={18} color={CC} className="shrink-0 mt-0.5" />
+
+            {/* Bottom CTA row */}
+            <div className="flex items-end justify-between mt-auto pt-1">
+              <span className="text-[13px] font-semibold text-text-muted transition-colors group-hover:text-indigo-500 dark:group-hover:text-indigo-400">
+                Open Task Board
+              </span>
+              <motion.div 
+                variants={{ hover: { x: 4, scale: 1.1 } }}
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-border text-text-muted transition-all duration-150 group-hover:border-indigo-300 group-hover:text-indigo-500 group-hover:bg-indigo-50 dark:group-hover:border-indigo-500/40 dark:group-hover:text-indigo-400 dark:group-hover:bg-indigo-500/10"
+              >
+                <ArrowRight size={16} />
+              </motion.div>
+            </div>
           </div>
-          <Button size="sm" fullWidth onClick={() => navigate(`/project/${proj.id}`)}>
-            Open Task Board →
-          </Button>
         </motion.div>
       ))}
     </div>
@@ -335,8 +407,8 @@ function WorkspaceTab() {
 
 /* ── Main page ── */
 const TABS = [
-  { id: 'discover',   label: 'Discover',    icon: Compass       },
-  { id: 'my',        label: 'My Projects', icon: Briefcase     },
+  { id: 'discover',   label: 'Discover',    icon: Compass        },
+  { id: 'my',        label: 'My Collabs',  icon: Handshake      },
   { id: 'workspace', label: 'Workspace',   icon: LayoutDashboard },
 ];
 
@@ -345,30 +417,70 @@ export default function CollabPage() {
   const [activeTab, setActiveTab] = useState('discover');
 
   return (
-    <div className="min-h-svh bg-surface-0">
+    <div className="min-h-svh" style={{ background: 'var(--surface-0)' }}>
       <Navbar />
 
-      {/* Hero header */}
+      {/* Hero header — immersive dark panel */}
       <div
-        className="border-b border-border pt-7 px-6"
-        style={{ background: `linear-gradient(135deg, ${CC}14 0%, transparent 60%)` }}
+        className="relative border-b pt-8 pb-0 px-6 overflow-hidden"
+        style={{
+          background: 'linear-gradient(160deg, rgba(99,102,241,0.08) 0%, rgba(99,102,241,0.02) 40%, transparent 70%)',
+          borderColor: 'var(--border)',
+        }}
       >
-        <div className="max-w-[1100px] mx-auto">
-          <div className="flex items-start justify-between gap-4 mb-5 flex-wrap">
+        {/* Ambient orb top-right */}
+        <div
+          className="absolute top-0 right-0 w-[420px] h-[220px] pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at top right, rgba(99,102,241,0.18) 0%, transparent 65%)',
+          }}
+        />
+
+        <div className="max-w-[1100px] mx-auto relative z-10">
+          <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
             <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-8 h-8 rounded-[9px] flex items-center justify-center" style={{ background: CC }}>
-                  <Users2 size={17} color="#fff" />
-                </div>
-                <h1 className="text-[22px] font-extrabold text-text-primary tracking-[-0.5px]">Collaboration Hub</h1>
+              {/* Badge */}
+              <div
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-3"
+                style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+              >
+                <Handshake size={12} color="#818cf8" />
+                <span className="text-[11px] font-semibold" style={{ color: '#818cf8' }}>Collaboration Hub</span>
               </div>
-              <p className="text-sm text-text-muted">
-                Find projects to join, manage your team, and build together.
+
+              <h1 className="text-[28px] font-extrabold tracking-[-0.6px] mb-2" style={{ color: 'var(--text-primary)' }}>
+                Find your next build partner
+              </h1>
+              <p className="text-[14px] mb-4 max-w-md text-text-muted">
+                Discover people to build with, post what you're working on, and get accepted into exciting collab opportunities.
               </p>
+
+              {/* Live stats */}
+              <div className="flex items-center gap-4 flex-wrap">
+                <span className="flex items-center gap-1.5 text-[12px] font-medium text-text-muted">
+                  <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: '#818cf8' }} />
+                  Open collabs
+                </span>
+                <span className="flex items-center gap-1.5 text-[12px] font-medium text-text-muted">
+                  <span className="w-1.5 h-1.5 rounded-full inline-block animate-pulse" style={{ background: '#34d399' }} />
+                  Builders active
+                </span>
+              </div>
             </div>
-            <Button size="sm" onClick={() => navigate('/explore?create=collab')} style={{ flexShrink: 0 }}>
-              <PenSquare size={14} /> Post a Project
-            </Button>
+
+            <motion.button
+              onClick={() => navigate('/explore?create=collab')}
+              whileHover={{ scale: 1.03, boxShadow: '0 6px 24px rgba(99,102,241,0.5)' }}
+              whileTap={{ scale: 0.97 }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-[13px] font-bold cursor-pointer border-none mt-1"
+              style={{
+                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                boxShadow: '0 4px 18px rgba(99,102,241,0.38)',
+                flexShrink: 0,
+              }}
+            >
+              <Handshake size={15} /> Post a Collab
+            </motion.button>
           </div>
 
           {/* Tab bar */}
@@ -377,16 +489,19 @@ export default function CollabPage() {
               const active = activeTab === id;
               return (
                 <button
-                  key={id} onClick={() => setActiveTab(id)}
+                  key={id}
+                  onClick={() => setActiveTab(id)}
                   className={[
-                    'flex items-center gap-1.5 min-h-11 px-3 sm:px-5 border-none bg-transparent text-sm cursor-pointer whitespace-nowrap shrink-0',
-                    'transition-colors duration-150 border-b-2 hover:opacity-92',
-                    'focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2',
-                    active ? 'font-bold' : 'font-medium',
+                    'flex items-center gap-1.5 min-h-11 px-4 sm:px-5 border-none bg-transparent text-[13px] cursor-pointer whitespace-nowrap shrink-0',
+                    'transition-all duration-150 border-b-2',
+                    active ? 'font-bold' : 'font-medium text-text-secondary hover:text-text-primary',
                   ].join(' ')}
-                  style={{ borderBottomColor: active ? CC : 'transparent', color: active ? CC : 'var(--text-secondary)' }}
+                  style={{
+                    borderBottomColor: active ? '#818cf8' : 'transparent',
+                    color: active ? '#818cf8' : 'var(--text-primary)',
+                  }}
                 >
-                  <Icon size={15} />
+                  <Icon size={14} />
                   {label}
                 </button>
               );
@@ -398,7 +513,7 @@ export default function CollabPage() {
       {/* Tab content */}
       <div className="max-w-[1100px] mx-auto px-6 pt-6 pb-12">
         <AnimatePresence mode="wait">
-          <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
             {activeTab === 'discover'   && <DiscoverTab />}
             {activeTab === 'my'        && <MyProjectsTab />}
             {activeTab === 'workspace' && <WorkspaceTab />}

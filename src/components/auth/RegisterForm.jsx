@@ -7,10 +7,26 @@ import InputField from '../ui/InputField';
 import Button from '../ui/Button';
 import axios from 'axios';
 import { API_URL } from '../../config';
+import { LinkedInIcon } from '../icons/LinkedInIcon';
+import { GoogleIcon } from '../icons/GoogleIcon';
 
 const BASE = `${API_URL}/api`;
 
 const authLinkClasses = 'cursor-pointer rounded-md outline-none transition-opacity duration-150 hover:opacity-85 focus-visible:shadow-[0_0_0_3px_var(--accent-border)]';
+
+const linkedinBtnClasses = [
+  'flex-1 min-w-[90px] min-h-11 px-3 py-2.5 rounded-[10px] bg-[#0A66C2] border border-[#0A66C2]',
+  'text-white text-[13px] font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-65',
+  'flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 hover:opacity-90',
+  'focus-visible:shadow-[0_0_0_3px_var(--accent-border)] outline-none',
+].join(' ');
+
+const googleBtnClasses = [
+  'flex-1 min-w-[90px] min-h-11 px-3 py-2.5 rounded-[10px] bg-white border border-[#dadce0]',
+  'text-[#3c4043] text-[13px] font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-65',
+  'flex items-center justify-center gap-2 transition-[opacity,transform] duration-150 hover:opacity-90',
+  'focus-visible:shadow-[0_0_0_3px_var(--accent-border)] outline-none',
+].join(' ');
 
 /* generate 3 unique username suggestions from a name */
 function generateSuggestions(name) {
@@ -51,7 +67,7 @@ export default function RegisterForm() {
   const [usernameStatus, setUsernameStatus] = useState('idle'); // idle | checking | available | taken | invalid
   const [usernameMsg, setUsernameMsg]     = useState('');
 
-  const { register, isLoading, error, clearError } = useAuthStore();
+  const { register, loginWithGoogle, loginWithLinkedin, isLoading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
   const debouncedUsername = useDebounce(username, 450);
   const usernameId = useId();
@@ -92,6 +108,18 @@ export default function RegisterForm() {
     if (password.length < 6)      { setConfirmError('Password must be at least 6 characters.'); return; }
     if (username && usernameStatus !== 'available') return;
     const ok = await register(name, email, password, username);
+    if (ok) navigate('/explore');
+  };
+
+  const handleGoogleSignup = async () => {
+    clearError();
+    const ok = await loginWithGoogle();
+    if (ok) navigate('/explore');
+  };
+
+  const handleLinkedinSignup = async () => {
+    clearError();
+    const ok = await loginWithLinkedin();
     if (ok) navigate('/explore');
   };
 
@@ -223,6 +251,23 @@ export default function RegisterForm() {
       <Button type="submit" fullWidth isLoading={isLoading} size="lg" disabled={!canSubmit} style={{ marginTop: '4px' }}>
         Create account
       </Button>
+
+      {/* Divider */}
+      <div className="flex items-center gap-3 text-text-muted text-xs">
+        <div className="flex-1 h-px bg-border" />
+        or continue with
+        <div className="flex-1 h-px bg-border" />
+      </div>
+
+      {/* Social buttons */}
+      <div className="flex flex-col gap-2.5 sm:flex-row">
+        <button type="button" onClick={handleGoogleSignup} disabled={isLoading} className={googleBtnClasses}>
+          <GoogleIcon className="w-4 h-4" /> Continue with Google
+        </button>
+        <button type="button" onClick={handleLinkedinSignup} disabled={isLoading} className={linkedinBtnClasses}>
+          <LinkedInIcon className="w-4 h-4" /> Continue with LinkedIn
+        </button>
+      </div>
 
       <p className="text-center text-sm text-text-muted m-0 leading-relaxed">
         Already a member?{' '}

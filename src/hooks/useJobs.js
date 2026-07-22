@@ -2,13 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/axiosInstance';
 import { queryClient } from '../api/queryClient';
 
-export function useJobs({ workMode = '', employmentType = '', search = '', postedBy = '' } = {}) {
+export function useJobs({ workMode = '', employmentType = '', location = '', search = '', postedBy = '' } = {}) {
   return useQuery({
-    queryKey: ['jobs', workMode, employmentType, search, postedBy],
+    queryKey: ['jobs', workMode, employmentType, location, search, postedBy],
     queryFn: async () => {
       const params = { limit: 30 };
       if (workMode)       params.workMode = workMode;
       if (employmentType) params.employmentType = employmentType;
+      if (location)       params.location = location;
       if (search)          params.search = search;
       if (postedBy)        params.postedBy = postedBy;
       const { data } = await api.get('/jobs', { params });

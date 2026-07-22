@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueries } from '@tanstack/react-query';
 import api from '../api/axiosInstance';
 import { queryClient } from '../api/queryClient';
 
@@ -99,4 +99,36 @@ export function useMyWorkspaces(userId) {
     isLoading: requestsQuery.isLoading || postsQuery.isLoading,
     isError: requestsQuery.isError || postsQuery.isError,
   };
+}
+
+/* Task counts summed across every workspace in `workspaces` (the array
+   useMyWorkspaces returns). Same query key per-workspace as
+   useWorkspaceOverview, so a workspace already visited this session is a
+   cache hit rather than a new request. */
+export function useMyWorkspaceTaskStats(workspaces) {
+  const results = useQueries({
+    queries: workspaces.map((w) => ({
+      queryKey: ['workspace', w.id, 'overview'],
+      queryFn: async () => {
+        const { data } = await api.get(`/workspace/${w.id}/overview`);
+        return data;
+      },
+    })),
+  });
+
+  const isLoading = results.some((r) => r.isLoading);
+  const taskStats = results.reduce(
+    (totals, r) => {
+      const s = r.data?.taskStats;
+      if (!s) return totals;
+      return {
+        todo: totals.todo + (s.todo || 0),
+        in_progress: totals.in_progress + (s.in_progress || 0),
+        done: totals.done + (s.done || 0),
+      };
+    },
+    { todo: 0, in_progress: 0, done: 0 },
+  );
+
+  return { taskStats, isLoading };
 }

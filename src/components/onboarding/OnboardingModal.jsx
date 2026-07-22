@@ -1,251 +1,387 @@
-import { useState, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
+import {
+  UploadCloud, PenLine, ArrowLeft, ChevronDown, HelpCircle, Check,
+} from 'lucide-react';
 import api from '../../api/axiosInstance';
 import { useAuthStore } from '../../stores/authStore';
-import ImageCropper from '../ui/ImageCropper';
-import { SkillInput, SocialLinks, RolePicker } from '../About/UserAbout';
+import { SkillInput, DomainPicker } from '../About/UserAbout';
+import Button from '../ui/Button';
 
-const STEPS = [
-  { key: 'role',       title: 'Welcome! Who are you?',      subtitle: 'Select all that apply — this helps us personalize your experience.' },
-  { key: 'profile',    title: 'Set up your profile',        subtitle: 'Add a photo and tell the community a bit about yourself.' },
-  { key: 'skills',     title: 'What are your skills?',      subtitle: 'Add a few skills so collaborators and recruiters can find you.' },
-  { key: 'background', title: 'Experience & education',     subtitle: 'Optional — you can always add more later from your profile.' },
-  { key: 'social',     title: 'Link your socials',          subtitle: 'Optional — help people find you elsewhere.' },
+const EXPORT_STEPS = [
+  'Sign in at linkedin.com and click your profile photo ("Me") in the top nav.',
+  'Choose "Settings & Privacy".',
+  'Open the "Data privacy" tab, then click "Get a copy of your data".',
+  'Pick "Want something in particular?" and select at least Profile, Positions, Education, and Skills — or choose the full archive.',
+  'Click "Request archive". LinkedIn emails you a download link, usually within 10 minutes (can take up to 24 hours).',
+  'Download the .zip from that email, then upload it below.',
 ];
 
-const inputCls    = 'px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-primary outline-none transition-colors duration-150 focus:border-accent-border w-full';
-const textareaCls = 'px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-secondary leading-relaxed resize-y font-[inherit] outline-none transition-colors duration-150 focus:border-accent-border';
+const MIN_SKILLS = 3;
+const fieldCls = 'px-3.5 py-[11px] rounded-[10px] border-[1.5px] border-border bg-input text-sm text-text-primary outline-none transition-colors duration-150 focus:border-accent-border w-full';
 
-async function uploadAvatarBlob(blob) {
-  const fd = new FormData();
-  fd.append('file', blob, 'upload.jpg');
-  const { data } = await api.post('/upload/avatar', fd);
-  return data.url;
+function ExportGuide() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl border border-border bg-surface-2">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-2 px-3.5 py-2.5 text-sm font-medium text-text-secondary cursor-pointer"
+      >
+        <HelpCircle size={15} className="shrink-0 text-text-muted" />
+        <span className="flex-1 text-left">Where do I get this file?</span>
+        <ChevronDown
+          size={15}
+          className="shrink-0 text-text-muted transition-transform duration-200"
+          style={{ transform: open ? 'rotate(180deg)' : 'none' }}
+        />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <ol className="px-4 pb-3.5 pt-0.5 flex flex-col gap-1.5 text-[13px] text-text-secondary leading-snug list-decimal list-outside ml-4">
+              {EXPORT_STEPS.map((step, i) => (
+                <li key={i}>{step}</li>
+              ))}
+            </ol>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
-export default function OnboardingModal() {
+function ChoiceCard({ icon: Icon, title, description, cta, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group text-left w-full border-[1.5px] border-border rounded-2xl px-4.5 py-4 flex flex-col gap-2.5 bg-transparent cursor-pointer transition-colors duration-150 hover:border-accent hover:bg-accent-bg/40"
+    >
+      <div className="w-9 h-9 rounded-full bg-accent-bg border border-accent-border flex items-center justify-center text-accent">
+        <Icon size={17} />
+      </div>
+      <div>
+        <p className="text-[15px] font-bold text-text-primary mb-0.5">{title}</p>
+        <p className="text-[13px] text-text-secondary leading-relaxed">{description}</p>
+      </div>
+      <span className="text-[13px] font-semibold text-accent mt-0.5">{cta} →</span>
+    </button>
+  );
+}
+
+function ProgressBar({ percent }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[13px] font-semibold text-text-secondary">Profile completeness</span>
+        <span className="text-[13px] font-bold text-accent">{percent}%</span>
+      </div>
+      <div className="h-2 rounded-full bg-surface-2 overflow-hidden">
+        <motion.div
+          className="h-full rounded-full bg-(image:--btn-grad)"
+          animate={{ width: `${percent}%` }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ManualFillForm({ onClose, onBack }) {
+  const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
-  const [step, setStep]     = useState(0);
+
+  const [bio, setBio] = useState(user?.bio ?? '');
+  const [expTitle, setExpTitle] = useState('');
+  const [expCompany, setExpCompany] = useState('');
+  const [expStart, setExpStart] = useState('');
+  const [expEnd, setExpEnd] = useState('');
+  const [eduInstitution, setEduInstitution] = useState('');
+  const [eduDegree, setEduDegree] = useState('');
+  const [eduField, setEduField] = useState('');
+  const [skills, setSkills] = useState(user?.skills ?? []);
+  const [domain, setDomain] = useState(user?.domain ?? []);
   const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState('');
 
-  const [roles, setRoles]         = useState([]);
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const [bio, setBio]             = useState('');
-  const [location, setLocation]   = useState('');
-  const [skills, setSkills]       = useState([]);
-  const [experience, setExperience] = useState({ company: '', title: '', startDate: '', endDate: '', description: '' });
-  const [education, setEducation]   = useState({ institution: '', degree: '', field: '', graduationYear: '' });
-  const [socialLinks, setSocialLinks] = useState({ github: '', linkedin: '', twitter: '', website: '', figma: '' });
+  const percent = useMemo(() => {
+    const bioScore = bio.trim() ? 1 : 0;
+    const expScore = (expTitle.trim() ? 0.5 : 0) + (expCompany.trim() ? 0.5 : 0);
+    const eduScore = (eduInstitution.trim() ? 0.5 : 0) + (eduDegree.trim() ? 0.5 : 0);
+    const skillsScore = Math.min(skills.length, MIN_SKILLS) / MIN_SKILLS;
+    return Math.round(((bioScore + expScore + eduScore + skillsScore) / 4) * 100);
+  }, [bio, expTitle, expCompany, eduInstitution, eduDegree, skills]);
 
-  const [cropFile, setCropFile] = useState(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const fileInputRef = useRef(null);
+  const complete = percent === 100;
 
-  const toggleRole    = (r) => setRoles((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
-  const addSkill       = (s) => setSkills((prev) => (prev.includes(s) ? prev : [...prev, s]));
-  const removeSkill    = (s) => setSkills((prev) => prev.filter((x) => x !== s));
-  const updateSocialLink = (key, value) => setSocialLinks((prev) => ({ ...prev, [key]: value }));
-
-  const onFileChosen = (e) => {
-    const file = e.target.files?.[0];
-    if (file) setCropFile(file);
-    e.target.value = '';
-  };
-
-  const onCropComplete = async (blob) => {
-    setCropFile(null);
-    setUploadingAvatar(true);
-    try {
-      const url = await uploadAvatarBlob(blob);
-      setAvatarUrl(url);
-    } catch {
-      setError('Photo upload failed — you can add one later from your profile.');
-    } finally {
-      setUploadingAvatar(false);
-    }
-  };
-
-  const buildPayload = () => {
-    const payload = { onboarded: true };
-    if (roles.length) payload.roles = roles;
-    if (avatarUrl) payload.avatarUrl = avatarUrl;
-    if (bio.trim()) payload.bio = bio.trim();
-    if (location.trim()) payload.location = location.trim();
-    if (skills.length) payload.skills = skills;
-    if (experience.company.trim() || experience.title.trim()) payload.experience = [experience];
-    if (education.institution.trim() || education.degree.trim()) payload.education = [education];
-    const links = Object.fromEntries(Object.entries(socialLinks).filter(([, v]) => v.trim()));
-    if (Object.keys(links).length) payload.socialLinks = links;
-    return payload;
-  };
-
-  const finish = async () => {
+  const handleSave = async () => {
     setSaving(true);
-    setError('');
     try {
-      const { data } = await api.patch('/users/profile', buildPayload());
+      const experience = expTitle.trim() && expCompany.trim()
+        ? [...(user?.experience ?? []), { title: expTitle.trim(), company: expCompany.trim(), startDate: expStart, endDate: expEnd, description: '' }]
+        : (user?.experience ?? []);
+      const education = eduInstitution.trim() && eduDegree.trim()
+        ? [...(user?.education ?? []), { institution: eduInstitution.trim(), degree: eduDegree.trim(), field: eduField.trim(), graduationYear: '' }]
+        : (user?.education ?? []);
+
+      const { data } = await api.patch('/users/profile', { bio, experience, education, skills, domain });
       setUser(data.user);
-    } catch {
-      setError('Something went wrong saving your profile. Try again.');
+
+      if (data.user?.profileCompleted) {
+        toast.success('Profile complete — you can now post, apply, and join collabs.');
+        if (onClose) onClose();
+      } else {
+        toast.success(`Progress saved — ${percent}% complete.`);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save profile.');
+    } finally {
       setSaving(false);
     }
   };
 
-  const isLast   = step === STEPS.length - 1;
-  const current  = STEPS[step];
-
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-200 bg-black/35 backdrop-blur-xs flex items-center justify-center p-5"
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 32, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 16, scale: 0.97 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-[560px] max-h-[88vh] bg-card rounded-2xl border border-card-border shadow-popup overflow-hidden flex flex-col"
+      <div>
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-[13px] font-medium text-text-muted cursor-pointer mb-3 bg-transparent border-none p-0 hover:text-text-secondary"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between pt-4.5 pb-3.5 px-5.5 shrink-0">
-            <div className="flex gap-1.5">
-              {STEPS.map((s, i) => (
-                <span
-                  key={s.key}
-                  className="w-6 h-1.5 rounded-full transition-colors duration-200"
-                  style={{ background: i <= step ? 'var(--accent)' : 'var(--border)' }}
-                />
-              ))}
-            </div>
-            <button
-              type="button" onClick={finish} disabled={saving}
-              className="text-[13px] font-medium text-text-muted bg-none border-none cursor-pointer transition-colors duration-150 hover:text-text-secondary"
-            >
-              Skip for now
-            </button>
-          </div>
+          <ArrowLeft size={14} /> Back
+        </button>
+        <h2 className="text-xl font-bold text-text-primary mb-2">Fill in your profile</h2>
+        <p className="text-sm text-text-secondary leading-relaxed">
+          Add a short bio, one role, one degree, and a few skills to unlock posting, jobs, and collabs.
+        </p>
+      </div>
 
-          {/* Scrollable body */}
-          <div className="px-5.5 py-4 flex flex-col gap-3.5 flex-1 min-h-0 overflow-y-auto *:shrink-0">
-            <div>
-              <h2 className="text-lg font-bold text-text-primary tracking-[-0.2px] mb-1">{current.title}</h2>
-              <p className="text-[13px] text-text-muted">{current.subtitle}</p>
-            </div>
+      <ProgressBar percent={percent} />
 
-            {current.key === 'role' && (
-              <RolePicker roles={roles} isEditing onToggle={toggleRole} />
-            )}
-
-            {current.key === 'profile' && (
-              <>
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button" onClick={() => fileInputRef.current?.click()}
-                    className="relative w-20 h-20 rounded-full shrink-0 border-none cursor-pointer overflow-hidden bg-surface-2 flex items-center justify-center"
-                  >
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Camera size={22} color="var(--text-muted)" />
-                    )}
-                    {uploadingAvatar && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <Loader2 size={18} color="#fff" className="animate-spin" />
-                      </div>
-                    )}
-                  </button>
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChosen} />
-                  <div>
-                    <p className="text-sm font-semibold text-text-primary">Profile photo</p>
-                    <p className="text-xs text-text-muted">Optional — click to upload</p>
-                  </div>
-                </div>
-                <textarea
-                  value={bio} onChange={(e) => setBio(e.target.value)} rows={3}
-                  placeholder="Tell the community about yourself…"
-                  className={textareaCls}
-                />
-                <input
-                  value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, Country"
-                  className={inputCls}
-                />
-              </>
-            )}
-
-            {current.key === 'skills' && (
-              <SkillInput skills={skills} onAdd={addSkill} onRemove={removeSkill} />
-            )}
-
-            {current.key === 'background' && (
-              <>
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-bold text-text-muted uppercase tracking-wider">Current / recent role</p>
-                  <input value={experience.title} onChange={(e) => setExperience({ ...experience, title: e.target.value })} placeholder="Job title" className={inputCls} />
-                  <input value={experience.company} onChange={(e) => setExperience({ ...experience, company: e.target.value })} placeholder="Company" className={inputCls} />
-                  <div className="flex gap-2">
-                    <input value={experience.startDate} onChange={(e) => setExperience({ ...experience, startDate: e.target.value })} placeholder="Start (YYYY-MM)" className={inputCls} />
-                    <input value={experience.endDate} onChange={(e) => setExperience({ ...experience, endDate: e.target.value })} placeholder="End (or leave blank)" className={inputCls} />
-                  </div>
-                  <textarea value={experience.description} onChange={(e) => setExperience({ ...experience, description: e.target.value })} rows={2} placeholder="Brief description…" className={textareaCls} />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-bold text-text-muted uppercase tracking-wider">Education</p>
-                  <input value={education.institution} onChange={(e) => setEducation({ ...education, institution: e.target.value })} placeholder="Institution" className={inputCls} />
-                  <div className="flex gap-2">
-                    <input value={education.degree} onChange={(e) => setEducation({ ...education, degree: e.target.value })} placeholder="Degree" className={inputCls} />
-                    <input value={education.field} onChange={(e) => setEducation({ ...education, field: e.target.value })} placeholder="Field of study" className={inputCls} />
-                  </div>
-                  <input value={education.graduationYear} onChange={(e) => setEducation({ ...education, graduationYear: e.target.value })} placeholder="Graduation year" className={inputCls} />
-                </div>
-              </>
-            )}
-
-            {current.key === 'social' && (
-              <SocialLinks links={socialLinks} isEditing onChange={updateSocialLink} />
-            )}
-
-            {error && <p className="text-[13px] text-error m-0">{error}</p>}
-          </div>
-
-          {/* Footer */}
-          <div className="flex justify-between items-center gap-2 px-5.5 py-4 border-t border-divider shrink-0">
-            <button
-              type="button" onClick={() => setStep((s) => Math.max(0, s - 1))}
-              disabled={step === 0 || saving}
-              className={`flex items-center gap-1 min-h-11 px-4 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-text-secondary text-sm font-medium ${step === 0 ? 'opacity-0 pointer-events-none' : 'cursor-pointer'}`}
-            >
-              <ChevronLeft size={14} /> Back
-            </button>
-            <motion.button
-              type="button" whileTap={{ scale: 0.97 }} disabled={saving}
-              onClick={() => (isLast ? finish() : setStep((s) => s + 1))}
-              className={`flex items-center gap-[7px] min-h-11 px-5.5 py-2 rounded-[9px] border-none text-white text-sm font-semibold ${saving ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-              style={{ background: 'var(--accent)' }}
-            >
-              {saving ? <Loader2 size={14} className="animate-spin" /> : !isLast && <ChevronRight size={14} />}
-              {saving ? 'Saving…' : isLast ? 'Finish' : 'Next'}
-            </motion.button>
-          </div>
-        </motion.div>
-      </motion.div>
-
-      <AnimatePresence>
-        {cropFile && (
-          <ImageCropper
-            file={cropFile}
-            aspect={1}
-            shape="round"
-            label="Profile Photo"
-            onComplete={onCropComplete}
-            onCancel={() => setCropFile(null)}
+      <div className="flex flex-col gap-3 max-h-[42vh] overflow-y-auto pr-1">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-semibold text-text-secondary">Bio</label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            rows={2}
+            placeholder="Tell the community about yourself…"
+            className={`${fieldCls} resize-y font-[inherit]`}
           />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-semibold text-text-secondary">Experience</label>
+          <input value={expTitle} onChange={(e) => setExpTitle(e.target.value)} placeholder="Job title" className={fieldCls} />
+          <input value={expCompany} onChange={(e) => setExpCompany(e.target.value)} placeholder="Company" className={fieldCls} />
+          <div className="flex gap-2">
+            <input value={expStart} onChange={(e) => setExpStart(e.target.value)} placeholder="Start (YYYY-MM)" className={fieldCls} />
+            <input value={expEnd} onChange={(e) => setExpEnd(e.target.value)} placeholder="End (or leave blank)" className={fieldCls} />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-semibold text-text-secondary">Education</label>
+          <input value={eduInstitution} onChange={(e) => setEduInstitution(e.target.value)} placeholder="Institution" className={fieldCls} />
+          <div className="flex gap-2">
+            <input value={eduDegree} onChange={(e) => setEduDegree(e.target.value)} placeholder="Degree" className={fieldCls} />
+            <input value={eduField} onChange={(e) => setEduField(e.target.value)} placeholder="Field of study" className={fieldCls} />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-semibold text-text-secondary">
+            Skills <span className="text-text-muted font-normal">(at least {MIN_SKILLS})</span>
+          </label>
+          <SkillInput
+            skills={skills}
+            onAdd={(s) => setSkills((prev) => (prev.includes(s) ? prev : [...prev, s]))}
+            onRemove={(s) => setSkills((prev) => prev.filter((x) => x !== s))}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-semibold text-text-secondary">
+            Domain <span className="text-text-muted font-normal">(optional — you can add this later in your profile)</span>
+          </label>
+          <DomainPicker
+            domain={domain}
+            isEditing
+            onToggle={(d) => setDomain((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]))}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-3 pt-2">
+        {onClose && (
+          <Button variant="ghost" onClick={onClose} disabled={saving}>
+            Save & finish later
+          </Button>
         )}
-      </AnimatePresence>
+        <Button onClick={handleSave} isLoading={saving} disabled={percent === 0}>
+          {complete ? (<><Check size={14} /> Complete profile</>) : 'Save progress'}
+        </Button>
+      </div>
     </>
+  );
+}
+
+export default function OnboardingModal({ onClose }) {
+  const [step, setStep] = useState('choice'); // 'choice' | 'zip' | 'manual'
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const setUser = useAuthStore((s) => s.setUser);
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected && selected.name.endsWith('.zip')) {
+      setFile(selected);
+    } else if (selected) {
+      toast.error('Please select a valid .zip file.');
+      setFile(null);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
+      toast.error('Please select a file first.');
+      return;
+    }
+
+    setLoading(true);
+    const fd = new FormData();
+    fd.append('file', file);
+
+    try {
+      const { data } = await api.post('/users/linkedin-import', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setUser(data.user);
+      toast.success('LinkedIn data imported successfully.');
+      if (onClose) onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to process the ZIP file. Please ensure it is the correct export from LinkedIn.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-center justify-center p-5"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+        transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+        className="w-full max-w-[480px] bg-card rounded-[24px] shadow-2xl border border-border/50 p-6 flex flex-col gap-5"
+      >
+        {step === 'choice' && (
+          <>
+            <div>
+              <h2 className="text-xl font-bold text-text-primary mb-2">Complete your profile</h2>
+              <p className="text-sm text-text-secondary leading-relaxed">
+                To maintain high signal quality in the hub, we require a verified professional
+                background before you can post, apply, or join collabs. Choose how you'd like to add yours.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <ChoiceCard
+                icon={UploadCloud}
+                title="Import your LinkedIn data"
+                description="Fastest option — upload your official LinkedIn data export and we'll fill in your headline, skills, and experience automatically."
+                cta="Import ZIP"
+                onClick={() => setStep('zip')}
+              />
+              <ChoiceCard
+                icon={PenLine}
+                title="Fill it in manually"
+                description="Add your bio, at least one role, one degree, and a few skills yourself — right here."
+                cta="Fill manually"
+                onClick={() => setStep('manual')}
+              />
+            </div>
+
+            {onClose && (
+              <div className="flex justify-end pt-1">
+                <Button variant="ghost" onClick={onClose}>
+                  Not now
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+
+        {step === 'manual' && (
+          <ManualFillForm onClose={onClose} onBack={() => setStep('choice')} />
+        )}
+
+        {step === 'zip' && (
+          <>
+            <div>
+              <button
+                type="button"
+                onClick={() => setStep('choice')}
+                className="flex items-center gap-1.5 text-[13px] font-medium text-text-muted cursor-pointer mb-3 bg-transparent border-none p-0 hover:text-text-secondary"
+              >
+                <ArrowLeft size={14} /> Back
+              </button>
+              <h2 className="text-xl font-bold text-text-primary mb-2">Import your Professional Data</h2>
+              <p className="text-sm text-text-secondary leading-relaxed">
+                Request a data archive containing your Profile, Education, Skills, and Positions from your LinkedIn settings, then upload the .zip here.
+              </p>
+            </div>
+
+            <ExportGuide />
+
+            <div className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center text-center">
+              <UploadCloud className="text-text-muted mb-3" size={36} />
+              <p className="text-sm text-text-primary font-medium mb-1">
+                {file ? file.name : 'Upload LinkedIn Data Export (.zip)'}
+              </p>
+              <p className="text-xs text-text-muted mb-4 max-w-[280px]">
+                Request a data archive containing your Profile, Education, Skills, and Positions from your LinkedIn settings.
+              </p>
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept=".zip"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  disabled={loading}
+                />
+                <span className="inline-flex items-center justify-center h-10 px-4 bg-input border border-border rounded-lg text-sm font-medium hover:bg-hover transition-colors">
+                  Select ZIP file
+                </span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              {onClose && (
+                <Button variant="ghost" onClick={onClose} disabled={loading}>
+                  Cancel
+                </Button>
+              )}
+              <Button onClick={handleUpload} isLoading={loading} disabled={!file}>
+                Import Data
+              </Button>
+            </div>
+          </>
+        )}
+      </motion.div>
+    </motion.div>
   );
 }

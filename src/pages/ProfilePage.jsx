@@ -52,14 +52,14 @@ const domainLabel = (key) => DOMAINS.find((d) => d.value === key)?.label ?? key;
 async function uploadBlob(blob, endpoint) {
   const fd = new FormData();
   fd.append("file", blob, "upload.jpg");
-  const { data } = await api.post(`/upload/${endpoint}`, fd);
-  const url = data.url;
+  const { data: uploadData } = await api.post(`/upload/${endpoint}`, fd);
+  const url = uploadData.url;
 
   // persist the URL back to the user's profile
   const field = endpoint === "avatar" ? "avatarUrl" : "bannerUrl";
-  await api.patch("/users/profile", { [field]: url });
+  const { data: profileData } = await api.patch("/users/profile", { [field]: url });
 
-  return url;
+  return { url, user: profileData.user };
 }
 
 /* ── sub-components ── */
@@ -98,7 +98,7 @@ const TAB_LABELS = {
 const TAB_SOON = [""]; // Settings unlocked for own profile
 
 /* ── Stats panel ── */
-const TYPE_COLORS = { text: '#1e9df1', code: '#8b5cf6', video: '#ec4899', collab: '#3a3d4a' };
+const TYPE_COLORS = { text: '#1e9df1', code: '#8b5cf6', video: '#ec4899', collab: '#6366f1' };
 const TYPE_LABELS = { text: 'Text', code: 'Code', video: 'Video', collab: 'Collab' };
 
 function lastSixMonths() {
@@ -253,12 +253,15 @@ function SettingsPanel({ profile }) {
 
   const { theme, setTheme } = useThemeStore();
 
+  const setUser = useAuthStore((s) => s.setUser);
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError("");
     try {
-      await api.patch("/users/profile", { name, bio, location, website });
+      const { data } = await api.patch("/users/profile", { name, bio, location, website });
+      setUser(data.user);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
@@ -429,6 +432,72 @@ function SettingsPanel({ profile }) {
           })}
         </div>
       </div>
+
+      {/* Security */}
+      {profile?.authProvider === 'linkedin' && (
+        <div className="bg-surface-1 border border-border rounded-2xl px-6 py-5.5">
+          <h3 className="text-[15px] font-bold text-text-primary mb-1.5 flex items-center gap-2">
+            <Lock size={16} className="text-text-muted" /> Security
+          </h3>
+          <p className="text-[13px] text-text-muted mb-4.5">
+            Since you signed up with LinkedIn, you can set a password to log in with your email address.
+          </p>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const fd = new FormData(e.target);
+              const password = fd.get('password');
+              const confirmPassword = fd.get('confirmPassword');
+              if (password.length < 6) {
+                alert('Password must be at least 6 characters.');
+                return;
+              }
+              if (password !== confirmPassword) {
+                alert('Passwords do not match.');
+                return;
+              }
+              try {
+                await api.post('/auth/set-password', { password });
+                alert('Password set successfully!');
+                e.target.reset();
+              } catch (err) {
+                alert(err.response?.data?.message || 'Failed to set password');
+              }
+            }}
+            className="flex flex-col gap-3.5 max-w-[400px]"
+          >
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-text-secondary">New Password</label>
+              <input
+                type="password"
+                name="password"
+                required
+                placeholder="At least 6 characters"
+                className="px-3.5 py-2.5 min-h-11 box-border rounded-[10px] border-[1.5px] border-border bg-input text-base text-text-primary outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent-border focus:shadow-[0_0_0_3px_var(--accent-dim)]"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-text-secondary">Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                required
+                placeholder="Re-enter your password"
+                className="px-3.5 py-2.5 min-h-11 box-border rounded-[10px] border-[1.5px] border-border bg-input text-base text-text-primary outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent-border focus:shadow-[0_0_0_3px_var(--accent-dim)]"
+              />
+            </div>
+            <div className="flex items-center gap-2.5 mt-1">
+              <motion.button
+                type="submit"
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center justify-center px-5.5 py-2.5 min-h-11 box-border rounded-[9px] border-none bg-(image:--btn-grad) text-white shadow-btn text-sm font-semibold cursor-pointer transition-[opacity] duration-200 hover:opacity-90"
+              >
+                Set password
+              </motion.button>
+            </div>
+          </form>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -438,7 +507,7 @@ function SettingsPanel({ profile }) {
 ───────────────────────────────────────── */
 export default function ProfilePage() {
   const { userId } = useParams();
-  const { user: me, updateFollowing } = useAuthStore();
+  const { user: me, updateFollowing, setUser } = useAuthStore();
 
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
@@ -527,8 +596,9 @@ export default function ProfilePage() {
 
     setUploading(true);
     try {
-      const url = await uploadBlob(blob, endpoint);
+      const { url, user: updatedUser } = await uploadBlob(blob, endpoint);
       setUrl(url);
+      setUser(updatedUser);
     } catch {
       setUploadError(
         `${endpoint === "avatar" ? "Profile photo" : "Banner"} upload failed. Please try again.`,
@@ -668,7 +738,7 @@ export default function ProfilePage() {
                 style={{ backgroundImage: `radial-gradient(circle, ${dc}22 1px, transparent 1px)`, backgroundSize: '24px 24px' }}
               />
               <div
-                className="absolute bottom-4 right-5 text-[11px] font-bold tracking-[0.1em] uppercase"
+                className="absolute bottom-4 right-5 text-[11px] font-bold tracking-widest uppercase"
                 style={{ color: `${dc}60` }}
               >
                 {domainLabel(profile.domain)}
@@ -749,7 +819,7 @@ export default function ProfilePage() {
 
               {/* camera overlay */}
               {isOwnProfile && (
-                <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center gap-[3px] bg-black/0 text-white opacity-0 transition-[opacity,background-color] duration-[180ms] pointer-events-none group-hover:opacity-100 group-hover:bg-black/48">
+                <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center gap-[3px] bg-black/0 text-white opacity-0 transition-[opacity,background-color] duration-180 pointer-events-none group-hover:opacity-100 group-hover:bg-black/48">
                   {uploadingAvatar ? (
                     <Loader2 size={20} className="animate-spin" />
                   ) : (

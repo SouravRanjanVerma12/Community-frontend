@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Type, Code2, Video, Send, X, Loader2, Users2, Plus } from 'lucide-react';
+import { Type, Code2, Video, Send, X, Loader2, Users2, Plus, Handshake } from 'lucide-react';
 import MembersSlider from './MembersSlider';
 import Button from '../ui/Button';
 import { useAuthStore } from '../../stores/authStore';
@@ -8,7 +8,7 @@ import { DOMAINS } from '../../data/mockPosts';
 import { queryClient } from '../../api/queryClient';
 import api from '../../api/axiosInstance';
 
-const COLLAB_COLOR = '#3a3d4a';
+const COLLAB_COLOR = '#6366f1';
 
 function Avatar({ name, src, size = 38 }) {
   const initials = name?.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) ?? '?';
@@ -24,8 +24,8 @@ function Avatar({ name, src, size = 38 }) {
 const POST_TYPES = [
   { value: 'text',   label: 'Text',   icon: Type   },
   { value: 'code',   label: 'Code',   icon: Code2  },
-  { value: 'video',  label: 'Video',  icon: Video  },
-  { value: 'collab', label: 'Collab', icon: Users2 },
+  // { value: 'video',  label: 'Video',  icon: Video  },
+  { value: 'collab', label: 'Collab', icon: Handshake },
 ];
 
 const PRESET_ROLES = ['Frontend Dev', 'Backend Dev', 'Full Stack', 'Designer', 'DevOps', 'ML Engineer', 'Mobile Dev', 'QA'];
@@ -82,7 +82,7 @@ function TagInput({ tags, onAdd, onRemove, placeholder, presets }) {
   );
 }
 
-export default function CreatePost() {
+export default function CreatePost({ onOpenModal }) {
   const { user } = useAuthStore();
   const [expanded, setExpanded]     = useState(false);
   const [type, setType]             = useState('text');
@@ -99,6 +99,15 @@ export default function CreatePost() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]           = useState('');
+
+  const handleOpen = (selectedType = 'text') => {
+    if (onOpenModal) {
+      onOpenModal(selectedType);
+    } else {
+      setType(selectedType);
+      setExpanded(true);
+    }
+  };
 
   const close = () => {
     setExpanded(false);
@@ -136,14 +145,13 @@ export default function CreatePost() {
 
   return (
     <div
-      className="bg-card rounded-[14px] px-5 py-4 shadow-sm transition-colors duration-250"
-      style={{ border: `1px solid ${isCollab && expanded ? COLLAB_COLOR + '40' : 'var(--card-border)'}` }}
+      className="bg-card rounded-[14px] px-5 py-4 shadow-sm transition-colors duration-250 border border-card-border"
     >
       {/* Collapsed trigger */}
       <div className="flex items-center gap-3">
         <Avatar name={user?.name ?? 'Guest'} src={user?.avatarUrl || null} />
         <button
-          onClick={() => setExpanded(true)}
+          onClick={() => handleOpen('text')}
           className="flex-1 text-left px-4 py-2.5 rounded-3xl border-[1.5px] border-border bg-input text-text-muted text-sm cursor-text transition-colors duration-150 hover:border-accent-border hover:bg-card"
         >
           {user ? `What's on your mind, ${user.name.split(' ')[0]}?` : 'Share something with the community…'}
@@ -155,7 +163,7 @@ export default function CreatePost() {
         <div className="flex gap-1 mt-3 pt-3 border-t border-divider">
           {POST_TYPES.map(({ value, label, icon: Icon }) => (
             <button
-              key={value} onClick={() => { setType(value); setExpanded(true); }}
+              key={value} onClick={() => handleOpen(value)}
               className={[
                 'flex items-center gap-1.5 px-3.5 py-[7px] rounded-lg border-none bg-transparent text-[13px] cursor-pointer',
                 'transition-colors duration-120 hover:bg-hover',

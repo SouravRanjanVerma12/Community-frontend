@@ -26,6 +26,12 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
+    
+    if (error.response?.status === 403 && error.response?.data?.code === 'LINKEDIN_IMPORT_REQUIRED') {
+      window.dispatchEvent(new CustomEvent('LINKEDIN_IMPORT_REQUIRED'));
+      return Promise.reject(error);
+    }
+
     if (error.response?.status !== 401 || original._retry) {
       return Promise.reject(error);
     }
