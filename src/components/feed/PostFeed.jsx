@@ -69,19 +69,19 @@ export default function PostFeed({ domain, search, authorDomain = null }) {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const tabBar = (
-    <div className="flex items-center gap-1 bg-card border border-card-border rounded-xl p-1 w-fit">
+    <div className="w-full justify-around flex items-center gap-1 bg-card border border-card-border rounded-xl p-1 w-fit">
       {tabs.map((t) => (
         <button
           key={t.id}
           onClick={() => setSort(t.id)}
           className={[
-            'px-3.5 py-1.5 rounded-lg border-none text-[13px] font-semibold cursor-pointer transition-colors duration-150',
+            'w-full px-3.5 py-1.5 rounded-lg border-none text-[13px] font-semibold cursor-pointer transition-colors duration-150',
             sort === t.id ? 'bg-accent-dim text-accent' : 'bg-transparent text-text-muted hover:text-text-secondary',
           ].join(' ')}
         >
           {t.label}
         </button>
-      ))}
+      ))}``
     </div>
   );
 

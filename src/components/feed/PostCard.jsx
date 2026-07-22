@@ -144,8 +144,14 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     await api.post(`/posts/${post._id}/comments`, { text: txt });
   };
 
-  const share = () => {
-    navigator.clipboard.writeText(window.location.href);
+  const share = async () => {
+    const url = `${window.location.origin}/explore?post=${post._id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Post link copied to clipboard.');
+    } catch {
+      toast.error('Could not copy link.');
+    }
   };
 
   const startEdit = () => {
