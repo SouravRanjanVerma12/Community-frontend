@@ -99,21 +99,21 @@
 :root,
 [data-theme="light"] {
   /* ── Core contract tokens (Prograstic spec) ── */
-  --bg:          #ffffff;
-  --surface:     #f7f8f8;
+  --bg:          #f8fafc;
+  --surface:     #f1f5f9;
   --card-bg:     #ffffff;
-  --nav-bg:      rgba(255, 255, 255, 0.90);
+  --nav-bg:      rgba(255, 255, 255, 0.92);
   --dark-section: #0f1419;
   --radius:      1.3rem;
 
   /* ── Extended surface aliases (kept for component compat) ── */
-  --surface-0: #ffffff;
-  --surface-1: #f7f8f8;
-  --surface-2: #e5e5e6;
-  --surface-3: #d6d7d8;
+  --surface-0: #f8fafc;
+  --surface-1: #f1f5f9;
+  --surface-2: #e2e8f0;
+  --surface-3: #cbd5e1;
 
-  --border:     #e1eaef;
-  --card-border: #e1e8ed;
+  --border:     #cbd5e1;
+  --card-border: #d1d5db;
   --card-radius: 16px;
 
   /* ── Text ── */

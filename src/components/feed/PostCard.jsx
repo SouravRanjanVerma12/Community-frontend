@@ -218,10 +218,10 @@ export default function PostCard({ post: initialPost, index = 0 }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -2, boxShadow: 'var(--shadow-hover)' }}
-      className="rounded-[14px] px-[22px] py-5 cursor-default transition-[box-shadow,background-color,border-color] duration-200 bg-card"
+      className="rounded-[16px] px-[22px] py-5 cursor-default transition-[box-shadow,background-color,border-color] duration-200 bg-card border border-border shadow-xs hover:border-accent/40"
       style={{
-        border: `1px solid ${isCollab ? COLLAB_COLOR + '35' : 'var(--card-border)'}`,
-        boxShadow: isCollab ? `0 2px 12px ${COLLAB_COLOR}18` : 'var(--shadow-sm)',
+        border: `1px solid ${isCollab ? 'var(--accent-border)' : 'var(--card-border)'}`,
+        boxShadow: isCollab ? '0 2px 14px var(--accent-dim)' : '0 2px 8px rgba(0,0,0,0.04)',
       }}
     >
       {/* Author row */}
