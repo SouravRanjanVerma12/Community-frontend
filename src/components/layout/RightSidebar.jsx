@@ -302,13 +302,15 @@ export default function RightSidebar() {
       >
         {suggestLoading ? (
           <Spinner />
-        ) : !suggestions?.length ? (
+        ) : !suggestions?.filter((u) => String(u._id || u.id) !== String(user?._id || user?.id))?.length ? (
           <p className="text-[13px] text-text-muted">No suggestions available right now.</p>
         ) : (
           <div className="flex flex-col gap-2 mt-1">
-            {suggestions.map((u) => {
-              const isFollowing = Array.isArray(user?.following) && user.following.some((id) => String(id) === String(u._id || u.id));
-              const domainTag = Array.isArray(u.domain) && u.domain.length > 0 ? u.domain[0] : null;
+            {suggestions
+              .filter((u) => String(u._id || u.id) !== String(user?._id || user?.id))
+              .map((u) => {
+                const isFollowing = Array.isArray(user?.following) && user.following.some((id) => String(id) === String(u._id || u.id));
+                const domainTag = Array.isArray(u.domain) && u.domain.length > 0 ? u.domain[0] : null;
 
               return (
                 <div
