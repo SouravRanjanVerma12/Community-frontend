@@ -188,7 +188,7 @@ function GlobalSearch() {
                         className="flex items-center gap-2.5 px-3.5 py-2.5 border-b border-divider no-underline hover:bg-hover"
                       >
                         <div className="w-8 h-8 rounded-lg bg-surface-2 flex items-center justify-center shrink-0 text-text-muted">
-                          {p.type === 'collab' ? <Handshake size={14} className="text-indigo-500" /> : <Search size={14} />}
+                          {p.type === 'collab' ? <Handshake size={14} className="text-accent" /> : <Search size={14} />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="m-0 text-[13px] font-semibold text-text-primary truncate">{p.title}</p>
@@ -262,7 +262,7 @@ function FriendsDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-[calc(100%+12px)] -right-2 z-500 bg-card border border-card-border rounded-2xl shadow-popup w-[min(300px,90vw)] overflow-hidden"
+            className="fixed top-16 right-3 sm:right-6 lg:absolute lg:top-[calc(100%+12px)] lg:left-auto lg:-right-2 z-500 bg-card border border-card-border rounded-2xl shadow-popup w-[min(340px,calc(100vw-24px))] overflow-hidden"
           >
             {/* Header */}
             <div className="px-4 pt-[13px] pb-[11px] border-b border-divider flex items-center justify-between">
@@ -356,7 +356,7 @@ function WorkspacesDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-[calc(100%+12px)] -right-2 z-500 bg-card border border-card-border rounded-2xl shadow-popup w-[min(300px,90vw)] overflow-hidden"
+            className="fixed top-16 right-3 sm:right-6 lg:absolute lg:top-[calc(100%+12px)] lg:left-auto lg:-right-2 z-500 bg-card border border-card-border rounded-2xl shadow-popup w-[min(340px,calc(100vw-24px))] overflow-hidden"
           >
             <div className="px-4 pt-[13px] pb-[11px] border-b border-divider flex items-center justify-between">
               <span className="text-sm font-bold text-text-primary">Your workspaces</span>
@@ -405,10 +405,47 @@ function WorkspacesDropdown() {
   );
 }
 
+/* ── Direct Workspaces List for Drawer ── */
+function DrawerWorkspacesList({ closeDrawer }) {
+  const { user } = useAuthStore();
+  const { workspaces = [] } = useMyWorkspaces(user?._id);
+
+  if (workspaces.length === 0) return null;
+
+  return (
+    <div className="px-4 py-3 border-t border-divider/60">
+      <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">
+        Your Workspaces ({workspaces.length})
+      </span>
+      <div className="flex flex-col gap-1">
+        {workspaces.map((w) => (
+          <Link
+            key={w.id}
+            to={`/project/${w.id}`}
+            onClick={closeDrawer}
+            className="flex items-center justify-between py-2 px-2.5 rounded-lg text-sm text-text-primary hover:bg-surface-2 no-underline transition-colors"
+          >
+            <span className="font-medium truncate max-w-[190px]">{w.title}</span>
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
+              style={{
+                background: w.role === 'Lead' ? 'var(--accent-bg)' : 'rgba(34,197,94,0.1)',
+                color: w.role === 'Lead' ? 'var(--accent)' : '#16a34a',
+              }}
+            >
+              {w.role}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const NAV_TABS = [
   { to: '/explore',  label: 'Explore',  icon: Compass,    activeColor: null            },
-  { to: '/collab',   label: 'Collab',   icon: Handshake,  activeColor: '#818cf8'       },
-  // { to: '/jobs',     label: 'Jobs',     icon: Briefcase,  activeColor: null            },
+  { to: '/collab',   label: 'Collab',   icon: Handshake,  activeColor: null            },
+  // { to: '/jobs',     label: 'Jobs',     icon: Briefcase,  activeColor: '#0ea5e9'       },
 ];
 
 export default function Navbar() {
@@ -440,7 +477,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-100 h-15 bg-nav border-b border-nav-border flex items-center px-5 gap-3 transition-colors duration-250">
+      <nav className="sticky top-0 z-100 h-15 bg-nav/95 backdrop-blur-md border-b border-nav-border flex items-center px-5 gap-3 transition-colors duration-250">
         {/* Logo */}
         <Link to="/explore" className="flex items-center gap-2 no-underline shrink-0 mr-2">
           <Logo size={28} showText={true} />
@@ -476,7 +513,7 @@ export default function Navbar() {
         {/* Spacer to push right actions to the edge */}
         <div className="flex-1" />
 
-        {/* Right actions — desktop/tablet */}
+        {/* Right actions — desktop */}
         <div className="hidden lg:flex items-center gap-2.5 shrink-0">
           {user ? (
             <>
@@ -498,7 +535,7 @@ export default function Navbar() {
                 className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center"
                 title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               >
-                {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-500" />}
+                {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-accent" />}
               </button>
               <Button variant="ghost" size="sm" onClick={handleLogout} title="Log out">
                 <LogOut size={14} />
@@ -512,7 +549,7 @@ export default function Navbar() {
                 className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center mr-1"
                 title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               >
-                {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-500" />}
+                {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-accent" />}
               </button>
               <Link to="/" className="px-3.5 py-[7px] rounded-lg border-[1.5px] border-border text-text-secondary text-[13px] font-medium flex items-center gap-1.5 no-underline">
                 <LogIn size={14} /> Log in
@@ -524,14 +561,33 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Hamburger — mobile/tablet only */}
-        <button
-          onClick={() => setDrawerOpen((v) => !v)}
-          title="Menu"
-          className="lg:hidden flex items-center justify-center text-text-secondary bg-none border-none cursor-pointer p-1.5 rounded-lg transition-colors duration-150 hover:bg-surface-2"
-        >
-          <Menu size={20} />
-        </button>
+        {/* Quick access icons — mobile & tablet */}
+        <div className="lg:hidden flex items-center gap-3 shrink-0">
+          {user ? (
+            <>
+              <WorkspacesDropdown />
+              <FriendsDropdown />
+              <NotificationBell />
+            </>
+          ) : (
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center"
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-accent" />}
+            </button>
+          )}
+
+          {/* Hamburger menu button */}
+          <button
+            onClick={() => setDrawerOpen((v) => !v)}
+            title="Menu"
+            className="flex items-center justify-center text-text-secondary bg-none border-none cursor-pointer p-1.5 rounded-lg transition-colors duration-150 hover:bg-surface-2 ml-0.5"
+          >
+            <Menu size={20} />
+          </button>
+        </div>
       </nav>
 
       {/* Mobile/tablet drawer */}
@@ -592,30 +648,24 @@ export default function Navbar() {
 
                 {user && (
                   <>
-                    <Link to="/messages" onClick={closeDrawer}
-                      className="flex items-center gap-3 px-4 py-3 no-underline text-sm font-medium text-text-secondary">
+                    <NavLink to={`/profile/${user._id}`} onClick={closeDrawer}
+                      className={({ isActive }) => [
+                        'flex items-center gap-3 px-4 py-3 no-underline text-sm font-medium transition-colors',
+                        isActive ? 'bg-accent-bg text-accent font-bold' : 'text-text-secondary hover:bg-surface-2',
+                      ].join(' ')}>
+                      <Users2 size={18} /> My Profile
+                    </NavLink>
+
+                    <NavLink to="/messages" onClick={closeDrawer}
+                      className={({ isActive }) => [
+                        'flex items-center gap-3 px-4 py-3 no-underline text-sm font-medium transition-colors',
+                        isActive ? 'bg-accent-bg text-accent font-bold' : 'text-text-secondary hover:bg-surface-2',
+                      ].join(' ')}>
                       <MessageSquare size={18} /> Messages
-                    </Link>
+                    </NavLink>
 
-                    <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary">
-                      <span className="flex items-center gap-3"><LayoutDashboard size={18} /> Your workspaces</span>
-                      <WorkspacesDropdown />
-                    </div>
-
-                    <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary">
-                      <span className="flex items-center gap-3"><Users size={18} /> Friends</span>
-                      <FriendsDropdown />
-                    </div>
-
-                    <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary">
-                      <span className="flex items-center gap-3"><Bell size={18} /> Friend requests</span>
-                      <FriendBell />
-                    </div>
-
-                    <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary">
-                      <span className="flex items-center gap-3"><Bell size={18} /> Notifications</span>
-                      <NotificationBell />
-                    </div>
+                    {/* Direct Workspaces Section in Drawer */}
+                    <DrawerWorkspacesList closeDrawer={closeDrawer} />
                   </>
                 )}
               </div>
@@ -627,7 +677,7 @@ export default function Navbar() {
                   className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-2 transition-colors border-none bg-transparent cursor-pointer w-full"
                 >
                   <span className="flex items-center gap-2">
-                    {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-500" />}
+                    {theme === 'dark' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-accent" />}
                     Theme Mode
                   </span>
                   <span className="text-[11px] px-2 py-0.5 rounded-md bg-surface-2 font-semibold uppercase text-text-muted">{theme}</span>

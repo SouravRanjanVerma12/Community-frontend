@@ -56,20 +56,23 @@ export default function JoinProjectModal({ post, onClose }) {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
         onClick={() => onClose(false)}
-        className="fixed inset-0 z-300 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
+        className="fixed inset-0 z-300 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-5"
       >
         <motion.div
           key="modal-card"
           layout
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          initial={{ opacity: 0, y: 40, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+          exit={{ opacity: 0, y: 30, scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 140, damping: 22 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[520px] max-h-[90svh] overflow-y-auto scrollbar-none bg-card rounded-[24px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)] border border-border/50"
+          className="w-full max-w-[520px] max-h-[92vh] sm:max-h-[88vh] overflow-y-auto scrollbar-none bg-card rounded-t-[28px] sm:rounded-[24px] shadow-[0_-12px_40px_rgba(0,0,0,0.4)] sm:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)] border-t sm:border border-border/50"
         >
+          {/* Mobile handle indicator */}
+          <div className="w-10 h-1 rounded-full bg-border/80 mx-auto mt-2.5 sm:hidden shrink-0" />
+
           {/* Header */}
-          <motion.div layout="position" className="px-7 pt-7 pb-3 flex items-start justify-between gap-4 sticky top-0 bg-card z-10 border-b border-border/40">
+          <motion.div layout="position" className="px-5 sm:px-7 pt-4 sm:pt-7 pb-3 flex items-start justify-between gap-4 sticky top-0 bg-card z-10 border-b border-border/40">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Users2 size={18} className="text-accent" />

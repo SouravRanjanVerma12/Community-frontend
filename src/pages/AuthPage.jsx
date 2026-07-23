@@ -128,7 +128,7 @@ export default function AuthPage() {
                 </div>
                 <h2 className="text-white text-[clamp(1.75rem,2.4vw,2.4rem)] font-extrabold leading-[1.15] tracking-[-0.03em] mb-3">
                   Where builders find their{' '}
-                  <span className="bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent font-extrabold">
+                  <span className="bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-400 bg-clip-text text-transparent font-extrabold">
                     people.
                   </span>
                 </h2>
@@ -141,8 +141,8 @@ export default function AuthPage() {
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/8 border border-white/15 text-white/90 backdrop-blur-md transition-all hover:bg-white/12 hover:border-cyan-400/40">
                     <Code2 size={12} className="text-cyan-400" /> Developers
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/8 border border-white/15 text-white/90 backdrop-blur-md transition-all hover:bg-white/12 hover:border-indigo-400/40">
-                    <Rocket size={12} className="text-indigo-400" /> Founders
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/8 border border-white/15 text-white/90 backdrop-blur-md transition-all hover:bg-white/12 hover:border-sky-400/40">
+                    <Rocket size={12} className="text-sky-400" /> Founders
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/8 border border-white/15 text-white/90 backdrop-blur-md transition-all hover:bg-white/12 hover:border-amber-400/40">
                     <Sparkles size={12} className="text-amber-400" /> Designers

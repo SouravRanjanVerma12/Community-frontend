@@ -98,7 +98,7 @@ const TAB_LABELS = {
 const TAB_SOON = [""]; // Settings unlocked for own profile
 
 /* ── Stats panel ── */
-const TYPE_COLORS = { text: '#1e9df1', code: '#8b5cf6', video: '#ec4899', collab: '#6366f1' };
+const TYPE_COLORS = { text: '#1e9df1', code: '#38bdf8', video: '#ec4899', collab: '#1e9df1' };
 const TYPE_LABELS = { text: 'Text', code: 'Code', video: 'Video', collab: 'Collab' };
 
 function lastSixMonths() {
@@ -721,7 +721,7 @@ export default function ProfilePage() {
         }
       />
 
-      <div className="max-w-[780px] mx-auto px-4 pb-12">
+      <div className="max-w-[880px] mx-auto px-4 md:px-6 pb-12">
         {/* ── Banner ── */}
         <div
           onClick={() => isOwnProfile && bannerInputRef.current?.click()}
@@ -797,7 +797,7 @@ export default function ProfilePage() {
           className="bg-card border border-card-border rounded-2xl px-6 pb-6 -mt-12 relative shadow-card"
         >
           {/* Avatar row */}
-          <div className="flex items-end justify-between pt-3 mb-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between pt-3 mb-3.5 gap-3">
             {/* Avatar */}
             <div
               onClick={() => isOwnProfile && avatarInputRef.current?.click()}
@@ -836,11 +836,11 @@ export default function ProfilePage() {
             </div>
 
             {/* Action buttons */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
               {isOwnProfile ? (
                 <button
                   onClick={() => setActiveTab("settings")}
-                  className="flex items-center gap-1.5 px-4 py-2.5 min-h-11 box-border rounded-[9px] border-[1.5px] border-border bg-transparent text-sm font-semibold text-text-secondary cursor-pointer transition-colors duration-150 hover:border-accent hover:text-accent"
+                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-11 box-border rounded-[9px] border-[1.5px] border-border bg-transparent text-sm font-semibold text-text-secondary cursor-pointer transition-colors duration-150 hover:border-accent hover:text-accent w-full sm:w-auto"
                 >
                   <Edit3 size={14} /> Edit profile
                 </button>
@@ -848,17 +848,17 @@ export default function ProfilePage() {
                 <>
                   {/* Message and Unfriend buttons */}
                   {friendStatus.status === "accepted" && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                       <button
                         onClick={() => navigate("/messages")}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-[13px] font-medium text-text-secondary cursor-pointer"
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-[13px] font-medium text-text-secondary cursor-pointer min-h-[38px]"
                       >
                         <MessageSquare size={14} /> Message
                       </button>
                       <button
                         onClick={cancelRequest}
                         disabled={fsLoading}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] border-[1.5px] border-error-border bg-transparent text-[13px] font-medium text-error cursor-pointer"
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-[9px] border-[1.5px] border-error-border bg-transparent text-[13px] font-medium text-error cursor-pointer min-h-[38px]"
                       >
                         <UserMinus size={14} /> Unfriend
                       </button>
@@ -867,12 +867,12 @@ export default function ProfilePage() {
 
                   {/* Friend request button */}
                   {friendStatus.status === "none" && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                       <motion.button
                         whileTap={{ scale: 0.97 }}
                         onClick={sendFriendRequest}
                         disabled={fsLoading}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-[9px] border-none bg-(image:--btn-grad) shadow-btn text-white text-[13px] font-semibold cursor-pointer transition-opacity duration-150"
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-[9px] border-none bg-(image:--btn-grad) shadow-btn text-white text-[13px] font-semibold cursor-pointer transition-opacity duration-150 min-h-[38px]"
                         style={{ opacity: fsLoading ? 0.7 : 1 }}
                       >
                         <UserPlus size={14} /> Add Friend
@@ -880,7 +880,7 @@ export default function ProfilePage() {
                       <button
                         onClick={toggleFollowProfile}
                         disabled={followLoading}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] text-[13px] font-medium cursor-pointer"
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-[9px] text-[13px] font-medium cursor-pointer min-h-[38px]"
                         style={{
                           border: isFollowing ? "1.5px solid var(--border)" : "1.5px solid var(--accent)",
                           background: isFollowing ? "transparent" : "var(--btn-grad)",
@@ -899,7 +899,7 @@ export default function ProfilePage() {
                       <button
                         onClick={cancelRequest}
                         disabled={fsLoading}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-[13px] font-medium text-text-muted cursor-pointer"
+                        className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-[9px] border-[1.5px] border-border bg-transparent text-[13px] font-medium text-text-muted cursor-pointer w-full sm:w-auto"
                       >
                         <Clock size={14} /> Pending
                       </button>
@@ -911,14 +911,14 @@ export default function ProfilePage() {
                         whileTap={{ scale: 0.97 }}
                         onClick={acceptRequest}
                         disabled={fsLoading}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-[9px] border-none bg-(image:--btn-grad) shadow-btn text-white text-[13px] font-semibold cursor-pointer"
+                        className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-[9px] border-none bg-(image:--btn-grad) shadow-btn text-white text-[13px] font-semibold cursor-pointer w-full sm:w-auto"
                       >
                         <UserCheck size={14} /> Accept Request
                       </motion.button>
                     )}
 
                   {friendStatus.status === "accepted" && (
-                    <span className="flex items-center gap-[5px] px-3.5 py-2 rounded-[9px] border-[1.5px] border-[#22c55e] text-[#22c55e] text-[13px] font-semibold">
+                    <span className="flex items-center justify-center gap-[5px] px-3.5 py-2 rounded-[9px] border-[1.5px] border-[#22c55e] text-[#22c55e] text-[13px] font-semibold">
                       <UserCheck size={14} /> Friends
                     </span>
                   )}
@@ -978,7 +978,7 @@ export default function ProfilePage() {
         </motion.div>
 
         {/* ── Tabs ── */}
-        <div className="bg-surface-1 border border-border rounded-xl mt-3 flex overflow-x-auto scrollbar-none">
+        <div className="bg-surface-1 border border-border rounded-xl mt-3 flex items-center justify-start sm:justify-center overflow-x-auto scrollbar-none p-1 gap-1.5 max-w-full">
           {(isOwnProfile ? OWN_PROFILE_TABS : ALL_TABS).map((id) => {
             const active = activeTab === id;
             const isSoon = TAB_SOON.includes(id);
@@ -988,12 +988,11 @@ export default function ProfilePage() {
                 key={id}
                 onClick={() => !locked && setActiveTab(id)}
                 className={[
-                  'flex-1 shrink-0 px-3 sm:px-2 py-3.5 border-none border-b-2 text-[13px] flex items-center justify-center gap-1.5 transition-all duration-150 whitespace-nowrap',
+                  'flex-1 sm:flex-initial shrink-0 px-3.5 py-2.5 rounded-lg border-none text-[13px] flex items-center justify-center gap-1.5 transition-all duration-150 whitespace-nowrap',
                   active ? 'font-bold' : 'font-medium',
                   locked ? 'cursor-default' : 'cursor-pointer',
                 ].join(' ')}
                 style={{
-                  borderBottomColor: active ? 'var(--accent)' : 'transparent',
                   background: active ? 'var(--accent-dim)' : 'transparent',
                   color: active ? 'var(--accent)' : locked ? 'var(--text-muted)' : 'var(--text-secondary)',
                 }}

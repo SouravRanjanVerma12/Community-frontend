@@ -8,7 +8,7 @@ import { DOMAINS } from '../../data/mockPosts';
 import { queryClient } from '../../api/queryClient';
 import api from '../../api/axiosInstance';
 
-const COLLAB_COLOR = '#6366f1';
+const COLLAB_COLOR = 'var(--accent, #1e9df1)';
 
 function Avatar({ name, src, size = 38 }) {
   const initials = name?.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) ?? '?';
@@ -145,14 +145,14 @@ export default function CreatePost({ onOpenModal }) {
 
   return (
     <div
-      className="bg-card rounded-[14px] px-5 py-4 shadow-sm transition-colors duration-250 border border-card-border"
+      className="bg-card rounded-2xl p-4 sm:p-5 shadow-sm transition-all duration-200 border border-border/80 hover:border-accent-border"
     >
       {/* Collapsed trigger */}
       <div className="flex items-center gap-3">
         <Avatar name={user?.name ?? 'Guest'} src={user?.avatarUrl || null} />
         <button
           onClick={() => handleOpen('text')}
-          className="flex-1 text-left px-4 py-2.5 rounded-3xl border-[1.5px] border-border bg-input text-text-muted text-sm cursor-text transition-colors duration-150 hover:border-accent-border hover:bg-card"
+          className="flex-1 text-left px-4 py-2.5 rounded-full border border-border/70 bg-surface-2 hover:bg-surface-3 text-text-muted text-xs sm:text-sm cursor-text transition-all duration-150 focus:ring-2 focus:ring-accent/20"
         >
           {user ? `What's on your mind, ${user.name.split(' ')[0]}?` : 'Share something with the community…'}
         </button>
@@ -160,18 +160,15 @@ export default function CreatePost({ onOpenModal }) {
 
       {/* Quick type buttons */}
       {!expanded && (
-        <div className="flex gap-1 mt-3 pt-3 border-t border-divider">
+        <div className="flex items-center justify-around gap-1 mt-3 pt-3 border-t border-border/50">
           {POST_TYPES.map(({ value, label, icon: Icon }) => (
             <button
               key={value} onClick={() => handleOpen(value)}
-              className={[
-                'flex items-center gap-1.5 px-3.5 py-[7px] rounded-lg border-none bg-transparent text-[13px] cursor-pointer',
-                'transition-colors duration-120 hover:bg-hover',
-                value === 'collab' ? 'font-semibold' : 'font-medium',
-              ].join(' ')}
-              style={{ color: value === 'collab' ? COLLAB_COLOR : 'var(--text-secondary)' }}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-transparent hover:border-border/60 hover:bg-surface-2 text-xs sm:text-[13px] font-semibold transition-all cursor-pointer text-text-secondary hover:text-text-primary"
+              style={{ color: value === 'collab' ? 'var(--accent, #1e9df1)' : undefined }}
             >
-              <Icon size={15} /> {label}
+              <Icon size={15} className={value === 'collab' ? 'text-accent' : 'text-text-muted'} />
+              <span>{label}</span>
             </button>
           ))}
         </div>

@@ -497,63 +497,66 @@ function Members({ postId, isOwner }) {
           return (
             <div
               key={user._id}
-              className="bg-card border border-card-border rounded-xl px-4.5 py-3.5 flex items-center gap-3.5 transition-all duration-150 hover:shadow-sm"
+              className="bg-card border border-card-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-150 hover:shadow-sm"
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--card-border)'; }}
             >
-              {/* Avatar with online status */}
-              <div className="relative shrink-0">
-                <Link to={`/profile/${user._id}`}>
-                  <Avatar name={user.name} src={user.avatarUrl} size={44} />
-                </Link>
-                <div
-                  className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card"
-                  style={{ background: isOnline ? '#16a34a' : '#6b7280' }}
-                />
-              </div>
+              {/* Top row / Avatar & info */}
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* Avatar with online status */}
+                <div className="relative shrink-0">
+                  <Link to={`/profile/${user._id}`}>
+                    <Avatar name={user.name} src={user.avatarUrl} size={44} />
+                  </Link>
+                  <div
+                    className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card"
+                    style={{ background: isOnline ? '#16a34a' : '#6b7280' }}
+                  />
+                </div>
 
-              {/* User info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Link to={`/profile/${user._id}`} className="no-underline flex items-center gap-1.5">
-                    <span className="text-[15px] font-bold text-text-primary">
-                      {user.name}
+                {/* User info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Link to={`/profile/${user._id}`} className="no-underline flex items-center gap-1 min-w-0 max-w-[65%] sm:max-w-none">
+                      <span className="text-[14px] sm:text-[15px] font-bold text-text-primary truncate">
+                        {user.name}
+                      </span>
+                      {isCurrentUser && (
+                        <span className="text-[10px] text-text-muted bg-surface-2 px-1.5 py-px rounded shrink-0">
+                          You
+                        </span>
+                      )}
+                    </Link>
+                    <span className="px-2 py-[2px] rounded-xl text-[10px] sm:text-[11px] font-bold flex items-center gap-1 shrink-0" style={{ background: roleInfo.bg, color: roleInfo.color }}>
+                      <roleInfo.icon size={11} /> {role}
                     </span>
-                    {isCurrentUser && (
-                      <span className="text-[10px] text-text-muted bg-surface-2 px-1.5 py-px rounded">
-                        You
+                    {isOnline && (
+                      <span className="text-[10px] text-[#16a34a] flex items-center gap-1 shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#16a34a] inline-block animate-pulse" />
+                        Online
                       </span>
                     )}
-                  </Link>
-                  <span className="px-2.5 py-[3px] rounded-xl text-[11px] font-bold flex items-center gap-1" style={{ background: roleInfo.bg, color: roleInfo.color }}>
-                    <roleInfo.icon size={11} /> {role}
-                  </span>
-                  {isOnline && (
-                    <span className="text-[10px] text-[#16a34a] flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#16a34a] inline-block animate-pulse" />
-                      Online
-                    </span>
-                  )}
+                  </div>
+                  <p className="text-xs text-text-muted mt-0.5 truncate">
+                    @{user.username} · joined {timeAgo(joinedAt)}
+                  </p>
                 </div>
-                <p className="text-xs text-text-muted mt-0.5">
-                  @{user.username} · joined {timeAgo(joinedAt)}
-                </p>
               </div>
 
               {/* Owner actions */}
               {isOwner && !isCurrentUser && (
-                <div className="flex gap-1 shrink-0">
+                <div className="flex items-center justify-end gap-2 shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-border/40 w-full sm:w-auto">
                   <select
                     value={role}
                     onChange={(e) => handleChangeRole(user._id, e.target.value)}
-                    className="px-2 py-1 rounded-md border border-border bg-input text-[11px] text-text-secondary outline-none cursor-pointer"
+                    className="px-2.5 py-1.5 rounded-lg border border-border bg-input text-xs text-text-secondary outline-none cursor-pointer min-h-[36px]"
                   >
                     <option value="Contributor">Contributor</option>
                     <option value="Viewer">Viewer</option>
                   </select>
                   <button
                     onClick={() => handleRemoveMember(user._id, user.name)}
-                    className="px-2 py-1 rounded-md border border-error-border bg-transparent text-error text-[11px] cursor-pointer transition-colors duration-150 hover:bg-error-bg"
+                    className="px-3 py-1.5 rounded-lg border border-error-border bg-transparent text-error text-xs font-semibold cursor-pointer transition-colors duration-150 hover:bg-error-bg min-h-[36px]"
                   >
                     Remove
                   </button>
@@ -566,12 +569,12 @@ function Members({ postId, isOwner }) {
 
       {/* Empty state */}
       {members.length === 0 && (
-        <div className="text-center px-5 py-15 bg-surface-2 rounded-xl border-2 border-dashed border-border">
-          <Users size={48} className="mb-3 opacity-30 text-text-muted" />
-          <p className="text-base font-semibold text-text-primary mb-1">
+        <div className="text-center px-5 py-12 bg-surface-2 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center">
+          <Users size={48} className="mb-3 opacity-30 text-text-muted mx-auto block" />
+          <p className="text-base font-semibold text-text-primary mb-1 text-center">
             No members yet
           </p>
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-text-muted text-center max-w-sm">
             {isOwner ? 'Invite your team members to start collaborating.' : 'The project owner will add members soon.'}
           </p>
           {isOwner && (
@@ -591,16 +594,19 @@ function Members({ postId, isOwner }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             onClick={() => setIsInviteModalOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-300 p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center z-300 p-0 sm:p-5"
           >
             <motion.div
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              initial={{ opacity: 0, y: 40, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+              exit={{ opacity: 0, y: 30, scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 140, damping: 22 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-card rounded-[24px] max-w-[460px] w-full px-7 py-6 border border-border/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)]"
+              className="bg-card rounded-t-[28px] sm:rounded-[24px] max-w-[460px] w-full max-h-[92vh] sm:max-h-[88vh] overflow-y-auto scrollbar-none px-5 sm:px-7 pt-4 sm:pt-6 pb-6 border-t sm:border border-border/50 shadow-[0_-12px_40px_rgba(0,0,0,0.4)] sm:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)]"
             >
+              {/* Mobile handle indicator */}
+              <div className="w-10 h-1 rounded-full bg-border/80 mx-auto mt-2 mb-3 sm:hidden shrink-0" />
+
               <div className="flex justify-between items-center mb-5">
                 <h2 className="text-lg font-semibold tracking-tight text-text-primary">
                   Invite Member
@@ -639,18 +645,21 @@ function Members({ postId, isOwner }) {
                   <select
                     value={inviteRole}
                     onChange={(e) => setInviteRole(e.target.value)}
-                    className={`${fieldClasses} cursor-pointer`}
+                    className={`${fieldClasses} cursor-pointer min-h-[42px]`}
                   >
-                    <option value="Contributor">Contributor – Can create and update tasks</option>
-                    <option value="Viewer">Viewer – Can only view tasks and discussions</option>
+                    <option value="Contributor">Contributor</option>
+                    <option value="Viewer">Viewer</option>
                   </select>
+                  <p className="text-[11px] text-text-muted mt-1">
+                    {inviteRole === 'Contributor' ? 'Can create and update tasks' : 'Can only view tasks and discussions'}
+                  </p>
                 </div>
 
                 <div className="flex gap-3 justify-end border-t border-border/40 pt-5 mt-2">
-                  <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)}>
+                  <Button variant="ghost" onClick={() => setIsInviteModalOpen(false)} className="flex-1 sm:flex-initial">
                     Cancel
                   </Button>
-                  <Button onClick={handleInvite} disabled={!inviteEmail.trim() || inviting} isLoading={inviting}>
+                  <Button onClick={handleInvite} disabled={!inviteEmail.trim() || inviting} isLoading={inviting} className="flex-1 sm:flex-initial">
                     {inviting ? 'Sending...' : 'Send Invite'}
                   </Button>
                 </div>
@@ -1018,7 +1027,7 @@ function Resources({ postId, isOwner }) {
         </div>
 
         {/* Filter chips */}
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto scrollbar-none py-1 -mx-4 px-4 sm:mx-0 sm:px-0">
           {resourceTypes.map(({ id, label, icon: Icon, color }) => {
             const isActive = filter === id;
             const count = id === 'all' ? resources.length : typeCounts[id] || 0;
@@ -1057,12 +1066,12 @@ function Resources({ postId, isOwner }) {
 
       {/* Resource grid */}
       {filteredResources.length === 0 ? (
-        <div className="text-center px-5 py-15 bg-surface-2 rounded-xl border-2 border-dashed border-border">
-          <BookOpen size={48} className="mb-3 opacity-30 text-text-muted" />
-          <p className="text-base font-semibold text-text-primary mb-1">
+        <div className="text-center px-5 py-12 bg-surface-2 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center">
+          <BookOpen size={48} className="mb-3 opacity-30 text-text-muted mx-auto block" />
+          <p className="text-base font-semibold text-text-primary mb-1 text-center">
             {searchQuery || filter !== 'all' ? 'No matching resources' : 'No resources yet'}
           </p>
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-text-muted text-center max-w-sm">
             {searchQuery || filter !== 'all'
               ? 'Try adjusting your search or filter'
               : 'Add your GitHub repo, design file, or documentation to get started.'
@@ -1161,7 +1170,7 @@ function Resources({ postId, isOwner }) {
         </div>
       )}
 
-      {/* Add/Edit Modal */}
+      {/* Add Resource Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
@@ -1170,16 +1179,19 @@ function Resources({ postId, isOwner }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             onClick={() => setIsModalOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-300 p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center z-300 p-0 sm:p-5"
           >
             <motion.div
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              initial={{ opacity: 0, y: 40, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+              exit={{ opacity: 0, y: 30, scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 140, damping: 22 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-card rounded-[24px] max-w-[520px] w-full px-7 py-6 border border-border/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)]"
+              className="bg-card rounded-t-[28px] sm:rounded-[24px] max-w-[520px] w-full max-h-[92vh] sm:max-h-[88vh] overflow-y-auto scrollbar-none px-5 sm:px-7 pt-4 sm:pt-6 pb-6 border-t sm:border border-border/50 shadow-[0_-12px_40px_rgba(0,0,0,0.4)] sm:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-12px_rgba(0,0,0,0.3)]"
             >
+              {/* Mobile handle indicator */}
+              <div className="w-10 h-1 rounded-full bg-border/80 mx-auto mt-2 mb-3 sm:hidden shrink-0" />
+
               <div className="flex justify-between items-center mb-5">
                 <h2 className="text-lg font-semibold tracking-tight text-text-primary">
                   {editingId ? 'Edit Resource' : 'Add Resource'}
@@ -1227,7 +1239,7 @@ function Resources({ postId, isOwner }) {
                   <select
                     value={form.type}
                     onChange={(e) => setForm(f => ({ ...f, type: e.target.value }))}
-                    className={`${fieldClasses} cursor-pointer`}
+                    className={`${fieldClasses} cursor-pointer min-h-[42px]`}
                   >
                     <option value="github">GitHub</option>
                     <option value="figma">Figma</option>
@@ -1251,13 +1263,14 @@ function Resources({ postId, isOwner }) {
                 </div>
 
                 <div className="flex gap-3 justify-end border-t border-border/40 pt-5 mt-2">
-                  <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
+                  <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="flex-1 sm:flex-initial">
                     Cancel
                   </Button>
                   <Button
                     onClick={editingId ? updateResource : addResource}
                     disabled={!form.title.trim() || !form.url.trim() || saving}
                     isLoading={saving}
+                    className="flex-1 sm:flex-initial"
                   >
                     {saving ? 'Saving...' : (editingId ? 'Update Resource' : 'Add Resource')}
                   </Button>
@@ -1590,11 +1603,11 @@ function Tasks({ postId, isOwner }) {
       </div>
 
       {/* Kanban Board */}
-      <div className="flex gap-3.5 overflow-x-auto items-start pb-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 w-full items-start pb-4">
         {STATUSES.map(({ id: status, label, color }) => {
           const colTasks = tasks.filter(t => t.status === status);
           return (
-            <div key={status} className="w-70 shrink-0 bg-surface-2 rounded-xl p-3 flex flex-col gap-2 border border-border">
+            <div key={status} className="w-full bg-surface-2 rounded-xl p-3.5 flex flex-col gap-2.5 border border-border/70 shadow-2xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ background: color }} />
@@ -2027,16 +2040,19 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-9999 p-4"
+      className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-end sm:items-center justify-center z-9999 p-0 sm:p-5"
       onClick={onClose}
     >
       <div
-        className="bg-card rounded-2xl max-w-[580px] w-full max-h-[90vh] overflow-y-auto px-8 py-7 border border-border shadow-[0_25px_50px_rgba(0,0,0,0.5)]"
+        className="bg-card rounded-t-[28px] sm:rounded-2xl max-w-[580px] w-full max-h-[92vh] sm:max-h-[88vh] overflow-y-auto scrollbar-none px-5 sm:px-8 pt-3 sm:pt-7 pb-6 border-t sm:border border-border shadow-[0_-12px_40px_rgba(0,0,0,0.4)] sm:shadow-[0_25px_50px_rgba(0,0,0,0.5)]"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile handle indicator */}
+        <div className="w-10 h-1 rounded-full bg-border/80 mx-auto mt-2 mb-3 sm:hidden shrink-0" />
+
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-text-primary">
+        <div className="flex justify-between items-center mb-5 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-bold text-text-primary">
             Create New Task
           </h2>
           <button
@@ -2078,7 +2094,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
         </div>
 
         {/* Priority & Status */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
               Priority
@@ -2088,7 +2104,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
                 <button
                   key={p}
                   onClick={() => setPriority(p)}
-                  className={`flex-1 px-2.5 py-1.5 rounded-lg text-xs capitalize cursor-pointer transition-all duration-150 ${priority === p ? 'font-bold' : 'font-medium'}`}
+                  className={`flex-1 px-2.5 py-2 sm:py-1.5 rounded-lg text-xs capitalize cursor-pointer transition-all duration-150 ${priority === p ? 'font-bold' : 'font-medium'}`}
                   style={{
                     border: `1.5px solid ${priority === p ? PRIORITY_COLORS[p] : "var(--border)"}`,
                     background: priority === p ? `${PRIORITY_COLORS[p]}18` : "transparent",
@@ -2108,7 +2124,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border-[1.5px] border-border bg-input text-[13px] text-text-primary outline-none cursor-pointer"
+              className="w-full px-3 py-2 rounded-lg border-[1.5px] border-border bg-input text-[13px] text-text-primary outline-none cursor-pointer min-h-[40px]"
             >
               {STATUSES.map((s) => (
                 <option key={s.id} value={s.id}>{s.label}</option>
@@ -2118,7 +2134,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
         </div>
 
         {/* Due Date & Assignees */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="text-[13px] font-semibold text-text-secondary block mb-1.5">
               Due Date
@@ -2127,7 +2143,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border-[1.5px] border-border bg-input text-[13px] text-text-primary outline-none"
+              className="w-full px-3 py-2 rounded-lg border-[1.5px] border-border bg-input text-[13px] text-text-primary outline-none min-h-[40px]"
             />
           </div>
 
@@ -2167,7 +2183,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
                 placeholder="Add assignee..."
                 className="flex-1 px-2.5 py-1.5 rounded-md border-[1.5px] border-border bg-input text-xs text-text-primary outline-none"
               />
-              <Button size="sm" onClick={() => handleAddAssignee(assigneeInput)}>
+              <Button size="sm" onClick={() => handleAddAssignee(assigneeInput)} className="shrink-0">
                 Add
               </Button>
             </div>
@@ -2217,7 +2233,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
             />
             <button
               onClick={handleAddChecklistItem}
-              className="px-3 py-1.5 rounded-md border-none bg-(image:--btn-grad) text-white shadow-btn text-xs font-semibold cursor-pointer"
+              className="px-3 py-1.5 rounded-md border-none bg-(image:--btn-grad) text-white shadow-btn text-xs font-semibold cursor-pointer shrink-0"
             >
               <Plus size={14} />
             </button>
@@ -2263,7 +2279,7 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
             />
             <button
               onClick={handleAddTag}
-              className="px-3 py-1.5 rounded-md border-none bg-[#8b5cf6] text-white text-xs font-semibold cursor-pointer"
+              className="px-3 py-1.5 rounded-md border-none bg-[#8b5cf6] text-white text-xs font-semibold cursor-pointer shrink-0"
             >
               <Plus size={14} />
             </button>
@@ -2272,10 +2288,10 @@ function AddTaskModal({ isOpen, onClose, onAdd, defaultStatus }) {
 
         {/* Actions */}
         <div className="flex gap-3 justify-end border-t border-border pt-5">
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} className="flex-1 sm:flex-initial">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!title.trim() || isSubmitting} isLoading={isSubmitting}>
+          <Button onClick={handleSubmit} disabled={!title.trim() || isSubmitting} isLoading={isSubmitting} className="flex-1 sm:flex-initial">
             {isSubmitting ? "Creating..." : "Create Task"}
           </Button>
         </div>
@@ -2377,25 +2393,24 @@ export default function WorkspacePage() {
           })}
         </aside>
 
-        {/* Tab bar (mobile/tablet) */}
-        <nav className="flex lg:hidden overflow-x-auto gap-1 px-3 py-2.5 bg-card border-b border-border">
+        {/* Tab bar (mobile/tablet fixed bottom bar for 1-thumb touch access) */}
+        <nav className="flex lg:hidden fixed bottom-0 left-0 right-0 z-100 bg-card/95 backdrop-blur-xl border-t border-border/80 shadow-[0_-4px_24px_rgba(0,0,0,0.18)] px-2 pt-2 pb-5 sm:pb-2.5 overflow-x-auto scrollbar-none gap-1 items-center justify-around">
           {visibleNavItems.map(({ id, label, icon: Icon }) => {
             const active = section === id;
             return (
               <button
                 key={id} onClick={() => setSection(id)}
-                className={`flex items-center gap-1.5 shrink-0 px-3.5 py-2.5 min-h-11 box-border rounded-[9px] border-none cursor-pointer whitespace-nowrap text-[13px] transition-colors duration-120 ${active ? 'font-bold' : 'font-medium'}`}
-                style={{ background: active ? `${CC}14` : 'transparent', color: active ? CC : 'var(--text-secondary)' }}
+                className={`flex flex-col items-center justify-center gap-0.5 shrink-0 px-2.5 py-1.5 min-w-[58px] rounded-xl border-none cursor-pointer whitespace-nowrap text-[10px] sm:text-xs transition-all duration-150 active:scale-95 ${active ? 'font-bold bg-accent-bg text-accent border border-accent-border shadow-2xs' : 'font-medium bg-surface-1 text-text-secondary hover:text-text-primary'}`}
               >
-                <Icon size={15} strokeWidth={active ? 2.5 : 2} />
-                {label}
+                <Icon size={16} strokeWidth={active ? 2.5 : 2} />
+                <span>{label}</span>
               </button>
             );
           })}
         </nav>
 
         {/* Content */}
-        <main className="flex-1 p-6 overflow-x-auto min-w-0">
+        <main className="flex-1 p-4 sm:p-6 pb-28 lg:pb-6 overflow-x-auto min-w-0">
           <div style={{ maxWidth: section === 'tasks' ? 'none' : '1100px' }}>
             <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
               <div className="flex items-center gap-3">

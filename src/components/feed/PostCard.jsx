@@ -85,7 +85,7 @@ export default function PostCard({ post: initialPost, index = 0 }) {
 
   const domain   = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
   const isCollab = post.type === 'collab';
-  const COLLAB_COLOR = '#6366f1';
+  const COLLAB_COLOR = 'var(--accent, #1e9df1)';
   const isOwnPost = user && (post.author._id === user._id || post.author.id === user.id);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [requested, setRequested]         = useState(false);
@@ -242,10 +242,9 @@ export default function PostCard({ post: initialPost, index = 0 }) {
         {/* Collab badge OR domain badge */}
         {isCollab ? (
           <span
-            className="px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-2xs border border-indigo-500/30"
-            style={{ background: 'rgba(99, 102, 241, 0.12)', color: '#6366f1' }}
+            className="px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-2xs border border-accent-border bg-accent-bg text-accent"
           >
-            <Handshake size={13} className="text-indigo-500 shrink-0" />
+            <Handshake size={13} className="text-accent shrink-0" />
             <span>Collab</span>
           </span>
         ) : (
