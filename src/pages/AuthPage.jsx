@@ -6,7 +6,7 @@ import { useThemeStore } from '../stores/themeStore';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegisterForm';
 import Logo from '../components/ui/Logo';
-import { Sun, Moon, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { Sun, Moon, ArrowLeft, ArrowRight, Sparkles, Code2, Rocket } from 'lucide-react';
 
 const HUB_CHIPS = ['founders', 'builders', 'collab()', 'startupIndia'];
 
@@ -94,10 +94,13 @@ export default function AuthPage() {
 
             {/* Top row: panel label + switch pill */}
             <div className="relative z-1 flex items-center justify-between">
-              <span className="text-white font-bold text-[17px] tracking-[-0.02em]">
-                {isRegister ? 'Join the Hub' : 'Selected Builders'}
-              </span>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_#34d399]" />
+                <span className="text-white font-bold text-[15px] tracking-tight">
+                  {isRegister ? 'Join the Hub' : 'Live Builder Network'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
                 {!isRegister && (
                   <Link
                     to="/register"
@@ -108,35 +111,43 @@ export default function AuthPage() {
                 )}
                 <button
                   onClick={toggleRoute}
-                  className="px-5 py-2 rounded-full bg-white text-[#0f1419] text-[13px] font-bold cursor-pointer hover:bg-white/90 transition-colors"
+                  className="px-4.5 py-1.5 rounded-full bg-white text-[#0f1419] text-[13px] font-bold cursor-pointer hover:bg-white/90 transition-all shadow-md active:scale-95"
                 >
                   {isRegister ? 'Sign In' : 'Join Us'}
                 </button>
               </div>
             </div>
 
-            {/* Middle brand copy */}
-            <div className="relative z-1 max-w-[40ch]">
-              <div className="inline-flex items-center gap-1.5 bg-white/8 border border-white/15 rounded-full py-1 px-3 mb-4 backdrop-blur-md">
-                <Sparkles size={11} className="text-[#4db5f5]" />
-                <span className="text-[11px] text-white/85 font-semibold tracking-wide">Prograstic Hub</span>
-              </div>
-              <h2 className="text-white text-[clamp(1.6rem,2.2vw,2.2rem)] font-extrabold leading-[1.18] tracking-[-0.03em] mb-3">
-                Where builders find their <span className="text-[#4db5f5] font-medium">people.</span>
-              </h2>
-              <p className="text-[13.5px] text-white/55 leading-[1.65] mb-5">
-                Connect with founders, developers, and operators to collaborate on real
-                projects and grow India's startup ecosystem together.
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {HUB_CHIPS.map((chip) => (
-                  <span
-                    key={chip}
-                    className="px-3 py-1 rounded-full font-mono text-[11px] bg-white/6 border border-white/12 text-white/70"
-                  >
-                    {chip}
+            {/* Middle: Brand Headline */}
+            <div className="relative z-1 my-auto py-6">
+              {/* Main Headline */}
+              <div className="max-w-[44ch]">
+                <div className="inline-flex items-center gap-1.5 bg-white/8 border border-white/15 rounded-full py-1 px-3 mb-3.5 backdrop-blur-md">
+                  <Sparkles size={12} className="text-cyan-400" />
+                  <span className="text-[11px] text-white/90 font-semibold tracking-wide">India's Builder Ecosystem</span>
+                </div>
+                <h2 className="text-white text-[clamp(1.75rem,2.4vw,2.4rem)] font-extrabold leading-[1.15] tracking-[-0.03em] mb-3">
+                  Where builders find their{' '}
+                  <span className="bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent font-extrabold">
+                    people.
                   </span>
-                ))}
+                </h2>
+                <p className="text-[14px] text-white/65 leading-[1.6] mb-5">
+                  Your side project deserves a real team. Connect with devs, designers, and co-founders who actually ship.
+                </p>
+
+                {/* Tech & Role Badges */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/8 border border-white/15 text-white/90 backdrop-blur-md transition-all hover:bg-white/12 hover:border-cyan-400/40">
+                    <Code2 size={12} className="text-cyan-400" /> Developers
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/8 border border-white/15 text-white/90 backdrop-blur-md transition-all hover:bg-white/12 hover:border-indigo-400/40">
+                    <Rocket size={12} className="text-indigo-400" /> Founders
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/8 border border-white/15 text-white/90 backdrop-blur-md transition-all hover:bg-white/12 hover:border-amber-400/40">
+                    <Sparkles size={12} className="text-amber-400" /> Designers
+                  </span>
+                </div>
               </div>
             </div>
 

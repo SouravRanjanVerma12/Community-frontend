@@ -445,14 +445,14 @@ export default function CollabPage() {
                 style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
               >
                 <Handshake size={12} color="#818cf8" />
-                <span className="text-[11px] font-semibold" style={{ color: '#818cf8' }}>Collaboration Hub</span>
+                <span className="text-[11px] font-semibold" style={{ color: '#818cf8' }}>Collab Hub</span>
               </div>
 
               <h1 className="text-[28px] font-extrabold tracking-[-0.6px] mb-2" style={{ color: 'var(--text-primary)' }}>
-                Find your next build partner
+                Stop building alone.
               </h1>
               <p className="text-[14px] max-w-md text-text-muted">
-                Discover people to build with, post what you're working on, and get accepted into exciting collab opportunities.
+                Got an idea but no team? Need a dev, designer, or co-founder? Drop your project here — the right people will find you.
               </p>
             </div>
 
@@ -467,7 +467,7 @@ export default function CollabPage() {
                 flexShrink: 0,
               }}
             >
-              <Handshake size={15} /> Post a Collab
+              <Handshake size={15} /> Drop a project
             </motion.button>
           </div>
 
