@@ -87,15 +87,21 @@ function PendingRow({ req, onAccept, onDecline }) {
 function ChatWindow({ friend, onBack }) {
   const { user } = useAuthStore();
   const { conversations, sendMessage, sendTyping, seedConversation, typingMap } = useSocketStore();
+  // Subscribe to onlineUsers directly so status dot re-renders when socket emits user:online / user:offline
+  const online = useSocketStore((s) => s.onlineUsers.has(String(friend._id || friend.id || '')));
   const [text, setText]       = useState('');
   const [loading, setLoading] = useState(true);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const optionsRef = useRef(null);
   const bottomRef = useRef(null);
+  const scrollRef = useRef(null);
   const typingTimer = useRef(null);
+  const isInitialLoad = useRef(true);
 
-  const messages = conversations[friend._id] ?? [];
-  const isTyping = typingMap[friend._id];
+  // Normalize to string so socket-keyed conversation (always String) is always found
+  const friendId = String(friend._id || friend.id || '');
+  const messages = conversations[friendId] ?? [];
+  const isTyping = typingMap[friendId];
 
   // Close chat on Escape key press
   useEffect(() => {
@@ -119,23 +125,37 @@ function ChatWindow({ friend, onBack }) {
 
   // Load history (skip if already cached in the socket store from a previous visit)
   useEffect(() => {
-    if (conversations[friend._id]) { setLoading(false); return; }
+    if (conversations[friendId]) { setLoading(false); return; }
     setLoading(true);
-    api.get(`/friends/messages/${friend._id}`)
-      .then(({ data }) => seedConversation(friend._id, data.messages))
+    api.get(`/friends/messages/${friendId}`)
+      .then(({ data }) => seedConversation(friendId, data.messages))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [friend._id]);
+  }, [friendId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = scrollRef.current;
+    if (!el) return;
+    if (isInitialLoad.current) {
+      // Instant jump on history load — no animation so user sees bottom immediately
+      el.scrollTop = el.scrollHeight;
+      if (messages.length > 0) isInitialLoad.current = false;
+    } else {
+      // Smooth scroll for each new incoming/outgoing message
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    }
   }, [messages.length, isTyping]);
+
+  // Reset initial-load flag when switching friends
+  useEffect(() => {
+    isInitialLoad.current = true;
+  }, [friendId]);
 
   const handleSend = () => {
     if (!text.trim()) return;
-    sendMessage(friend._id, text.trim());
+    sendMessage(friendId, text.trim());
     setText('');
-    sendTyping(friend._id, false);
+    sendTyping(friendId, false);
   };
 
   const handleKeyDown = (e) => {
@@ -144,13 +164,10 @@ function ChatWindow({ friend, onBack }) {
 
   const handleChange = (e) => {
     setText(e.target.value);
-    sendTyping(friend._id, true);
+    sendTyping(friendId, true);
     clearTimeout(typingTimer.current);
-    typingTimer.current = setTimeout(() => sendTyping(friend._id, false), 1500);
+    typingTimer.current = setTimeout(() => sendTyping(friendId, false), 1500);
   };
-
-  const { isOnline } = useSocketStore();
-  const online = isOnline(friend._id);
 
   const fmtTime = (d) => {
     const dt = new Date(d);
@@ -241,7 +258,7 @@ function ChatWindow({ friend, onBack }) {
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-2.5 bg-surface-0/40">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-2.5 bg-surface-0/40">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full text-text-muted text-xs gap-2">
             <div className="w-6 h-6 rounded-full border-2 border-border border-t-accent animate-spin" />
@@ -390,7 +407,7 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!friends.length) return;
     friends.forEach((f) => {
-      const friendId = f._id || f.id;
+      const friendId = String(f._id || f.id || '');
       if (!conversations[friendId]) {
         api.get(`/friends/messages/${friendId}`)
           .then(({ data }) => seedConversation(friendId, data.messages))

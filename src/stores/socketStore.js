@@ -56,13 +56,15 @@ export const useSocketStore = create((set, get) => ({
     });
 
     socket.on('message:receive', (msg) => {
-      // Store under the OTHER party's id
+      // Store under the OTHER party's id (always as String to match seedConversation)
       const myUser = useAuthStore.getState().user;
       const myId = get()._myId || myUser?._id || myUser?.id;
-      const senderId = typeof msg.sender === 'object' ? (msg.sender?._id || msg.sender?.id) : msg.sender;
+      const senderId   = typeof msg.sender   === 'object' ? (msg.sender?._id   || msg.sender?.id)   : msg.sender;
       const receiverId = typeof msg.receiver === 'object' ? (msg.receiver?._id || msg.receiver?.id) : msg.receiver;
-      const myStr = String(myId || '');
-      const otherId = String(senderId) === myStr ? String(receiverId) : String(senderId);
+      const myStr    = String(myId || '');
+      const senderStr  = String(senderId   || '');
+      const receiverStr = String(receiverId || '');
+      const otherId  = senderStr === myStr ? receiverStr : senderStr;
 
       set((s) => ({
         conversations: {
@@ -158,12 +160,13 @@ export const useSocketStore = create((set, get) => ({
     socket?.emit('message:typing', { receiverId, isTyping });
   },
 
-  // Seed conversation from REST history
+  // Seed conversation from REST history — key MUST be String to match socket message routing
   seedConversation(userId, messages) {
+    const key = String(userId || '');
     set((s) => ({
       conversations: {
         ...s.conversations,
-        [userId]: messages,
+        [key]: messages,
       },
     }));
   },
