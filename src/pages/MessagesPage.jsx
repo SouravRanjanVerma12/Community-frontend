@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MessageSquare, Send, ArrowLeft,
-  UserCheck, UserX,
+  MessageSquare, Send, ArrowLeft, X, MoreHorizontal, User,
+  UserCheck, UserX, Search, Sparkles, Users, Command
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import { useAuthStore } from '../stores/authStore';
@@ -15,14 +15,23 @@ import { useFriends, usePendingRequests, invalidateFriends } from '../hooks/useF
 const avatarColor = (name) =>
   `hsl(${[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360},55%,55%)`;
 const initials = (name) =>
-  name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  (name || 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 
-function Avatar({ user, size = 38, showOnline = false, online = false }) {
+function timeAgo(iso) {
+  if (!iso) return '';
+  const diff = (Date.now() - new Date(iso)) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  return `${Math.floor(diff / 86400)}d`;
+}
+
+function Avatar({ user, size = 40, showOnline = false, online = false }) {
   const img = user.avatarUrl ? (
-    <img src={user.avatarUrl} alt={user.name} style={{ width: size, height: size }} className="rounded-full object-cover block" />
+    <img src={user.avatarUrl} alt={user.name} style={{ width: size, height: size }} className="rounded-full object-cover block shadow-xs" />
   ) : (
-    <div style={{ width: size, height: size, background: avatarColor(user.name), fontSize: size * 0.36 }} className="rounded-full text-white flex items-center justify-center font-bold select-none">
-      {initials(user.name)}
+    <div style={{ width: size, height: size, background: avatarColor(user.name || 'User'), fontSize: size * 0.36 }} className="rounded-full text-white flex items-center justify-center font-bold select-none shadow-xs">
+      {initials(user.name || 'User')}
     </div>
   );
 
@@ -31,8 +40,8 @@ function Avatar({ user, size = 38, showOnline = false, online = false }) {
       {img}
       {showOnline && (
         <span
-          className="absolute bottom-px right-px w-2.5 h-2.5 rounded-full border-2 border-card"
-          style={{ background: online ? '#22c55e' : 'var(--text-muted)' }}
+          className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card"
+          style={{ background: online ? '#22c55e' : '#6b7280' }}
         />
       )}
     </div>
@@ -43,12 +52,12 @@ function Avatar({ user, size = 38, showOnline = false, online = false }) {
 function PendingRow({ req, onAccept, onDecline }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 10 }}
-      className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] bg-surface-2 mb-1.5"
+      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="flex items-center gap-3 p-3 rounded-xl bg-surface-2/80 border border-border/50 mb-2 transition-all"
     >
-      <Link to={`/profile/${req.requester._id}`} className="flex items-center gap-2.5 flex-1 min-w-0 no-underline">
-        <Avatar user={req.requester} size={36} />
+      <Link to={`/profile/${req.requester._id}`} className="flex items-center gap-3 flex-1 min-w-0 no-underline">
+        <Avatar user={req.requester} size={38} />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-text-primary m-0 overflow-hidden text-ellipsis whitespace-nowrap transition-colors duration-150 hover:text-accent">
             {req.requester.name}
@@ -56,33 +65,57 @@ function PendingRow({ req, onAccept, onDecline }) {
           <p className="text-xs text-text-muted m-0">sent you a friend request</p>
         </div>
       </Link>
-      <button
-        onClick={() => onAccept(req._id)} title="Accept" aria-label="Accept friend request"
-        className="w-11 h-11 rounded-[10px] border-none bg-(image:--btn-grad) text-white shadow-btn text-xs font-semibold cursor-pointer flex items-center justify-center shrink-0 transition-[transform,opacity] duration-150 hover:opacity-90 active:scale-95"
-      >
-        <UserCheck size={16} />
-      </button>
-      <button
-        onClick={() => onDecline(req._id)} title="Decline" aria-label="Decline friend request"
-        className="w-11 h-11 rounded-[10px] border-[1.5px] border-border bg-transparent text-text-muted cursor-pointer flex items-center justify-center shrink-0 transition-[transform,border-color,color] duration-150 hover:border-text-muted hover:text-text-primary active:scale-95"
-      >
-        <UserX size={16} />
-      </button>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <button
+          onClick={() => onAccept(req._id)} title="Accept" aria-label="Accept friend request"
+          className="w-8 h-8 rounded-lg border-none bg-accent text-white shadow-xs text-xs font-semibold cursor-pointer flex items-center justify-center transition-all duration-150 hover:bg-accent-light active:scale-95"
+        >
+          <UserCheck size={15} />
+        </button>
+        <button
+          onClick={() => onDecline(req._id)} title="Decline" aria-label="Decline friend request"
+          className="w-8 h-8 rounded-lg border border-border bg-card text-text-muted cursor-pointer flex items-center justify-center transition-all duration-150 hover:border-error-border hover:text-error active:scale-95"
+        >
+          <UserX size={15} />
+        </button>
+      </div>
     </motion.div>
   );
 }
 
-/* ── Chat window ── */
+/* ── Full-Height Chat window ── */
 function ChatWindow({ friend, onBack }) {
   const { user } = useAuthStore();
   const { conversations, sendMessage, sendTyping, seedConversation, typingMap } = useSocketStore();
   const [text, setText]       = useState('');
   const [loading, setLoading] = useState(true);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const optionsRef = useRef(null);
   const bottomRef = useRef(null);
   const typingTimer = useRef(null);
 
   const messages = conversations[friend._id] ?? [];
   const isTyping = typingMap[friend._id];
+
+  // Close chat on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onBack();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onBack]);
+
+  // Click outside to close options dropdown
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (optionsRef.current && !optionsRef.current.contains(e.target)) {
+        setOptionsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   // Load history (skip if already cached in the socket store from a previous visit)
   useEffect(() => {
@@ -125,54 +158,123 @@ function ChatWindow({ friend, onBack }) {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full bg-surface-0">
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-4.5 py-3.5 border-b border-border bg-card shrink-0">
-        <button
-          onClick={onBack} aria-label="Back to conversations"
-          className="sm:hidden bg-none border-none cursor-pointer text-text-muted w-11 h-11 flex items-center justify-center rounded-lg shrink-0 transition-colors duration-150 hover:bg-surface-2 hover:text-text-primary"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <Link to={`/profile/${friend._id}`} className="flex items-center gap-2.5 no-underline">
-          <Avatar user={friend} size={36} showOnline online={online} />
-          <div>
-            <p className="m-0 text-sm font-bold text-text-primary transition-colors duration-150 hover:text-accent">
-              {friend.name}
-            </p>
-            <p className="m-0 text-[11px]" style={{ color: online ? '#22c55e' : 'var(--text-muted)' }}>
-              {online ? 'Online' : 'Offline'}
-            </p>
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card shrink-0 shadow-xs">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onBack} aria-label="Back to conversations"
+            className="md:hidden bg-none border-none cursor-pointer text-text-muted w-9 h-9 flex items-center justify-center rounded-xl shrink-0 transition-colors hover:bg-surface-2 hover:text-text-primary"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <Link to={`/profile/${friend._id}`} className="flex items-center gap-3 no-underline min-w-0">
+            <Avatar user={friend} size={42} showOnline online={online} />
+            <div className="min-w-0">
+              <p className="m-0 text-base font-bold text-text-primary transition-colors duration-150 hover:text-accent truncate">
+                {friend.name}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full transition-colors" style={{ background: isTyping ? 'var(--accent)' : online ? '#22c55e' : '#6b7280' }} />
+                <p className="m-0 text-xs font-medium transition-colors" style={{ color: isTyping ? 'var(--accent)' : online ? '#22c55e' : 'var(--text-muted)' }}>
+                  {isTyping ? `${friend.name} is typing...` : online ? 'Active now' : 'Offline'}
+                </p>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Right header actions */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          {/* Options Dropdown */}
+          <div className="relative" ref={optionsRef}>
+            <button
+              onClick={() => setOptionsOpen((v) => !v)}
+              title="Chat options"
+              aria-label="Chat options"
+              className="w-9 h-9 rounded-full border border-border/60 bg-surface-1 hover:bg-surface-2 flex items-center justify-center cursor-pointer text-text-muted hover:text-text-primary transition-all"
+            >
+              <MoreHorizontal size={17} />
+            </button>
+            <AnimatePresence>
+              {optionsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-11 w-52 bg-card border border-border rounded-2xl shadow-xl p-2 z-30"
+                >
+                  <Link
+                    to={`/profile/${friend._id}`}
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-2 rounded-xl no-underline transition-colors"
+                  >
+                    <User size={15} /> View Profile
+                  </Link>
+                  <div className="h-px bg-border/60 my-1.5" />
+                  <button
+                    onClick={() => { setOptionsOpen(false); onBack(); }}
+                    className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded-xl border-none bg-transparent cursor-pointer transition-colors"
+                  >
+                    <span className="flex items-center gap-2"><X size={15} /> Close Chat</span>
+                    <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-2 border border-border text-text-muted">ESC</kbd>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </Link>
+
+          {/* Modern Close Pill Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={onBack}
+            title="Close chat (Esc)"
+            aria-label="Close chat"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-1 border border-border/80 hover:border-accent/40 hover:bg-surface-2 text-text-secondary hover:text-text-primary cursor-pointer text-xs font-semibold transition-all shadow-xs group"
+          >
+            <span>Close</span>
+            <kbd className="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-2 border border-border text-text-muted">ESC</kbd>
+            <X size={14} className="text-text-muted group-hover:text-text-primary transition-colors" />
+          </motion.button>
+        </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-1.5">
+      {/* Messages Scroll Area */}
+      <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-2.5 bg-surface-0/40">
         {loading ? (
-          <div className="text-center pt-10 text-text-muted text-[13px]">
-            Loading messages…
+          <div className="flex flex-col items-center justify-center h-full text-text-muted text-xs gap-2">
+            <div className="w-6 h-6 rounded-full border-2 border-border border-t-accent animate-spin" />
+            <span>Loading conversation...</span>
           </div>
         ) : messages.length === 0 ? (
-          <div className="text-center pt-10 text-text-muted text-sm flex flex-col items-center gap-2">
-            <MessageSquare size={28} className="opacity-40" />
-            No messages yet. Say hello!
+          <div className="flex flex-col items-center justify-center my-auto py-12 text-text-muted text-sm gap-3">
+            <div className="w-14 h-14 rounded-2xl bg-accent-dim flex items-center justify-center text-accent">
+              <Sparkles size={26} />
+            </div>
+            <div className="text-center max-w-xs">
+              <p className="font-bold text-text-primary text-base m-0 mb-1">Start a conversation</p>
+              <p className="text-xs text-text-muted m-0">Send your first message to connect with {friend.name}.</p>
+            </div>
           </div>
         ) : (
           messages.map((msg, i) => {
-            const isMe = msg.sender === user._id || msg.sender?._id === user._id;
+            const isMe = msg.sender === user._id || msg.sender?._id === user._id || msg.sender === user.id || msg.sender?.id === user.id;
             return (
               <motion.div
                 key={msg._id ?? i}
-                initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[70%] min-h-11 box-border px-3.5 py-3 text-[15px] leading-[1.6] flex flex-col justify-center ${isMe ? 'rounded-[16px_16px_4px_16px]' : 'rounded-[16px_16px_16px_4px]'}`}
-                  style={{ background: isMe ? 'var(--accent)' : 'var(--surface-2)', color: isMe ? '#fff' : 'var(--text-primary)' }}
+                  className={`max-w-[75%] sm:max-w-[65%] px-4 py-3 text-[14px] leading-[1.6] flex flex-col shadow-xs ${
+                    isMe
+                      ? 'rounded-[20px_20px_4px_20px] bg-accent text-white'
+                      : 'rounded-[20px_20px_20px_4px] bg-card border border-border/70 text-text-primary'
+                  }`}
                 >
-                  <p className="m-0">{msg.text}</p>
-                  <p className="mt-0.5 mb-0 text-[10px] opacity-65 text-right">
+                  <p className="m-0 whitespace-pre-wrap break-words">{msg.text}</p>
+                  <p className={`mt-1 mb-0 text-[10px] text-right font-medium ${isMe ? 'text-white/70' : 'text-text-muted'}`}>
                     {fmtTime(msg.createdAt)}
                   </p>
                 </div>
@@ -184,15 +286,20 @@ function ChatWindow({ friend, onBack }) {
         {/* Typing indicator */}
         <AnimatePresence>
           {isTyping && (
-            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="flex gap-1 items-center pl-1">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-text-muted"
-                  style={{ animation: `bounce 1.2s ${i * 0.2}s infinite` }}
-                />
-              ))}
+            <motion.div
+              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="flex items-center gap-2 p-2 px-3.5 rounded-2xl bg-card border border-border/60 w-max text-xs text-text-muted shadow-xs"
+            >
+              <span>{friend.name} is typing</span>
+              <div className="flex gap-1 items-center">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full bg-accent"
+                    style={{ animation: `bounce 1.2s ${i * 0.2}s infinite` }}
+                  />
+                ))}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -200,49 +307,98 @@ function ChatWindow({ friend, onBack }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="px-4 py-3 border-t border-border bg-card flex gap-2 shrink-0">
+      {/* Input Field Bar */}
+      <div className="p-4 border-t border-border bg-card flex items-center gap-3 shrink-0 shadow-lg">
         <input
           value={text}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder={`Message ${friend.name}…`}
           aria-label="Message input"
-          className="flex-1 min-h-11 box-border px-3.5 rounded-[10px] border-[1.5px] border-border bg-input text-text-primary text-base outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent-border focus:shadow-[0_0_0_3px_var(--accent-dim)]"
+          className="flex-1 min-h-[46px] px-4 rounded-xl border border-border bg-input text-text-primary text-sm outline-none transition-all duration-150 focus:border-accent focus:ring-2 focus:ring-accent/20"
         />
         <motion.button
-          whileTap={{ scale: 0.93 }} onClick={handleSend} disabled={!text.trim()}
+          whileTap={{ scale: 0.94 }} onClick={handleSend} disabled={!text.trim()}
           aria-label="Send message"
-          className={`w-11 h-11 rounded-[10px] border-none flex items-center justify-center shrink-0 transition-colors duration-150 ${text.trim() ? 'bg-(image:--btn-grad) text-white shadow-btn cursor-pointer' : 'bg-surface-2 text-text-muted cursor-not-allowed'}`}
+          className={`w-[46px] h-[46px] rounded-xl border-none flex items-center justify-center shrink-0 transition-all duration-150 ${
+            text.trim()
+              ? 'bg-accent text-white shadow-md cursor-pointer hover:bg-accent-light'
+              : 'bg-surface-2 text-text-muted cursor-not-allowed opacity-60'
+          }`}
         >
-          <Send size={16} />
+          <Send size={18} />
         </motion.button>
       </div>
 
       <style>{`
         @keyframes bounce {
           0%, 60%, 100% { transform: translateY(0); }
-          30%            { transform: translateY(-6px); }
+          30%            { transform: translateY(-5px); }
         }
       `}</style>
     </div>
   );
 }
 
-/* ── Main Messages Page ── */
+/* ── Full-Screen Empty State ── */
+function EmptyChatState() {
+  return (
+    <div className="flex-1 h-full bg-surface-0 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+      {/* Background ambient radial wash */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--accent-dim),transparent_70%)] opacity-40 pointer-events-none" />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="max-w-md flex flex-col items-center z-10"
+      >
+        <div className="w-20 h-20 rounded-3xl bg-card border border-border shadow-xl flex items-center justify-center text-accent mb-6 relative">
+          <MessageSquare size={36} />
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 ring-4 ring-surface-0" />
+        </div>
+
+        <h2 className="text-2xl font-extrabold text-text-primary m-0 mb-2 tracking-tight">
+          Your Messages
+        </h2>
+        <p className="text-sm text-text-muted m-0 mb-6 leading-relaxed">
+          Select a friend from the conversation list on the left to start chatting in real-time, share ideas, and collaborate.
+        </p>
+
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card border border-border text-xs text-text-muted shadow-xs">
+          <Command size={14} className="text-accent" />
+          <span>Press <kbd className="font-mono font-bold text-text-primary px-1 rounded bg-surface-2 border border-border">Esc</kbd> anytime to close an active chat</span>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ── Main Full-Screen Messages Page ── */
 export default function MessagesPage() {
   const { user } = useAuthStore();
   const [active, setActive] = useState(null); // friend object currently chatting
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'online'
 
   const { data: friends = [], isLoading: friendsLoading } = useFriends();
   const { data: pending = [] } = usePendingRequests();
   const loading = friendsLoading;
 
-  const { isOnline } = useSocketStore();
+  const { isOnline, conversations, seedConversation, typingMap } = useSocketStore();
 
-  // `user` populates async after `accessToken` rehydrates from storage, so this is
-  // briefly true on every fresh load of this route — don't navigate() during render
-  // (that fired mid-render and raced with AuthPage's own redirect effect).
+  // Prefetch recent message snippets for all friends so last message preview shows without opening
+  useEffect(() => {
+    if (!friends.length) return;
+    friends.forEach((f) => {
+      const friendId = f._id || f.id;
+      if (!conversations[friendId]) {
+        api.get(`/friends/messages/${friendId}`)
+          .then(({ data }) => seedConversation(friendId, data.messages))
+          .catch(() => {});
+      }
+    });
+  }, [friends, conversations, seedConversation]);
+
   if (!user) return <div className="text-center p-15 text-text-muted">Log in to see your messages.</div>;
 
   const handleAccept = async (requestId) => {
@@ -255,26 +411,85 @@ export default function MessagesPage() {
     invalidateFriends();
   };
 
+  // Filter friends based on search query and tab
+  const filteredFriends = friends.filter((f) => {
+    const matchesSearch = f.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          f.username?.toLowerCase().includes(searchQuery.toLowerCase());
+    const online = isOnline(f._id || f.id);
+    if (activeFilter === 'online') return matchesSearch && online;
+    return matchesSearch;
+  });
+
   return (
-    <div className="min-h-svh bg-surface-0">
+    <div className="h-svh flex flex-col bg-surface-0 font-sans text-text-primary overflow-hidden">
       <Navbar />
-      <div className={`max-w-[960px] mx-auto p-4 sm:p-5 grid gap-4 h-[calc(100svh-80px)] grid-cols-1 ${active ? 'sm:grid-cols-[300px_1fr]' : ''}`}>
-        {/* Sidebar / friend list */}
+
+      {/* Main Full-Width Full-Height Messaging Workspace */}
+      <div className="flex-1 flex w-full overflow-hidden relative">
+        {/* Left Sidebar (Conversations List) */}
         <div className={[
-          'bg-card border border-card-border rounded-2xl overflow-hidden flex flex-col',
-          active ? 'hidden sm:flex' : 'flex max-w-[480px] mx-auto w-full',
+          'w-full md:w-[320px] lg:w-[360px] shrink-0 border-r border-border bg-card flex flex-col h-full z-10 transition-all',
+          active ? 'hidden md:flex' : 'flex',
         ].join(' ')}>
-          <div className="px-4.5 pt-4.5 pb-3 border-b border-divider">
-            <h2 className="mb-1 text-base font-bold text-text-primary">
-              Messages
-            </h2>
+          
+          {/* Header & Search Bar */}
+          <div className="p-4 border-b border-border flex flex-col gap-3 shrink-0">
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg font-extrabold text-text-primary m-0 flex items-center gap-2">
+                Messages
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-dim text-accent">
+                  {friends.length}
+                </span>
+              </h1>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative flex items-center">
+              <Search size={15} className="absolute left-3 text-text-muted pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search conversations..."
+                className="w-full pl-9 pr-8 py-2 rounded-xl bg-surface-1 border border-border text-xs text-text-primary outline-none transition-all focus:border-accent focus:bg-card"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 text-text-muted hover:text-text-primary bg-none border-none cursor-pointer"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-1 border border-border/50 text-xs">
+              <button
+                onClick={() => setActiveFilter('all')}
+                className={`flex-1 py-1 rounded-lg text-xs font-semibold cursor-pointer border-none transition-all ${
+                  activeFilter === 'all' ? 'bg-card text-text-primary shadow-xs' : 'bg-transparent text-text-muted hover:text-text-primary'
+                }`}
+              >
+                All ({friends.length})
+              </button>
+              <button
+                onClick={() => setActiveFilter('online')}
+                className={`flex-1 py-1 rounded-lg text-xs font-semibold cursor-pointer border-none transition-all ${
+                  activeFilter === 'online' ? 'bg-card text-text-primary shadow-xs' : 'bg-transparent text-text-muted hover:text-text-primary'
+                }`}
+              >
+                Online ({friends.filter(f => isOnline(f._id || f.id)).length})
+              </button>
+            </div>
           </div>
 
+          {/* Conversations Scroll Area */}
           <div className="flex-1 overflow-y-auto p-3">
-            {/* Pending requests */}
+            {/* Pending Requests Section */}
             {pending.length > 0 && (
-              <div className="mb-3">
-                <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider ml-1 mb-2">
+              <div className="mb-4">
+                <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1 mb-2">
                   Friend Requests ({pending.length})
                 </p>
                 <AnimatePresence>
@@ -286,41 +501,90 @@ export default function MessagesPage() {
               </div>
             )}
 
-            {/* Friends list */}
-            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider ml-1 mb-2">
-              Friends {loading ? '' : `(${friends.length})`}
+            {/* Friends Section */}
+            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1 mb-2">
+              Friends List
             </p>
 
             {loading ? (
-              <div className="text-center p-8 text-text-muted text-[13px]">
-                Loading…
+              <div className="flex flex-col items-center justify-center p-8 text-text-muted text-xs gap-2">
+                <div className="w-5 h-5 rounded-full border-2 border-border border-t-accent animate-spin" />
+                <span>Loading friends...</span>
               </div>
-            ) : friends.length === 0 ? (
-              <div className="text-center px-4 py-8 text-text-muted text-[13px]">
-                <MessageSquare size={28} className="mb-2 opacity-40" />
-                <p className="m-0">No friends yet. Search for people to connect!</p>
+            ) : filteredFriends.length === 0 ? (
+              <div className="text-center px-4 py-10 text-text-muted text-xs flex flex-col items-center gap-2">
+                <Users size={28} className="opacity-40" />
+                <p className="m-0 font-medium">
+                  {searchQuery ? 'No conversations matching your search.' : 'No friends yet. Search for people to connect!'}
+                </p>
               </div>
             ) : (
-              friends.map((f) => {
-                const online = isOnline(f._id);
-                const isActive = active?._id === f._id;
+              filteredFriends.map((f) => {
+                const friendId = f._id || f.id;
+                const online = isOnline(friendId);
+                const isActive = active?._id === friendId || active?.id === friendId;
+                const friendMsgs = conversations[friendId] || [];
+                const lastMsg = friendMsgs[friendMsgs.length - 1];
+                const friendTyping = typingMap[friendId];
+
                 return (
                   <motion.div
-                    key={f._id} whileHover={{ background: 'var(--hover-bg)' }}
+                    key={friendId}
+                    whileHover={{ scale: 1.01 }}
                     onClick={() => setActive(f)}
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(f); } }}
-                    className={`flex items-center gap-2.5 min-h-11 p-2.5 rounded-[10px] cursor-pointer transition-colors duration-[120ms] ${isActive ? 'bg-accent-dim' : 'bg-transparent'}`}
+                    className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all duration-150 mb-1 border ${
+                      isActive
+                        ? 'bg-accent-dim border-accent/40 shadow-xs'
+                        : 'bg-transparent border-transparent hover:bg-hover'
+                    }`}
                   >
-                    <Avatar user={f} size={40} showOnline online={online} />
+                    <Avatar user={f} size={42} showOnline online={online} />
                     <div className="flex-1 min-w-0">
-                      <p className="m-0 text-[15px] font-semibold text-text-primary overflow-hidden text-ellipsis whitespace-nowrap">
-                        {f.name}
-                      </p>
-                      <p className="m-0 text-[13px]" style={{ color: online ? '#22c55e' : 'var(--text-muted)' }}>
-                        {online ? 'Online' : 'Offline'}
-                      </p>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <p className="m-0 text-sm font-bold text-text-primary truncate">
+                          {f.name}
+                        </p>
+                        {lastMsg?.createdAt && !friendTyping && (
+                          <span className="text-[11px] text-text-muted shrink-0 ml-1 font-medium">
+                            {timeAgo(lastMsg.createdAt)}
+                          </span>
+                        )}
+                      </div>
+                      {(() => {
+                        if (friendTyping) {
+                          return (
+                            <p className="m-0 text-xs font-semibold text-accent flex items-center gap-1 truncate">
+                              <span>typing</span>
+                              <span className="flex gap-0.5 items-center">
+                                {[0, 1, 2].map((i) => (
+                                  <span
+                                    key={i}
+                                    className="w-1 h-1 rounded-full bg-accent"
+                                    style={{ animation: `bounce 1.2s ${i * 0.2}s infinite` }}
+                                  />
+                                ))}
+                              </span>
+                            </p>
+                          );
+                        }
+                        if (lastMsg) {
+                          const isMe = lastMsg.sender === user._id || lastMsg.sender?._id === user._id || lastMsg.sender === user.id || lastMsg.sender?.id === user.id;
+                          const prefix = isMe ? 'You: ' : '';
+                          return (
+                            <p className={`m-0 text-xs truncate ${!isMe ? 'font-semibold text-text-primary' : 'text-text-muted'}`}>
+                              <span className="text-text-muted">{prefix}</span>{lastMsg.text}
+                            </p>
+                          );
+                        }
+                        return (
+                          <p className="m-0 text-xs truncate" style={{ color: online ? '#22c55e' : 'var(--text-muted)' }}>
+                            {online ? 'Active now' : 'Offline'}
+                          </p>
+                        );
+                      })()}
                     </div>
                   </motion.div>
                 );
@@ -329,12 +593,14 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* Chat window */}
-        {active && (
-          <div className="bg-card border border-card-border rounded-2xl overflow-hidden flex flex-col">
+        {/* Right Main Chat Panel */}
+        <div className="flex-1 h-full flex flex-col bg-surface-0 overflow-hidden">
+          {active ? (
             <ChatWindow friend={active} onBack={() => setActive(null)} />
-          </div>
-        )}
+          ) : (
+            <EmptyChatState />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -560,7 +560,7 @@ export default function ProfilePage() {
   }, [userId, isOwnProfile, me]);
 
   const isFollowing =
-    Array.isArray(me?.following) && me.following.includes(userId);
+    Array.isArray(me?.following) && me.following.some((id) => String(id) === String(userId));
   const [followLoading, setFollowLoading] = useState(false);
 
   const toggleFollowProfile = async () => {
@@ -569,6 +569,7 @@ export default function ProfilePage() {
     try {
       const { data } = await api.post(`/users/${userId}/follow`);
       updateFollowing(data.following);
+      queryClient.invalidateQueries({ queryKey: ['user-profile', userId] });
     } catch {
       /* ignore */
     } finally {

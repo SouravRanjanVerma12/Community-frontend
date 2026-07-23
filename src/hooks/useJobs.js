@@ -58,3 +58,7 @@ export function invalidateJobs() {
 export function invalidateJobApplicants(jobId) {
   queryClient.invalidateQueries({ queryKey: ['job-applicants', jobId] });
 }
+
+export function invalidateMyApplications() {
+  queryClient.invalidateQueries({ queryKey: ['jobs', 'my-applications'] });
+}

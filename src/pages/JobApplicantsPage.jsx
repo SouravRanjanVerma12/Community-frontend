@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import api from '../api/axiosInstance';
-import { useJob, useJobApplicants } from '../hooks/useJobs';
+import { useJob, useJobApplicants, invalidateMyApplications } from '../hooks/useJobs';
 import { queryClient } from '../api/queryClient';
 
 const JOB_COLOR = '#1e9df1';
@@ -41,6 +41,7 @@ function ApplicantCard({ application, onUpdate }) {
     try {
       await api.patch(`/jobs/applications/${application._id}`, { status: newStatus });
       setStatus(newStatus);
+      invalidateMyApplications();
       onUpdate?.();
     } finally {
       setActing(null);

@@ -748,25 +748,45 @@ function Discussion({ postId, leadId }) {
   const othersTyping = typingUsers.size > 0 && !typingUsers.has(user?._id);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-220px)] min-h-[400px]">
+    <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
 
-      {/* Connection status bar */}
-      <div className={`flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-lg w-fit ${connected ? 'bg-[rgba(34,197,94,0.08)] border border-[rgba(34,197,94,0.2)]' : 'bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)]'}`}>
-        {connected ? <Wifi size={13} color="#16a34a" /> : <WifiOff size={13} color="#dc2626" />}
-        <span className={`text-xs font-semibold ${connected ? 'text-[#16a34a]' : 'text-[#dc2626]'}`}>
-          {connected ? 'Live — messages appear instantly' : 'Offline — reconnecting…'}
-        </span>
+      {/* Discussion Header Bar */}
+      <div className="px-5 py-3.5 border-b border-border bg-card flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-accent-dim flex items-center justify-center text-accent">
+            <MessageSquare size={18} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-text-primary m-0">Project Discussion</h3>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-dim text-accent">
+                {messages.length} messages
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: connected ? '#22c55e' : '#ef4444' }} />
+              <p className="m-0 text-xs font-medium text-text-muted">
+                {connected ? 'Live — messages appear instantly' : 'Connecting to live server…'}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto flex flex-col gap-2 pb-3">
+      {/* Messages Scroll Area */}
+      <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-3 bg-surface-0/40">
         {messages.length === 0 ? (
-          <div className="text-center p-10 text-text-muted">
-            <MessageSquare size={32} className="mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No messages yet. Start the discussion!</p>
+          <div className="flex flex-col items-center justify-center my-auto py-12 text-text-muted text-sm gap-3">
+            <div className="w-14 h-14 rounded-2xl bg-accent-dim flex items-center justify-center text-accent">
+              <MessageSquare size={26} />
+            </div>
+            <div className="text-center max-w-xs">
+              <p className="font-bold text-text-primary text-base m-0 mb-1">No messages yet</p>
+              <p className="text-xs text-text-muted m-0">Start the project discussion with your team members!</p>
+            </div>
           </div>
         ) : messages.map((msg, i) => {
-          const isMe       = msg.author._id === user?._id || msg.author === user?._id;
+          const isMe       = msg.author._id === user?._id || msg.author === user?._id || msg.author?.id === user?._id;
           const prevAuthor = messages[i - 1]?.author?._id ?? messages[i - 1]?.author;
           const thisAuthor = msg.author?._id ?? msg.author;
           const showMeta   = i === 0 || prevAuthor !== thisAuthor;
@@ -775,29 +795,29 @@ function Discussion({ postId, leadId }) {
           return (
             <motion.div
               key={msg._id ?? i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}
-              className={`flex gap-2 items-end ${isMe ? 'flex-row-reverse' : 'flex-row'} ${showMeta ? 'mt-2' : 'mt-0'}`}
+              className={`flex gap-2.5 items-end ${isMe ? 'flex-row-reverse' : 'flex-row'} ${showMeta ? 'mt-2.5' : 'mt-0'}`}
             >
               {showMeta
-                ? <Avatar name={msg.author?.name} src={msg.author?.avatarUrl} size={28} />
-                : <div className="w-7 shrink-0" />}
-              <div className={`max-w-[72%] flex flex-col gap-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
+                ? <Avatar name={msg.author?.name} src={msg.author?.avatarUrl} size={32} />
+                : <div className="w-8 shrink-0" />}
+              <div className={`max-w-[75%] sm:max-w-[65%] flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
                 {showMeta && !isMe && (
                   <span className="text-[11px] font-semibold ml-1 flex items-center gap-1" style={{ color: isLead ? CC : 'var(--text-muted)' }}>
-                    {msg.author?.name}
+                    {msg.author?.name || 'Contributor'}
                     {isLead && <Crown size={11} color={CC} />}
                   </span>
                 )}
                 <div
-                  className={`px-3.5 py-2.5 text-sm leading-normal break-word text-text-primary ${isMe ? 'rounded-[16px_16px_4px_16px]' : 'rounded-[16px_16px_16px_4px]'} ${!isMe && isLead ? 'font-medium' : 'font-normal'}`}
-                  style={{
-                    background: isMe ? CC : isLead ? `${CC}14` : 'var(--surface-2)',
-                    color: isMe ? '#fff' : 'var(--text-primary)',
-                    border: !isMe && isLead ? `1.5px solid ${CC}45` : 'none',
-                  }}
+                  className={`px-4 py-2.5 text-sm leading-relaxed break-words shadow-xs ${
+                    isMe
+                      ? 'rounded-[18px_18px_4px_18px] bg-accent text-white'
+                      : 'rounded-[18px_18px_18px_4px] bg-card border border-border/70 text-text-primary'
+                  }`}
+                  style={isMe ? { background: CC } : {}}
                 >
                   {msg.text}
                 </div>
-                <span className="text-[10px] text-text-muted mx-1">
+                <span className={`text-[10px] mx-1 font-medium ${isMe ? 'text-text-muted text-right' : 'text-text-muted'}`}>
                   {timeAgo(msg.createdAt)}
                 </span>
               </div>
@@ -808,15 +828,20 @@ function Discussion({ postId, leadId }) {
         {/* Typing indicator */}
         <AnimatePresence>
           {othersTyping && (
-            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="flex gap-2 items-center pl-9">
-              <div className="flex gap-[3px] px-3 py-2 bg-surface-2 rounded-xl">
-                {[0, 1, 2].map(i => (
-                  <motion.div key={i} animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, delay: i * 0.15, repeat: Infinity }}
-                    className="w-1.5 h-1.5 rounded-full bg-text-muted" />
+            <motion.div
+              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="flex items-center gap-2 p-2 px-3.5 rounded-2xl bg-card border border-border/70 w-max text-xs text-text-muted shadow-xs ml-10"
+            >
+              <span>Someone is typing</span>
+              <div className="flex gap-1 items-center">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full bg-accent"
+                    style={{ animation: `bounce 1.2s ${i * 0.2}s infinite` }}
+                  />
                 ))}
               </div>
-              <span className="text-[11px] text-text-muted">typing…</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -824,24 +849,35 @@ function Discussion({ postId, leadId }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input — open to every member */}
-      <div className="flex gap-2 pt-3 border-t border-border">
+      {/* Input Bar */}
+      <div className="p-4 border-t border-border bg-card flex items-center gap-3 shrink-0 shadow-sm">
         <input
           value={text} onChange={handleTyping}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder={connected ? 'Type a message… (Enter to send)' : 'Reconnecting…'}
           aria-label="Discussion message"
-          className="flex-1 min-h-11 px-3.5 rounded-[10px] border-[1.5px] border-border bg-input text-base text-text-primary outline-none transition-colors duration-150 focus:border-[#3a3d4a]"
+          className="flex-1 min-h-[46px] px-4 rounded-xl border border-border bg-input text-text-primary text-sm outline-none transition-all duration-150 focus:border-accent focus:ring-2 focus:ring-accent/20"
         />
         <motion.button
-          whileTap={{ scale: 0.95 }} onClick={send} disabled={!text.trim()}
+          whileTap={{ scale: 0.94 }} onClick={send} disabled={!text.trim()}
           aria-label="Send message"
-          className={`w-11 h-11 rounded-[10px] border-none flex items-center justify-center shrink-0 transition-all duration-150 ${text.trim() ? 'text-white cursor-pointer' : 'bg-surface-2 text-text-muted cursor-not-allowed'}`}
+          className={`w-[46px] h-[46px] rounded-xl border-none flex items-center justify-center shrink-0 transition-all duration-150 ${
+            text.trim()
+              ? 'text-white shadow-md cursor-pointer hover:opacity-90 active:scale-95'
+              : 'bg-surface-2 text-text-muted cursor-not-allowed opacity-60'
+          }`}
           style={text.trim() ? { background: CC, boxShadow: `0 4px 12px ${CC}40` } : {}}
         >
-          <Send size={16} />
+          <Send size={18} />
         </motion.button>
       </div>
+
+      <style>{`
+        @keyframes bounce {
+          0%, 60%, 100% { transform: translateY(0); }
+          30%            { transform: translateY(-5px); }
+        }
+      `}</style>
     </div>
   );
 }

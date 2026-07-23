@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, UserMinus, Users, Loader2 } from "lucide-react";
 import api from "../../api/axiosInstance";
 import { useFriends, useFriendStatus, invalidateFriends } from "../../hooks/useFriends";
+import { useSocketStore } from "../../stores/socketStore";
 
 /* ──────────────────────────────────────
    ENHANCED AVATAR – with size variants & online status
@@ -28,7 +29,7 @@ const AVATAR_COLORS = [
   "#FF9FF3",
   "#54A0FF",
   "#5F27CD",
-  "#FF9F43",
+  "#FF9FF3",
   "#00D2D3",
   "#1DD1A1",
   "#F368E0",
@@ -209,7 +210,7 @@ export function FriendRow({
    MAIN FRIENDS LIST
    ────────────────────────────────────── */
 export default function FriendsList({ isOwnProfile }) {
-  const [onlineUsers] = useState(new Set()); // <-- add this
+  const onlineUsers = useSocketStore((s) => s.onlineUsers);
   // This component only ever renders for the signed-in user's own profile
   // (see early return below), so it always shares the same cached "my
   // friends" query as the Navbar dropdown and Messages page.
@@ -257,7 +258,7 @@ export default function FriendsList({ isOwnProfile }) {
             key={f._id}
             friend={f}
             onRemove={handleRemove}
-            isOnline={onlineUsers.has(f._id)} // <-- pass online status
+            isOnline={onlineUsers.has(String(f._id || f.id))} // <-- pass online status
           />
         ))}
       </AnimatePresence>

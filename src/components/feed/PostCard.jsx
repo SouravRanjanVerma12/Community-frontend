@@ -13,7 +13,7 @@ import { DOMAINS } from '../../data/mockPosts';
 import { useAuthStore } from '../../stores/authStore';
 import api from '../../api/axiosInstance';
 import { useComments, removeCachedComment } from '../../hooks/useComments';
-import { updateCachedPost, removeCachedPost, useBookmarkedPosts, toggleCachedBookmark } from '../../hooks/usePosts';
+import { updateCachedPost, patchCachedPost, removeCachedPost, useBookmarkedPosts, toggleCachedBookmark } from '../../hooks/usePosts';
 
 function Avatar({ name, src, size = 36 }) {
   const initials = (name ?? 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -72,21 +72,21 @@ function CodeBlock({ code, language }) {
 
 export default function PostCard({ post: initialPost, index = 0 }) {
   const { user } = useAuthStore();
-  // `post` is just the current prop — no local shadow copy. Live updates (likes,
-  // comments, edits, deletes) come in via socketStore's centralized listeners
-  // writing into the react-query cache, which flows back down as a fresh prop.
   const post = initialPost;
   const [showComments, setShowComments] = useState(false);
   const { data: comments = [], isLoading: commentsLoading } = useComments(post._id, showComments);
   const [newComment, setNewComment] = useState('');
-  const [liked, setLiked] = useState(initialPost.likes?.includes(user?._id));
+
+  const myUserIdStr = String(user?._id || user?.id || '');
+  const isLikedByMe = (post.likes || []).some((id) => String(id) === myUserIdStr);
+  const [liked, setLiked] = useState(isLikedByMe);
   const { data: bookmarkedPosts = [] } = useBookmarkedPosts(!!user);
   const isBookmarked = bookmarkedPosts.some((p) => p._id === post._id);
 
   const domain   = DOMAINS.find((d) => d.value === post.domain) ?? DOMAINS[0];
   const isCollab = post.type === 'collab';
   const COLLAB_COLOR = '#6366f1';
-  const isOwnPost = user && post.author._id === user._id;
+  const isOwnPost = user && (post.author._id === user._id || post.author.id === user.id);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [requested, setRequested]         = useState(false);
 
@@ -104,18 +104,20 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Resync the optimistic like-toggle when the post prop changes for a reason
-  // other than this user's own click (e.g. someone else's like arriving via
-  // socketStore -> react-query cache -> fresh prop).
   useEffect(() => {
-    setLiked(post.likes?.includes(user?._id));
-  }, [post.likes, user?._id]);
+    if (myUserIdStr) {
+      setLiked(isLikedByMe);
+    }
+  }, [post.likes, myUserIdStr, isLikedByMe]);
 
   const toggleLike = async () => {
     if (!user) return;
     setLiked(!liked); // optimistic
     try {
-      await api.post(`/posts/${post._id}/like`);
+      const { data } = await api.post(`/posts/${post._id}/like`);
+      if (data?.likes) {
+        patchCachedPost(post._id, { likes: data.likes });
+      }
     } catch {
       setLiked(liked); // revert on error
     }

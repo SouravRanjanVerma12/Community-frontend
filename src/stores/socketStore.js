@@ -4,6 +4,7 @@ import { showNotificationToast } from '../components/ui/NotificationToast';
 import { API_URL } from '../config';
 import { patchCachedPost, updateCachedPost, removeCachedPost } from '../hooks/usePosts';
 import { appendCachedComment, removeCachedComment } from '../hooks/useComments';
+import { useAuthStore } from './authStore';
 
 let socket = null;
 
@@ -37,25 +38,32 @@ export const useSocketStore = create((set, get) => ({
     socket.on('disconnect', () => set({ connected: false }));
 
     socket.on('users:online', ({ userIds }) => {
-      set({ onlineUsers: new Set(userIds) });
+      set({ onlineUsers: new Set((userIds || []).map(String)) });
     });
 
     socket.on('user:online', ({ userId }) => {
-      set((s) => ({ onlineUsers: new Set([...s.onlineUsers, userId]) }));
+      if (userId) set((s) => ({ onlineUsers: new Set([...s.onlineUsers, String(userId)]) }));
     });
 
     socket.on('user:offline', ({ userId }) => {
-      set((s) => {
-        const next = new Set(s.onlineUsers);
-        next.delete(userId);
-        return { onlineUsers: next };
-      });
+      if (userId) {
+        set((s) => {
+          const next = new Set(s.onlineUsers);
+          next.delete(String(userId));
+          return { onlineUsers: next };
+        });
+      }
     });
 
     socket.on('message:receive', (msg) => {
       // Store under the OTHER party's id
-      const myId = get()._myId;
-      const otherId = msg.sender === myId ? msg.receiver : msg.sender;
+      const myUser = useAuthStore.getState().user;
+      const myId = get()._myId || myUser?._id || myUser?.id;
+      const senderId = typeof msg.sender === 'object' ? (msg.sender?._id || msg.sender?.id) : msg.sender;
+      const receiverId = typeof msg.receiver === 'object' ? (msg.receiver?._id || msg.receiver?.id) : msg.receiver;
+      const myStr = String(myId || '');
+      const otherId = String(senderId) === myStr ? String(receiverId) : String(senderId);
+
       set((s) => ({
         conversations: {
           ...s.conversations,
@@ -178,6 +186,7 @@ export const useSocketStore = create((set, get) => ({
   },
 
   isOnline(userId) {
-    return get().onlineUsers.has(userId);
+    if (!userId) return false;
+    return get().onlineUsers.has(String(userId));
   },
 }));

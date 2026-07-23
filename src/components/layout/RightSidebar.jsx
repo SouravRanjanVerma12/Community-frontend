@@ -307,7 +307,7 @@ export default function RightSidebar() {
         ) : (
           <div className="flex flex-col gap-2 mt-1">
             {suggestions.map((u) => {
-              const isFollowing = Array.isArray(user?.following) && user.following.includes(u._id);
+              const isFollowing = Array.isArray(user?.following) && user.following.some((id) => String(id) === String(u._id || u.id));
               const domainTag = Array.isArray(u.domain) && u.domain.length > 0 ? u.domain[0] : null;
 
               return (
