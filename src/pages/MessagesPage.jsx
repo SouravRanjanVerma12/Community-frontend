@@ -204,7 +204,7 @@ function ChatWindow({ friend, onBack }) {
         {/* Right header actions */}
         <div className="flex items-center gap-2.5 shrink-0">
           {/* Options Dropdown */}
-          <div className="relative" ref={optionsRef}>
+          {/* <div className="relative" ref={optionsRef}>
             <button
               onClick={() => setOptionsOpen((v) => !v)}
               title="Chat options"
@@ -239,7 +239,7 @@ function ChatWindow({ friend, onBack }) {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </div> */}
 
           {/* Modern Close Pill Button */}
           <motion.button
@@ -250,7 +250,7 @@ function ChatWindow({ friend, onBack }) {
             aria-label="Close chat"
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-1 border border-border/80 hover:border-accent/40 hover:bg-surface-2 text-text-secondary hover:text-text-primary cursor-pointer text-xs font-semibold transition-all shadow-xs group"
           >
-            <span>Close</span>
+            {/* <span>Close</span> */}
             <kbd className="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-2 border border-border text-text-muted">ESC</kbd>
             <X size={14} className="text-text-muted group-hover:text-text-primary transition-colors" />
           </motion.button>
@@ -401,7 +401,11 @@ export default function MessagesPage() {
   const { data: pending = [] } = usePendingRequests();
   const loading = friendsLoading;
 
-  const { isOnline, conversations, seedConversation, typingMap } = useSocketStore();
+  // Subscribe to onlineUsers as a reactive selector so the sidebar re-renders
+  // whenever user:online / user:offline events fire — plain destructure won't trigger re-render
+  const onlineUsers = useSocketStore((s) => s.onlineUsers);
+  const { conversations, seedConversation, typingMap } = useSocketStore();
+  const isOnline = (id) => onlineUsers.has(String(id || ''));
 
   // Prefetch recent message snippets for all friends so last message preview shows without opening
   useEffect(() => {
