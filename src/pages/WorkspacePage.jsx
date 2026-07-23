@@ -746,6 +746,7 @@ function Discussion({ postId, leadId }) {
   if (loading) return <Loader />;
 
   const othersTyping = typingUsers.size > 0 && !typingUsers.has(user?._id);
+  const lastMsg = messages[messages.length - 1];
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
@@ -764,13 +765,23 @@ function Discussion({ postId, leadId }) {
               </span>
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: connected ? '#22c55e' : '#ef4444' }} />
-              <p className="m-0 text-xs font-medium text-text-muted">
-                {connected ? 'Live — messages appear instantly' : 'Connecting to live server…'}
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: othersTyping ? 'var(--accent)' : connected ? '#22c55e' : '#ef4444' }} />
+              <p className="m-0 text-xs font-medium transition-colors" style={{ color: othersTyping ? 'var(--accent)' : 'var(--text-muted)' }}>
+                {othersTyping ? 'Someone is typing...' : connected ? 'Live — messages appear instantly' : 'Connecting to live server…'}
               </p>
             </div>
           </div>
         </div>
+
+        {/* Instagram-style Last Activity Snippet Pill */}
+        {lastMsg && !othersTyping && (
+          <div className="hidden sm:flex items-center gap-2 text-xs text-text-muted bg-surface-1 px-3 py-1.5 rounded-full border border-border/60 shadow-2xs">
+            <span className="font-semibold text-text-primary truncate max-w-[220px]">
+              {lastMsg.author?.name ? `${lastMsg.author.name}: ` : ''}"{lastMsg.text}"
+            </span>
+            <span className="text-[10px] text-text-muted shrink-0">· {timeAgo(lastMsg.createdAt)}</span>
+          </div>
+        )}
       </div>
 
       {/* Messages Scroll Area */}
