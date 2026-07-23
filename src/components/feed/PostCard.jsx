@@ -12,7 +12,7 @@ import { confirm } from '../ui/ConfirmDialog';
 import { DOMAINS } from '../../data/mockPosts';
 import { useAuthStore } from '../../stores/authStore';
 import api from '../../api/axiosInstance';
-import { useComments, removeCachedComment } from '../../hooks/useComments';
+import { useComments, appendCachedComment, removeCachedComment } from '../../hooks/useComments';
 import { updateCachedPost, patchCachedPost, removeCachedPost, useBookmarkedPosts, toggleCachedBookmark } from '../../hooks/usePosts';
 
 function Avatar({ name, src, size = 36 }) {
@@ -112,14 +112,25 @@ export default function PostCard({ post: initialPost, index = 0 }) {
 
   const toggleLike = async () => {
     if (!user) return;
-    setLiked(!liked); // optimistic
+    const myId = user._id || user.id;
+    const isCurrentlyLiked = liked;
+    const currentLikes = post.likes || [];
+    const newLikes = isCurrentlyLiked
+      ? currentLikes.filter((id) => String(id) !== String(myId))
+      : [...currentLikes, myId];
+
+    setLiked(!isCurrentlyLiked);
+    patchCachedPost(post._id, { likes: newLikes });
+
     try {
       const { data } = await api.post(`/posts/${post._id}/like`);
       if (data?.likes) {
         patchCachedPost(post._id, { likes: data.likes });
       }
     } catch {
-      setLiked(liked); // revert on error
+      setLiked(isCurrentlyLiked);
+      patchCachedPost(post._id, { likes: currentLikes });
+      toast.error('Failed to update like');
     }
   };
 
@@ -143,7 +154,21 @@ export default function PostCard({ post: initialPost, index = 0 }) {
     if (!newComment.trim() || !user) return;
     const txt = newComment.trim();
     setNewComment('');
-    await api.post(`/posts/${post._id}/comments`, { text: txt });
+    const prevCount = post.commentCount || 0;
+    patchCachedPost(post._id, { commentCount: prevCount + 1 });
+
+    try {
+      const { data } = await api.post(`/posts/${post._id}/comments`, { text: txt });
+      if (data?.comment) {
+        appendCachedComment(post._id, data.comment);
+      }
+      if (data?.commentCount !== undefined) {
+        patchCachedPost(post._id, { commentCount: data.commentCount });
+      }
+    } catch (err) {
+      patchCachedPost(post._id, { commentCount: prevCount });
+      toast.error(err.response?.data?.message || 'Failed to add comment');
+    }
   };
 
   const share = async () => {

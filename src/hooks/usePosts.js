@@ -107,23 +107,41 @@ function mapPostsEverywhere(old, mapPosts) {
   return old;
 }
 
-/* Updates a post in every cached posts list + its singular ['post', id] cache.
+/* Updates a post in every cached posts list (feed, profile user-posts, bookmarks, collabs) + its singular ['post', id] cache.
    Called after a successful edit (PATCH /posts/:id), which sends the full
    updated post. */
 export function updateCachedPost(postId, updatedPost) {
+  const replace = (p) => (p._id === postId ? updatedPost : p);
   queryClient.setQueriesData({ queryKey: ['posts'] }, (old) =>
-    mapPostsEverywhere(old, (posts) => posts.map((p) => (p._id === postId ? updatedPost : p)))
+    mapPostsEverywhere(old, (posts) => posts.map(replace))
+  );
+  queryClient.setQueriesData({ queryKey: ['user-posts'] }, (old) =>
+    Array.isArray(old) ? old.map(replace) : old
+  );
+  queryClient.setQueriesData({ queryKey: ['bookmarked-posts'] }, (old) =>
+    Array.isArray(old) ? old.map(replace) : old
+  );
+  queryClient.setQueriesData({ queryKey: ['my-collab-posts'] }, (old) =>
+    Array.isArray(old) ? old.map(replace) : old
   );
   queryClient.setQueryData(['post', postId], updatedPost);
 }
 
 /* Merges partial fields into a cached post everywhere it appears — for live
-   socket updates (post:updated/post:commented/post:commentDeleted) that only
-   carry the field(s) that changed, not the whole post. */
+   socket updates (post:updated/post:commented/post:commentDeleted) and optimistic likes/comments. */
 export function patchCachedPost(postId, patch) {
   const merge = (p) => (p._id === postId ? { ...p, ...patch } : p);
   queryClient.setQueriesData({ queryKey: ['posts'] }, (old) =>
     mapPostsEverywhere(old, (posts) => posts.map(merge))
+  );
+  queryClient.setQueriesData({ queryKey: ['user-posts'] }, (old) =>
+    Array.isArray(old) ? old.map(merge) : old
+  );
+  queryClient.setQueriesData({ queryKey: ['bookmarked-posts'] }, (old) =>
+    Array.isArray(old) ? old.map(merge) : old
+  );
+  queryClient.setQueriesData({ queryKey: ['my-collab-posts'] }, (old) =>
+    Array.isArray(old) ? old.map(merge) : old
   );
   queryClient.setQueryData(['post', postId], (old) => (old ? merge(old) : old));
 }
@@ -132,8 +150,18 @@ export function patchCachedPost(postId, patch) {
    Called after a successful delete (DELETE /posts/:id) and for live deletes
    relayed through socketStore. */
 export function removeCachedPost(postId) {
+  const remove = (p) => p._id !== postId;
   queryClient.setQueriesData({ queryKey: ['posts'] }, (old) =>
-    mapPostsEverywhere(old, (posts) => posts.filter((p) => p._id !== postId))
+    mapPostsEverywhere(old, (posts) => posts.filter(remove))
+  );
+  queryClient.setQueriesData({ queryKey: ['user-posts'] }, (old) =>
+    Array.isArray(old) ? old.filter(remove) : old
+  );
+  queryClient.setQueriesData({ queryKey: ['bookmarked-posts'] }, (old) =>
+    Array.isArray(old) ? old.filter(remove) : old
+  );
+  queryClient.setQueriesData({ queryKey: ['my-collab-posts'] }, (old) =>
+    Array.isArray(old) ? old.filter(remove) : old
   );
   queryClient.setQueryData(['post', postId], null);
 }
