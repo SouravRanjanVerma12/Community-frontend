@@ -30,17 +30,10 @@ function NavigationLoaders() {
   useEffect(() => {
     setIsFinished(false);
     setIsVisible(true);
-    
-    // Simulate loading for 500ms
     const timer = setTimeout(() => {
-      setIsFinished(true); // Trigger 100% completion and fade out
-      
-      // Wait 500ms for CSS fade out transitions to complete before unmounting
-      setTimeout(() => {
-        setIsVisible(false);
-      }, 500);
+      setIsFinished(true);
+      setTimeout(() => setIsVisible(false), 500);
     }, 500);
-
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
@@ -49,7 +42,7 @@ function NavigationLoaders() {
   return (
     <>
       <NavProgressRunner isFinished={isFinished} />
-      <div 
+      <div
         className={`fixed inset-0 z-9998 flex items-center justify-center bg-bg/80 backdrop-blur-sm transition-opacity duration-400 ${isFinished ? 'opacity-0' : 'opacity-100'}`}
       >
         <GlobalLoader isFinished={isFinished} />
@@ -83,15 +76,20 @@ function ThemeApplier() {
   return null;
 }
 
-function AuthHydrator({ children }) {
+function AuthHydrator({ children, onHydrated }) {
   const { accessToken, fetchMe, user } = useAuthStore();
   const { connect, disconnect, setMyId, seedNotifications } = useSocketStore();
 
   useFcmToken(!!(accessToken && user));
   useDeviceLocation(!!(accessToken && user));
 
+  // Verify persisted token on first load; signal hydration complete when done
   useEffect(() => {
-    if (accessToken) fetchMe();
+    if (accessToken) {
+      fetchMe().finally(() => onHydrated?.());
+    } else {
+      onHydrated?.();
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Connect / disconnect Socket.io based on auth state
@@ -113,7 +111,32 @@ function AuthHydrator({ children }) {
   return children;
 }
 
+/**
+ * RequireAuth — wraps protected routes.
+ * While hydrating (fetchMe pending): shows a spinner so we don't flash-redirect.
+ * After hydration, if no accessToken: redirects to / (login page).
+ */
+function RequireAuth({ children, hydrated }) {
+  const { accessToken } = useAuthStore();
+
+  if (!hydrated) {
+    return (
+      <div className="fixed inset-0 bg-bg flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-border border-t-accent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!accessToken) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
 export default function App() {
+  const [hydrated, setHydrated] = useState(false);
+
   return (
     <BrowserRouter>
       <ThemeApplier />
@@ -135,20 +158,24 @@ export default function App() {
       />
       <ConfirmDialogHost />
       <OnboardingGate />
-      <AuthHydrator>
+      <AuthHydrator onHydrated={() => setHydrated(true)}>
         <NavigationLoaders />
         <Suspense fallback={<RouteFallback />}>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<AuthPage />} />
             <Route path="/register" element={<AuthPage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/profile/:userId" element={<ProfilePage />} />
-            <Route path="/collab" element={<CollabPage />} />
-            <Route path="/collab/:postId/requests" element={<CollabRequestsPage />} />
-            <Route path="/messages" element={<MessagesPage />} />
-            <Route path="/project/:id" element={<WorkspacePage />} />
-            <Route path="/jobs" element={<JobsPage />} />
-            <Route path="/jobs/:jobId/applicants" element={<JobApplicantsPage />} />
+
+            {/* Protected routes — auto redirect to / if no token */}
+            <Route path="/explore"                 element={<RequireAuth hydrated={hydrated}><ExplorePage /></RequireAuth>} />
+            <Route path="/profile/:userId"         element={<RequireAuth hydrated={hydrated}><ProfilePage /></RequireAuth>} />
+            <Route path="/collab"                  element={<RequireAuth hydrated={hydrated}><CollabPage /></RequireAuth>} />
+            <Route path="/collab/:postId/requests" element={<RequireAuth hydrated={hydrated}><CollabRequestsPage /></RequireAuth>} />
+            <Route path="/messages"                element={<RequireAuth hydrated={hydrated}><MessagesPage /></RequireAuth>} />
+            <Route path="/project/:id"             element={<RequireAuth hydrated={hydrated}><WorkspacePage /></RequireAuth>} />
+            <Route path="/jobs"                    element={<RequireAuth hydrated={hydrated}><JobsPage /></RequireAuth>} />
+            <Route path="/jobs/:jobId/applicants"  element={<RequireAuth hydrated={hydrated}><JobApplicantsPage /></RequireAuth>} />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
