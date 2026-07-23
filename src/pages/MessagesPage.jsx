@@ -133,18 +133,31 @@ function ChatWindow({ friend, onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [friendId]);
 
+  // Helper to reliably scroll to bottom across paint cycles
+  const scrollToBottom = (smooth = false) => {
+    const doScroll = () => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+      if (bottomRef.current) {
+        bottomRef.current.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'end' });
+      }
+    };
+    doScroll();
+    requestAnimationFrame(doScroll);
+    setTimeout(doScroll, 50);
+    setTimeout(doScroll, 150);
+  };
+
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    if (isInitialLoad.current) {
-      // Instant jump on history load — no animation so user sees bottom immediately
-      el.scrollTop = el.scrollHeight;
-      if (messages.length > 0) isInitialLoad.current = false;
-    } else {
-      // Smooth scroll for each new incoming/outgoing message
-      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    if (!loading) {
+      const smooth = !isInitialLoad.current;
+      scrollToBottom(smooth);
+      if (isInitialLoad.current && messages.length > 0) {
+        isInitialLoad.current = false;
+      }
     }
-  }, [messages.length, isTyping]);
+  }, [loading, messages.length, isTyping, friendId]);
 
   // Reset initial-load flag when switching friends
   useEffect(() => {
