@@ -437,7 +437,7 @@ export default function CollabPage() {
         />
 
         <div className="max-w-[1100px] mx-auto relative z-10">
-          <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
+          <div className="flex items-start justify-between gap-4 mb-2 flex-wrap">
             <div>
               {/* Badge */}
               <div
@@ -451,21 +451,9 @@ export default function CollabPage() {
               <h1 className="text-[28px] font-extrabold tracking-[-0.6px] mb-2" style={{ color: 'var(--text-primary)' }}>
                 Find your next build partner
               </h1>
-              <p className="text-[14px] mb-4 max-w-md text-text-muted">
+              <p className="text-[14px] max-w-md text-text-muted">
                 Discover people to build with, post what you're working on, and get accepted into exciting collab opportunities.
               </p>
-
-              {/* Live stats */}
-              <div className="flex items-center gap-4 flex-wrap">
-                <span className="flex items-center gap-1.5 text-[12px] font-medium text-text-muted">
-                  <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: '#818cf8' }} />
-                  Open collabs
-                </span>
-                <span className="flex items-center gap-1.5 text-[12px] font-medium text-text-muted">
-                  <span className="w-1.5 h-1.5 rounded-full inline-block animate-pulse" style={{ background: '#34d399' }} />
-                  Builders active
-                </span>
-              </div>
             </div>
 
             <motion.button
