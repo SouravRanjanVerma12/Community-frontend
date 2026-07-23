@@ -2312,6 +2312,23 @@ export default function WorkspacePage() {
     }
   };
 
+  // Global Escape key listener to close current workspace tab
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if user is typing in an active input, textarea, or select field
+      const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+      if (e.key === 'Escape' && !isTyping) {
+        if (section !== 'overview') {
+          setSection('overview');
+        } else {
+          navigate('/collab');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [section, navigate]);
+
   const visibleNavItems = NAV_ITEMS.filter(item => !item.ownerOnly || isOwner);
 
   return (
@@ -2380,9 +2397,30 @@ export default function WorkspacePage() {
         {/* Content */}
         <main className="flex-1 p-6 overflow-x-auto min-w-0">
           <div style={{ maxWidth: section === 'tasks' ? 'none' : '1100px' }}>
-            <h1 className="text-xl font-extrabold text-text-primary mb-5 tracking-[-0.3px]">
-              {NAV_ITEMS.find(n => n.id === section)?.label}
-            </h1>
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-extrabold text-text-primary m-0 tracking-[-0.3px]">
+                  {NAV_ITEMS.find(n => n.id === section)?.label}
+                </h1>
+                {section !== 'overview' && (
+                  <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-text-muted font-medium bg-surface-1 px-2.5 py-1 rounded-full border border-border/60">
+                    Press <kbd className="text-[10px] font-mono font-bold text-text-primary px-1.5 py-0.5 rounded bg-surface-2 border border-border shadow-2xs">ESC</kbd> to close tab
+                  </span>
+                )}
+              </div>
+              {section !== 'overview' && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setSection('overview')}
+                  title="Close tab (Esc)"
+                  aria-label="Close tab"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-1 hover:bg-surface-2 border border-border text-text-secondary hover:text-text-primary cursor-pointer text-xs font-semibold transition-all shadow-xs"
+                >
+                  <X size={14} /> Close Tab
+                </motion.button>
+              )}
+            </div>
             <AnimatePresence mode="wait">
               <motion.div key={section} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
                 {renderSection()}
