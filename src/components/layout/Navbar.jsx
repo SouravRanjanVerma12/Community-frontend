@@ -408,7 +408,7 @@ function WorkspacesDropdown() {
 const NAV_TABS = [
   { to: '/explore',  label: 'Explore',  icon: Compass,    activeColor: null            },
   { to: '/collab',   label: 'Collab',   icon: Handshake,  activeColor: '#818cf8'       },
-  { to: '/jobs',     label: 'Jobs',     icon: Briefcase,  activeColor: null            },
+  // { to: '/jobs',     label: 'Jobs',     icon: Briefcase,  activeColor: null            },
 ];
 
 export default function Navbar() {

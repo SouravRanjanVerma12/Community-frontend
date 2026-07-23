@@ -135,7 +135,7 @@ function DiscoverTab() {
           <p className="text-[13px]">Try different filters, or post the first opening!</p>
         </div>
       ) : (
-        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))' }}>
           {jobs.map((j, i) => <JobCard key={j._id} job={j} index={i} applied={appliedJobIds.has(j._id)} />)}
         </div>
       )}
@@ -162,7 +162,7 @@ function MyPostingsTab() {
           You haven't posted any jobs yet. Click "Post a Job" to get started!
         </p>
       ) : (
-        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))' }}>
           {myJobs.map((j, i) => <JobCard key={j._id} job={j} index={i} showReviewLink />)}
         </div>
       )}

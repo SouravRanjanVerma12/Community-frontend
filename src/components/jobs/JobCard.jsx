@@ -102,50 +102,49 @@ export default function JobCard({ job, index = 0, showReviewLink = false, applie
         )}
 
         {/* Footer */}
-        <div className="flex items-center gap-2 mt-auto pt-3 border-t border-border/40">
+        <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-border/40 flex-wrap">
           {/* Poster */}
-          <Link to={`/profile/${job.postedBy?._id}`} className="flex items-center gap-1.5 no-underline shrink-0 group/avatar z-10" onClick={(e) => e.stopPropagation()}>
+          <Link to={`/profile/${job.postedBy?._id}`} className="flex items-center gap-1.5 no-underline shrink-0 group/avatar z-10 min-w-0 max-w-[45%]" onClick={(e) => e.stopPropagation()}>
             <Avatar name={job.postedBy?.name} src={job.postedBy?.avatarUrl} size={24} />
-            <span className="text-[12px] text-text-muted font-medium group-hover/avatar:text-text-primary transition-colors">{job.postedBy?.name}</span>
+            <span className="text-[12px] text-text-muted font-medium group-hover/avatar:text-text-primary transition-colors truncate">{job.postedBy?.name}</span>
           </Link>
 
-          <div className="flex-1" />
+          {/* Action & Badges Right Side */}
+          <div className="flex items-center gap-1.5 shrink-0 ml-auto z-10 flex-wrap" onClick={(e) => e.stopPropagation()}>
+            {/* Applicant count */}
+            {(job.applicantCount ?? 0) > 0 && (
+              <span className="shrink-0 text-[11px] font-semibold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">🔥 {job.applicantCount} applied</span>
+            )}
 
-          {/* Applicant count */}
-          {(job.applicantCount ?? 0) > 0 && (
-            <span className="shrink-0 whitespace-nowrap text-[11px] font-semibold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full">🔥 {job.applicantCount} applied</span>
-          )}
-
-          {/* Action Area */}
-          <div className="z-10 shrink-0 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+            {/* Action Area */}
             {isOwn ? (
               showReviewLink && (job.applicantCount ?? 0) > 0 ? (
                 <Link to={`/jobs/${job._id}/applicants`} className="no-underline block">
                   <motion.div 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-xl bg-accent text-white shadow-sm shadow-accent/20"
+                    className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-accent text-white shadow-sm shadow-accent/20"
                   >
-                    <ClipboardList size={14} /> Review
+                    <ClipboardList size={13} /> Review
                   </motion.div>
                 </Link>
               ) : (
-                <span className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg text-accent bg-accent/10 border border-accent/20">Your posting</span>
+                <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg text-accent bg-accent/10 border border-accent/20">Your posting</span>
               )
             ) : hasApplied ? (
-              <span className="flex items-center gap-1 text-xs font-semibold text-green-500 bg-green-500/10 px-2.5 py-1.5 rounded-lg">
-                <CheckCircle size={13} /> Applied
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-green-500 bg-green-500/10 px-2.5 py-1 rounded-lg">
+                <CheckCircle size={12} /> Applied
               </span>
             ) : closed ? (
-              <span className="text-[11px] font-medium text-text-muted bg-surface-2 px-2.5 py-1.5 rounded-lg">Closed</span>
+              <span className="text-[11px] font-medium text-text-muted bg-surface-2 px-2.5 py-1 rounded-lg">Closed</span>
             ) : (
               <motion.button 
                 onClick={() => setApplyOpen(true)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-1.5 text-[12px] font-semibold px-3.5 py-1.5 rounded-xl bg-text-primary text-card hover:bg-accent hover:text-white transition-colors shadow-sm"
+                className="flex items-center gap-1 text-[11px] font-semibold px-3 py-1 rounded-xl bg-text-primary text-card hover:bg-accent hover:text-white transition-colors shadow-sm"
               >
-                Apply <ArrowRight size={14} />
+                Apply <ArrowRight size={13} />
               </motion.button>
             )}
           </div>
