@@ -10,9 +10,11 @@ import {
   CheckCircle, Clock, Circle, Wifi, WifiOff, Edit, Share2,
   Square, X, Crown, User, Eye, Calendar, Paperclip,
   ClipboardCheck, RotateCcw, Settings as SettingsIcon,
+  Award, Upload, CheckCircle2, XCircle, AlertCircle, FileImage, ShieldCheck,
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import Button from '../components/ui/Button';
+import { LinkedInIcon } from '../components/icons/LinkedInIcon';
 import api from '../api/axiosInstance';
 import { useAuthStore } from '../stores/authStore';
 import { getSocket, useSocketStore } from '../stores/socketStore';
@@ -20,7 +22,7 @@ import { DOMAINS } from '../data/mockPosts';
 import { PieChart } from '@mui/x-charts/PieChart';
 import {
   useWorkspaceOverview, useWorkspaceActivity, useWorkspaceMembers,
-  useWorkspaceResources, useWorkspaceTasks, invalidateWorkspace,
+  useWorkspaceResources, useWorkspaceTasks, useWorkspaceEndorsements, invalidateWorkspace,
 } from '../hooks/useWorkspace';
 
 /* ── shared helpers ── */
@@ -61,6 +63,7 @@ function Loader() {
 function Overview({ postId, isOwner, onEdit }) {
   const { data, isLoading: loading } = useWorkspaceOverview(postId);
   const { data: recentActivity = [] } = useWorkspaceActivity(postId, 5);
+  const [markingComplete, setMarkingComplete] = useState(false);
 
   if (loading) return <Loader />;
   if (!data) return null;
@@ -68,7 +71,23 @@ function Overview({ postId, isOwner, onEdit }) {
   const { post, taskStats, memberCount, msgCount, recentResources } = data;
   const totalTasks = taskStats.todo + taskStats.in_progress + taskStats.done;
   const progress = totalTasks > 0 ? Math.round((taskStats.done / totalTasks) * 100) : 0;
-  const isComplete = progress === 100 && totalTasks > 0;
+  const allTasksDone = progress === 100 && totalTasks > 0; // task-board completion, distinct from post.projectStatus
+  const isComplete = allTasksDone;
+  const isProjectMarkedComplete = post.projectStatus === 'completed';
+
+  const handleMarkComplete = async () => {
+    if (!await confirm('Mark this project as complete? You should review every member for endorsement first.', { title: 'Mark Complete', confirmLabel: 'Mark Complete' })) return;
+    setMarkingComplete(true);
+    try {
+      await api.patch(`/workspace/${postId}/complete`);
+      invalidateWorkspace(postId);
+      toast.success('Project marked complete.');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to mark project complete.');
+    } finally {
+      setMarkingComplete(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -127,6 +146,19 @@ function Overview({ postId, isOwner, onEdit }) {
           {/* Quick actions */}
           {isOwner && (
             <div className="flex gap-1.5 shrink-0">
+              {isProjectMarkedComplete ? (
+                <span className="px-3.5 py-2 rounded-lg border border-[#16a34a]/30 bg-[#16a34a]/10 text-[#16a34a] text-xs font-semibold flex items-center gap-1.5">
+                  <CheckCircle size={14} /> Completed
+                </span>
+              ) : (
+                <button
+                  onClick={handleMarkComplete}
+                  disabled={markingComplete}
+                  className="px-3.5 py-2 rounded-lg border border-border bg-transparent text-text-secondary text-xs cursor-pointer flex items-center gap-1.5 transition-colors duration-150 hover:border-[#16a34a] hover:text-[#16a34a] disabled:opacity-60"
+                >
+                  <CheckCircle size={14} /> {markingComplete ? 'Marking...' : 'Mark Project Complete'}
+                </button>
+              )}
               <button
                 onClick={onEdit}
                 className="px-3.5 py-2 rounded-lg border border-border bg-transparent text-text-secondary text-xs cursor-pointer flex items-center gap-1.5 transition-colors duration-150 hover:border-[#3a3d4a] hover:text-[#3a3d4a]"
@@ -445,39 +477,30 @@ function Members({ postId, isOwner }) {
   const onlineCount = members.filter(m => onlineUsers.has(m.user._id)).length;
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Header with stats and actions */}
-      <div className="flex justify-between items-center flex-wrap gap-3">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-text-primary">
-              {members.length} member{members.length !== 1 ? 's' : ''}
+    <div className="flex flex-col gap-3">
+      {/* Clean Header Bar */}
+      <div className="flex items-center justify-between flex-wrap gap-2 py-0.5">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-text-primary">
+            {members.length} member{members.length !== 1 ? 's' : ''}
+          </span>
+          {onlineCount > 0 && (
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {onlineCount} online
             </span>
-            <span className="text-xs text-text-muted">
-              {onlineCount} online now
-            </span>
-          </div>
-          <div className="flex gap-3 mt-1">
-            <span className="inline-flex items-center gap-1 text-[11px] text-text-muted">
-              <Crown size={11} /> {leadCount} Lead
-            </span>
-            <span className="inline-flex items-center gap-1 text-[11px] text-text-muted">
-              <User size={11} /> {contributorCount} Contributors
-            </span>
-            <span className="inline-flex items-center gap-1 text-[11px] text-text-muted">
-              <Eye size={11} /> {viewerCount} Viewers
-            </span>
-          </div>
+          )}
         </div>
-        <div className="flex gap-2 items-center">
+
+        <div className="flex items-center gap-2">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-1.5 rounded-lg border-[1.5px] border-border bg-input text-xs text-text-secondary outline-none cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg border border-border bg-input text-xs text-text-secondary outline-none cursor-pointer"
           >
-            <option value="joinedAt">Sort by: Joined</option>
-            <option value="name">Sort by: Name</option>
-            <option value="role">Sort by: Role</option>
+            <option value="joinedAt">Sort: Joined</option>
+            <option value="name">Sort: Name</option>
+            <option value="role">Sort: Role</option>
           </select>
           {isOwner && (
             <Button size="sm" onClick={() => setIsInviteModalOpen(true)}>
@@ -487,76 +510,84 @@ function Members({ postId, isOwner }) {
         </div>
       </div>
 
-      {/* Member list */}
-      <div className="flex flex-col gap-1.5">
+      {/* Clean Member Cards */}
+      <div className="flex flex-col gap-2">
         {sortedMembers.map(({ user, role, joinedAt }) => {
           const isOnline = onlineUsers.has(user._id);
           const roleInfo = roleColors[role] || roleColors.Contributor;
           const isCurrentUser = user._id === currentUser?._id;
+          const linkedinUrl = getValidLinkedinUrl(user.socialLinks?.linkedin);
 
           return (
             <div
               key={user._id}
-              className="bg-card border border-card-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-150 hover:shadow-sm"
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--card-border)'; }}
+              className="bg-card border border-border/70 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors hover:border-border"
             >
-              {/* Top row / Avatar & info */}
+              {/* Left: Avatar + Info */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                {/* Avatar with online status */}
                 <div className="relative shrink-0">
                   <Link to={`/profile/${user._id}`}>
-                    <Avatar name={user.name} src={user.avatarUrl} size={44} />
+                    <Avatar name={user.name} src={user.avatarUrl} size={42} />
                   </Link>
                   <div
-                    className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card"
-                    style={{ background: isOnline ? '#16a34a' : '#6b7280' }}
+                    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card ${
+                      isOnline ? 'bg-emerald-500' : 'bg-gray-400'
+                    }`}
                   />
                 </div>
 
-                {/* User info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <Link to={`/profile/${user._id}`} className="no-underline flex items-center gap-1 min-w-0 max-w-[65%] sm:max-w-none">
-                      <span className="text-[14px] sm:text-[15px] font-bold text-text-primary truncate">
-                        {user.name}
-                      </span>
-                      {isCurrentUser && (
-                        <span className="text-[10px] text-text-muted bg-surface-2 px-1.5 py-px rounded shrink-0">
-                          You
-                        </span>
-                      )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link to={`/profile/${user._id}`} className="no-underline text-text-primary hover:text-accent font-bold text-sm truncate">
+                      {user.name}
                     </Link>
-                    <span className="px-2 py-[2px] rounded-xl text-[10px] sm:text-[11px] font-bold flex items-center gap-1 shrink-0" style={{ background: roleInfo.bg, color: roleInfo.color }}>
-                      <roleInfo.icon size={11} /> {role}
-                    </span>
-                    {isOnline && (
-                      <span className="text-[10px] text-[#16a34a] flex items-center gap-1 shrink-0">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#16a34a] inline-block animate-pulse" />
-                        Online
+                    {isCurrentUser && (
+                      <span className="text-[10px] text-text-muted bg-surface-2 px-1.5 py-px rounded shrink-0 font-medium">
+                        You
                       </span>
                     )}
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 shrink-0" style={{ background: roleInfo.bg, color: roleInfo.color }}>
+                      <roleInfo.icon size={10} /> {role}
+                    </span>
                   </div>
-                  <p className="text-xs text-text-muted mt-0.5 truncate">
-                    @{user.username} · joined {timeAgo(joinedAt)}
-                  </p>
+
+                  <div className="flex items-center gap-2 text-xs text-text-muted mt-0.5">
+                    <span>@{user.username}</span>
+                    <span>·</span>
+                    <span>joined {timeAgo(joinedAt)}</span>
+                    {linkedinUrl && (
+                      <>
+                        <span>·</span>
+                        <a
+                          href={linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[#0A66C2] dark:text-[#3891e8] font-semibold hover:underline no-underline"
+                        >
+                          <LinkedInIcon className="w-3 h-3 fill-current shrink-0" />
+                          <span>LinkedIn</span>
+                          <ExternalLink size={10} />
+                        </a>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Owner actions */}
+              {/* Right: Actions */}
               {isOwner && !isCurrentUser && (
-                <div className="flex items-center justify-end gap-2 shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-border/40 w-full sm:w-auto">
+                <div className="flex items-center justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40 w-full sm:w-auto">
                   <select
                     value={role}
                     onChange={(e) => handleChangeRole(user._id, e.target.value)}
-                    className="px-2.5 py-1.5 rounded-lg border border-border bg-input text-xs text-text-secondary outline-none cursor-pointer min-h-[36px]"
+                    className="px-2.5 py-1 rounded-lg border border-border bg-input text-xs text-text-secondary outline-none cursor-pointer"
                   >
                     <option value="Contributor">Contributor</option>
                     <option value="Viewer">Viewer</option>
                   </select>
                   <button
                     onClick={() => handleRemoveMember(user._id, user.name)}
-                    className="px-3 py-1.5 rounded-lg border border-error-border bg-transparent text-error text-xs font-semibold cursor-pointer transition-colors duration-150 hover:bg-error-bg min-h-[36px]"
+                    className="px-3 py-1 rounded-lg border border-error-border bg-transparent text-error text-xs font-semibold cursor-pointer hover:bg-error-bg transition-colors"
                   >
                     Remove
                   </button>
@@ -668,6 +699,296 @@ function Members({ postId, isOwner }) {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/* ── Endorsements — lead reviews each accepted member for a LinkedIn
+   endorsement (endorse, optionally with a proof screenshot, or decline with
+   a required reason); non-leads see only their own status/reason. ── */
+const ENDORSEMENT_STYLES = {
+  pending:  { bg: 'rgba(245,158,11,0.10)', color: '#d97706', border: 'rgba(245,158,11,0.25)', dot: '#f59e0b', label: 'Not Reviewed' },
+  endorsed: { bg: 'rgba(34,197,94,0.10)',  color: '#16a34a', border: 'rgba(34,197,94,0.25)',  dot: '#22c55e', label: 'Endorsed'     },
+  declined: { bg: 'rgba(239,68,68,0.10)',  color: '#dc2626', border: 'rgba(239,68,68,0.25)', dot: '#ef4444', label: 'Declined'    },
+};
+
+function getValidLinkedinUrl(url) {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!/linkedin\.com/i.test(trimmed)) {
+    if (/^[a-zA-Z0-9\-_]+$/.test(trimmed)) {
+      return `https://www.linkedin.com/in/${trimmed}`;
+    }
+    return null;
+  }
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+function EndorsementCard({ postId, endorsement, isOwner, onDecided }) {
+  const { member, status: initialStatus, reason: initialReason, screenshotUrl: initialScreenshotUrl } = endorsement;
+  const [status, setStatus] = useState(initialStatus);
+  const [reason, setReason] = useState(initialReason);
+  const [screenshotUrl, setScreenshotUrl] = useState(initialScreenshotUrl);
+  const [mode, setMode] = useState(null); // null | 'endorsing' | 'declining'
+  const [declineReason, setDeclineReason] = useState('');
+  const [screenshotFile, setScreenshotFile] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const fileRef = useRef(null);
+  const s = ENDORSEMENT_STYLES[status] || ENDORSEMENT_STYLES.pending;
+  const linkedinUrl = getValidLinkedinUrl(member.socialLinks?.linkedin);
+
+  const submitDecision = async (newStatus) => {
+    if (newStatus === 'declined' && !declineReason.trim()) {
+      toast.error('A reason is required when declining to endorse.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append('status', newStatus);
+      if (newStatus === 'declined') fd.append('reason', declineReason.trim());
+      if (newStatus === 'endorsed' && screenshotFile) fd.append('screenshot', screenshotFile);
+
+      const { data } = await api.patch(`/workspace/${postId}/endorsements/${member._id}`, fd);
+      setStatus(data.endorsement.status);
+      setReason(data.endorsement.reason);
+      setScreenshotUrl(data.endorsement.screenshotUrl);
+      setMode(null);
+      setScreenshotFile(null);
+      setDeclineReason('');
+      onDecided?.();
+      toast.success(newStatus === 'endorsed' ? `Marked ${member.name} as endorsed.` : `Recorded decline for ${member.name}.`);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to save decision.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card border border-border/80 hover:border-accent/40 rounded-2xl p-5 shadow-sm transition-all duration-200"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Member Info */}
+        <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
+          <Avatar name={member.name} src={member.avatarUrl} size={48} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap mb-1">
+              <span className="text-[16px] font-bold text-text-primary tracking-tight">{member.name}</span>
+              {member.username && <span className="text-[13px] font-medium text-text-muted">@{member.username}</span>}
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide"
+                style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.dot }} />
+                {s.label}
+              </span>
+            </div>
+
+            {/* LinkedIn Redirect Link */}
+            {linkedinUrl ? (
+              <a
+                href={linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 text-[#0A66C2] dark:text-[#3891e8] dark:bg-[#0A66C2]/20 dark:hover:bg-[#0A66C2]/30 border border-[#0A66C2]/25 transition-all no-underline shadow-2xs hover:shadow-xs mt-1"
+                title={`Redirect to ${linkedinUrl}`}
+              >
+                <LinkedInIcon className="w-3.5 h-3.5 fill-current shrink-0 text-[#0A66C2] dark:text-[#3891e8]" />
+                <span>View LinkedIn Profile</span>
+                <ExternalLink size={12} className="opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />
+              </a>
+            ) : member.socialLinks?.linkedin ? (
+              <div className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-surface-2 text-text-muted border border-border/40 mt-1">
+                <LinkedInIcon className="w-3.5 h-3.5 fill-current opacity-40 shrink-0" />
+                <span className="truncate max-w-[220px]">Invalid link: "{member.socialLinks.linkedin}"</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-surface-2/60 text-text-muted border border-border/40 mt-1">
+                <LinkedInIcon className="w-3.5 h-3.5 fill-current opacity-40 shrink-0" />
+                <span>No LinkedIn profile linked</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Action Buttons for Lead */}
+        {isOwner && status === 'pending' && !mode && (
+          <div className="flex items-center gap-2 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-border/40 w-full sm:w-auto">
+            <button
+              onClick={() => setMode('endorsing')}
+              className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+            >
+              <Award size={15} />
+              <span>Mark Endorsed</span>
+            </button>
+            <button
+              onClick={() => setMode('declining')}
+              className="flex-1 sm:flex-initial px-4 py-2 rounded-xl border border-rose-500/30 hover:border-rose-500/60 bg-rose-500/5 hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-semibold transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+            >
+              <XCircle size={15} />
+              <span>Decline to Endorse</span>
+            </button>
+          </div>
+        )}
+
+        {/* Change Decision Buttons for Lead */}
+        {isOwner && status !== 'pending' && !mode && (
+          <div className="flex items-center gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-border/40 w-full sm:w-auto justify-end">
+            {status !== 'endorsed' && (
+              <button
+                onClick={() => setMode('endorsing')}
+                className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <Award size={13} />
+                <span>Change to Endorsed</span>
+              </button>
+            )}
+            {status !== 'declined' && (
+              <button
+                onClick={() => { setMode('declining'); setDeclineReason(''); }}
+                className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <XCircle size={13} />
+                <span>Change to Decline</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Endorsing Form (Proof Screenshot) */}
+      {isOwner && mode === 'endorsing' && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 pt-4 border-t border-border/50 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[13px] font-semibold text-text-secondary flex items-center gap-1.5">
+              <FileImage size={14} className="text-emerald-500" />
+              <span>Proof Screenshot <span className="font-normal text-text-muted">(optional but recommended)</span></span>
+            </label>
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => setScreenshotFile(e.target.files?.[0] ?? null)} />
+          {screenshotFile ? (
+            <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5">
+              <Upload size={16} className="text-emerald-500" />
+              <span className="text-[13px] font-medium flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-emerald-600 dark:text-emerald-400">{screenshotFile.name}</span>
+              <button type="button" onClick={() => setScreenshotFile(null)} className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-3 transition-colors cursor-pointer"><X size={14} /></button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => fileRef.current?.click()} className="w-full px-4 py-3.5 rounded-xl border-2 border-dashed border-border/80 hover:border-emerald-500/50 bg-surface-2/40 text-text-muted text-[13px] cursor-pointer flex items-center justify-center gap-2 transition-all duration-150 hover:text-emerald-600 dark:hover:text-emerald-400">
+              <Upload size={16} /> Click or drop image to upload LinkedIn endorsement screenshot
+            </button>
+          )}
+          <div className="flex gap-2 justify-end mt-1">
+            <Button variant="ghost" size="sm" onClick={() => { setMode(null); setScreenshotFile(null); }}>Cancel</Button>
+            <button
+              onClick={() => submitDecision('endorsed')}
+              disabled={submitting}
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+            >
+              {submitting ? <Loader2 size={14} className="animate-spin" /> : <Award size={14} />}
+              <span>Confirm Endorsement</span>
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Declining Form (Reason Input) */}
+      {isOwner && mode === 'declining' && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 pt-4 border-t border-border/50 flex flex-col gap-3">
+          <label className="text-[13px] font-semibold text-text-secondary flex items-center gap-1">
+            <span>Reason for Declining</span> <span className="text-rose-500">*</span>
+          </label>
+          <textarea
+            value={declineReason}
+            onChange={(e) => setDeclineReason(e.target.value)}
+            placeholder="Explain briefly why endorsement is declined (e.g., non-responsiveness, incomplete deliverables)..."
+            rows={3}
+            className={fieldClasses}
+          />
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" size="sm" onClick={() => { setMode(null); setDeclineReason(''); }}>Cancel</Button>
+            <button
+              onClick={() => submitDecision('declined')}
+              disabled={submitting || !declineReason.trim()}
+              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+            >
+              {submitting ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+              <span>Confirm Decline</span>
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Proof / Reason Display Section */}
+      {status !== 'pending' && !mode && (
+        <div className="mt-3.5 pt-3 border-t border-border/40">
+          {status === 'endorsed' && screenshotUrl && (
+            <a
+              href={screenshotUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/25 transition-colors no-underline"
+            >
+              <FileImage size={14} />
+              <span>View Endorsement Proof Screenshot</span>
+              <ExternalLink size={12} />
+            </a>
+          )}
+          {status === 'declined' && reason && (
+            <div className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/15 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+              <AlertCircle size={15} className="shrink-0 mt-0.5 text-rose-500" />
+              <div>
+                <span className="font-semibold block mb-0.5">Decline Reason:</span>
+                <p className="leading-relaxed font-normal">"{reason}"</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+function Endorsements({ postId, isOwner }) {
+  const { data, isLoading: loading, refetch } = useWorkspaceEndorsements(postId);
+  if (loading) return <Loader />;
+
+  const endorsements = data?.endorsements ?? [];
+
+  const total = endorsements.length;
+  const endorsedCount = endorsements.filter(e => e.status === 'endorsed').length;
+  const pendingCount = endorsements.filter(e => e.status === 'pending').length;
+  const declinedCount = endorsements.filter(e => e.status === 'declined').length;
+
+  if (total === 0) {
+    return (
+      <div className="text-center px-5 py-12 bg-surface-2/60 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mb-3">
+          <Award size={24} className="text-accent" />
+        </div>
+        <p className="text-base font-semibold text-text-primary mb-1 text-center">
+          {isOwner ? 'No members to review yet' : "You're not eligible for review yet"}
+        </p>
+        <p className="text-sm text-text-muted text-center max-w-sm">
+          {isOwner ? 'Accepted members will show up here for endorsement review.' : "Your project lead hasn't reviewed you yet."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {!isOwner && (
+        <p className="text-xs text-text-muted mb-1">Your project lead's endorsement decision for you on this project.</p>
+      )}
+      {endorsements.map((e) => (
+        <EndorsementCard key={e.member._id ?? e.member} postId={postId} endorsement={e} isOwner={isOwner} onDecided={refetch} />
+      ))}
     </div>
   );
 }
@@ -1479,6 +1800,7 @@ const NAV_ITEMS = [
   { id: 'overview',    label: 'Overview',    icon: LayoutDashboard },
   { id: 'tasks',       label: 'Tasks',       icon: CheckSquare     },
   { id: 'members',     label: 'Members',     icon: Users           },
+  { id: 'endorsements', label: 'Endorsements', icon: Award         },
   { id: 'discussion',  label: 'Discussion',  icon: MessageSquare   },
   { id: 'resources',   label: 'Resources',   icon: BookOpen        },
   { id: 'settings',    label: 'Settings',    icon: SettingsIcon,   ownerOnly: true },
@@ -2321,6 +2643,7 @@ export default function WorkspacePage() {
       case 'overview':   return <Overview   postId={postId} isOwner={isOwner} onEdit={() => setSection('settings')} />;
       case 'tasks':      return <Tasks      postId={postId} isOwner={isOwner} />;
       case 'members':    return <Members    postId={postId} isOwner={isOwner} />;
+      case 'endorsements': return <Endorsements postId={postId} isOwner={isOwner} />;
       case 'discussion': return <Discussion postId={postId} isOwner={isOwner} leadId={leadId} />;
       case 'resources':  return <Resources  postId={postId} isOwner={isOwner} />;
       case 'settings':   return <Settings   postId={postId} isOwner={isOwner} onTitleChange={setPostTitle} />;

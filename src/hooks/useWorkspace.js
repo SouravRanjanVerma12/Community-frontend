@@ -46,6 +46,17 @@ export function useWorkspaceResources(postId) {
   });
 }
 
+export function useWorkspaceEndorsements(postId) {
+  return useQuery({
+    queryKey: ['workspace', postId, 'endorsements'],
+    queryFn: async () => {
+      const { data } = await api.get(`/workspace/${postId}/endorsements`);
+      return data; // { endorsements, isOwner }
+    },
+    enabled: !!postId,
+  });
+}
+
 export function useWorkspaceTasks(postId) {
   return useQuery({
     queryKey: ['workspace', postId, 'tasks'],

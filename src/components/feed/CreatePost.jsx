@@ -135,7 +135,15 @@ export default function CreatePost({ onOpenModal }) {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       close();
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Failed to create post.');
+      const data = err.response?.data;
+      if (err.response?.status === 409 && data?.unreviewedProjects?.length) {
+        const detail = data.unreviewedProjects
+          .map((p) => `"${p.postTitle}" (${p.pendingMembers.map((m) => m.name).join(', ')})`)
+          .join('; ');
+        setError(`${data.message} Unreviewed: ${detail}`);
+      } else {
+        setError(data?.message ?? 'Failed to create post.');
+      }
     } finally {
       setSubmitting(false);
     }
